@@ -1,0 +1,90 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_OPTS: --add-opens java.base/java.lang=ALL-UNNAMED
+    steps:
+    - name: Setup Maven Action
+      uses: s4u/setup-maven-action@v1.18.0
+      with:
+        java-version: 21
+        java-distribution: temurin
+    - name: Setup Graphviz
+      uses: ts-graphviz/setup-graphviz@v2
+    - name: Check license headers
+      run: mvn license:check --batch-mode --update-snapshots --fail-at-end --file pom.xml
+    - name: Build and test with Maven
+      run: mvn verify --batch-mode --update-snapshots --fail-at-end --file pom.xml -Dversion.enduser=${GITHUB_REF_NAME:=dev}
+    - name: Attach Test Report
+      if: success() || failure()
+      uses: scacap/action-surefire-report@v1
+    - name: Attach Design Documentation
+      uses: actions/upload-artifact@v7
+      with:
+        name: xplus-design-documentation
+        path: |
+          bundles/nl.esi.xplus.doc.design/target/website
+          !bundles/nl.esi.xplus.doc.design/target/website/.asciidoctor/**/*
+        retention-days: 10
+    - name: Attach Design Documentation PDF
+      uses: actions/upload-artifact@v7
+      with:
+        path: bundles/nl.esi.xplus.doc.design/target/website/xplus-design.pdf
+        retention-days: 10
+        archive: false
+    - name: Attach P2 Site Archive
+      uses: actions/upload-artifact@v7
+      with:
+        name: xplus-p2-site
+        path: releng/nl.esi.xplus.standard.site/target/*.zip
+        retention-days: 10
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: github.ref_type == 'tag'
+      with:
+        files: |
+          bundles/nl.esi.xplus.doc.design/target/website/xplus-design.pdf
+          releng/nl.esi.xplus.standard.site/target/*.zip
+
+    # Deploy P2 Repository to GitHub Pages for versioned releases
+    - name: Deploy P2 Repository (Release)
+      if: github.ref_type == 'tag' && success()
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./releng/nl.esi.xplus.standard.site/target/repository
+        destination_dir: releases/${{ github.ref_name }}
+        keep_files: true
+
+    # Deploy P2 Repository to GitHub Pages for nightly builds
+    - name: Deploy P2 Repository (Nightly)
+      if: github.ref == 'refs/heads/develop' && success()
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./releng/nl.esi.xplus.standard.site/target/repository
+        destination_dir: nightly
+        keep_files: false
+
+    # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
+    # - name: Update dependency graph
+    #   uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
