@@ -66,6 +66,10 @@ jobs:
           releng/nl.esi.xplus.standard.site/target/*.zip
 
     # Deploy P2 Repository to GitHub Pages for versioned releases
+    # NOTE: After deployment, use these URLs to add the repository in Eclipse:
+    #   - For releases: https://TNO.github.io/XPlus/releases/TAG_NAME
+    #   - For nightly: https://TNO.github.io/XPlus/nightly
+    # Do NOT use the github.com/tree/gh-pages URLs as those are web interface URLs, not P2 repository URLs
     - name: Deploy P2 Repository (Release)
       if: github.ref_type == 'tag' && success()
       uses: peaceiris/actions-gh-pages@v4
