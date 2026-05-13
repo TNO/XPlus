@@ -1,7 +1,7 @@
 # XPlus
 Base Xtext Languages and Eclipse Plugins
 
-XPlus is a collection of base Xtext languages and Eclipse plugins/libraries that serve as the foundation for projects such as Offline MBT and other model-based tools.
+XPlus is a collection of base Xtext languages and Eclipse plugins/libraries that serve as the foundation for projects such as Offline MBT, LSAT and other model-based tools.
 
 ### Conventions
 
@@ -52,7 +52,7 @@ To create a development environment:
 - In the second wizard window:
     - Use the green '+' icon at the top right to add the Oomph setup.
         - For **Catalog**, choose **Github Projects**.
-        - For **Resource URIs**, enter `https://raw.githubusercontent.com/dbera/XPlus/main/XPlus.setup` and make sure there are no spaces before or after the URL.
+        - For **Resource URIs**, enter `https://raw.githubusercontent.com/TNO/XPlus/develop/XPlus.setup` and make sure there are no spaces before or after the URL.
         - Click the **OK** button.
     - Check the checkbox for **XPlus**, from the big list.
       It is under **Github Projects** / **<User>**.
@@ -107,13 +107,13 @@ In your new development environment, consider changing the following settings:
 ### Building with Maven
 
 > [!CAUTION]
-> XPlus should be built using [Maven 3.9](https://maven.apache.org/download.cgi) and a _Java 21 VM_.
+> XPlus should be built using [Maven 3.9.*](https://maven.apache.org/download.cgi) and a _Java 21 VM_.
 > The JDK can be downloaded from e.g. [Adoptium](https://adoptium.net/temurin/archive/?variant=openjdk21&jvmVariant=hotspot&version=21).
 >
 > To test which Java version is used by Maven, type `mvn -version` in a command shell.
 
 To build XPlus with Maven execute the following command in the root:
 
-`mvn clean package -P site`
+`mvn install`
 
 On a successful build, the built Eclipse P2 repository can be found in the **target** folder of the [releng/nl.esi.xplus.standard.site](releng/nl.esi.xplus.standard.site/) project.
