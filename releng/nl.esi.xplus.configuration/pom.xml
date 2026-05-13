@@ -62,9 +62,9 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com:dbera/OfflineMBT.git</connection>
-        <developerConnection>scm:git:git@github.com:dbera/OfflineMBT.git</developerConnection>
-        <url>https://github.com/dbera/OfflineMBT</url>
+        <connection>scm:git:git@github.com:TNO/XPlus.git</connection>
+        <developerConnection>scm:git:git@github.com:TNO/XPlus.git</developerConnection>
+        <url>https://github.com/TNO/XPlus</url>
         <tag>HEAD</tag>
     </scm>
 
