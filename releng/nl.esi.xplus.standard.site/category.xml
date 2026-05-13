@@ -38,12 +38,12 @@
    <bundle id="nl.esi.xtext.lsp.generator.source">
         <category name="LSP Support"/>
    </bundle>
-   <category-def name="XPlus Core" label="XPlus">
+   <category-def name="XPlus" label="XPlus">
       <description>
          XPlus Framework
       </description>
    </category-def>
-   <category-def name="XPlus LSP Support" label="LSP Support">
+   <category-def name="LSP Support" label="LSP Support">
       <description>
          XPlus Framework - LSP Support
       </description>
