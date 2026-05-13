@@ -21,26 +21,31 @@
       <category name="XPlus"/>
    </feature>
    <feature id="nl.esi.xplus.feature.source">
-      <category name="XPlus Source"/>
-   </feature>
-   <feature id="nl.esi.xplus.ui.feature.source">
-      <category name="XPlus Source"/>
-   </feature>
-   <feature id="nl.esi.xplus.license">
       <category name="XPlus"/>
    </feature>
-   <bundle id="nl.esi.xtext.lsp.server"/>
-   <bundle id="nl.esi.xtext.lsp.generator"/>
-   <bundle id="nl.esi.xtext.lsp.server.source"/>
-   <bundle id="nl.esi.xtext.lsp.generator.source"/>
-   <category-def name="XPlus" label="XPlus">
+   <feature id="nl.esi.xplus.ui.feature.source">
+      <category name="XPlus"/>
+   </feature>
+   <bundle id="nl.esi.xtext.lsp.server">
+        <category name="LSP Support"/>
+   </bundle>
+   <bundle id="nl.esi.xtext.lsp.generator">
+        <category name="LSP Support"/>
+   </bundle>
+   <bundle id="nl.esi.xtext.lsp.server.source">
+        <category name="LSP Support"/>
+   </bundle>
+   <bundle id="nl.esi.xtext.lsp.generator.source">
+        <category name="LSP Support"/>
+   </bundle>
+   <category-def name="XPlus Core" label="XPlus">
       <description>
          XPlus Framework
       </description>
    </category-def>
-   <category-def name="XPlus Source" label="XPlus Source Code">
+   <category-def name="XPlus LSP Support" label="LSP Support">
       <description>
-         XPlus Framework - Source Code
+         XPlus Framework - LSP Support
       </description>
    </category-def>
 </site>
