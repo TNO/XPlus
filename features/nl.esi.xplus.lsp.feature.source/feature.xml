@@ -11,8 +11,8 @@
 
 -->
 <feature
-      id="nl.esi.xplus.feature.source"
-      label="XPlus Core DSLs Source"
+      id="nl.esi.xplus.lsp.feature.source"
+      label="XPlus LSP Feature Source"
       version="0.1.0.qualifier"
       provider-name="TNO-ESI"
       license-feature="nl.esi.xplus.license"
@@ -31,32 +31,12 @@ Languages.
       %license
    </license>
 
-   <requires>
-      <import plugin="nl.esi.xtext.lsp.server" version="0.0.0" match="greaterOrEqual"/>
-   </requires>
-
    <plugin
-         id="nl.esi.xtext.types.ide.source"
+         id="Java-WebSocket.source"
          version="0.0.0"/>
 
    <plugin
-         id="nl.esi.xtext.types.source"
-         version="0.0.0"/>
-
-   <plugin
-         id="nl.esi.xtext.actions.source"
-         version="0.0.0"/>
-
-   <plugin
-         id="nl.esi.xtext.expressions.source"
-         version="0.0.0"/>
-
-   <plugin
-         id="nl.esi.xtext.expressions.ide.source"
-         version="0.0.0"/>
-
-   <plugin
-         id="nl.esi.xtext.actions.ide.source"
+         id="nl.esi.xtext.lsp.server.source"
          version="0.0.0"/>
 
 </feature>

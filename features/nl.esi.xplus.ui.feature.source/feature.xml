@@ -47,7 +47,7 @@
          version="0.0.0"/>
 
    <plugin
-         id="nl.esi.xplus.doc.design.source"
+         id="nl.esi.xtext.common.lang.ui.source"
          version="0.0.0"/>
 
 </feature>

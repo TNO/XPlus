@@ -57,7 +57,7 @@
   <setupTask
       xsi:type="setup:EclipseIniTask"
       option="-Doomph.redirection.XPlus"
-      value="=https://raw.githubusercontent.com/dbera/XPlus/main/XPlus.setup->${git.clone.XPlus.location|uri}/XPlus.setup"
+      value="=https://raw.githubusercontent.com/TNO/XPlus/main/XPlus.setup->${git.clone.XPlus.location|uri}/XPlus.setup"
       vm="true">
     <description>Set an Oomph redirection system property to redirect the logical location of this setup to its physical location in the Git clone.</description>
   </setupTask>
@@ -283,7 +283,7 @@
   <setupTask
       xsi:type="git:GitCloneTask"
       id="git.clone.XPlus"
-      remoteURI="dbera/XPlus">
+      remoteURI="TNO/XPlus">
     <annotation
         source="http://www.eclipse.org/oomph/setup/InducedChoices">
       <detail
@@ -439,10 +439,10 @@
   <setupTask
       xsi:type="launching:LaunchTask"
       launcher="Generate all Language Infrastructures"/>
-  <stream name="main"
-      label="Main"/>
+  <stream name="develop"
+      label="Develop"/>
   <logicalProjectContainer
       xsi:type="setup:ProjectCatalog"
       href="index:/org.eclipse.setup#//@projectCatalogs[name='com.github']"/>
-  <description>XPlus provides cool stuff.</description>
+  <description>XPlus from TNO</description>
 </setup:Project>
