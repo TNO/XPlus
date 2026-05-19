@@ -39,4 +39,8 @@ Languages.
          id="nl.esi.xtext.lsp.server.source"
          version="0.0.0"/>
 
+   <plugin
+         id="nl.esi.xtext.lsp.generator.source"
+         version="0.0.0"/>
+
 </feature>
