@@ -25,12 +25,12 @@ class XPlusFileSystemAccess implements IFileSystemAccess {
 	public String outputConfiguration = DEFAULT_OUTPUT
 	String generationFolder	
 	
-	final public static String COMMA_OUTPUT_ID = "outputCommaGen"
-	final public static String COMMA_OUTPUT_FOLDER = "./xplus-gen"
-	public static val OutputConfiguration COMMA_OUTPUT_CONF = {
-		val config = new OutputConfiguration(COMMA_OUTPUT_ID)
-		config.outputDirectory = COMMA_OUTPUT_FOLDER
-		config.description = COMMA_OUTPUT_FOLDER
+	final public static String XPLUS_OUTPUT_ID = "outputXPlusGen"
+	final public static String XPLUS_OUTPUT_FOLDER = "./xplus-gen"
+	public static val OutputConfiguration XPLUS_OUTPUT_CONF = {
+		val config = new OutputConfiguration(XPLUS_OUTPUT_ID)
+		config.outputDirectory = XPLUS_OUTPUT_FOLDER
+		config.description = XPLUS_OUTPUT_FOLDER
 		config.createOutputDirectory = true
 		config.canClearOutputDirectory = true
 		config.cleanUpDerivedResources = true
@@ -56,7 +56,7 @@ class XPlusFileSystemAccess implements IFileSystemAccess {
 		this.fileSystemAccess = fsa		
 		this.generationFolder = generationFolder
 		if(xplusGen) {			
-			setOutPutCommaGen			
+			setOutPutXPlusGen			
 		}	
 	}
 
@@ -98,17 +98,17 @@ class XPlusFileSystemAccess implements IFileSystemAccess {
 		return sb.toString
 	}
 	
-	def setOutPutCommaGen() {
+	def setOutPutXPlusGen() {
 		if (fileSystemAccess instanceof AbstractFileSystemAccess) {
-			outputConfiguration = COMMA_OUTPUT_ID
+			outputConfiguration = XPLUS_OUTPUT_ID
 			val configurations = fileSystemAccess.outputConfigurations
-			if (!configurations.containsKey(COMMA_OUTPUT_ID)) {
+			if (!configurations.containsKey(XPLUS_OUTPUT_ID)) {
 				val newConfigurations = new HashMap(configurations)
-				newConfigurations.put(COMMA_OUTPUT_ID, COMMA_OUTPUT_CONF)
+				newConfigurations.put(XPLUS_OUTPUT_ID, XPLUS_OUTPUT_CONF)
 				fileSystemAccess.outputConfigurations = newConfigurations
 			}
 		} else {
-			generationFolder = FOLDER_UP + "comma-gen/" + generationFolder
+			generationFolder = FOLDER_UP + "xplus-gen/" + generationFolder
 		}
 	}
 

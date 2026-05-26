@@ -28,8 +28,8 @@ class XPlusUtilities {
 		result
 	}
 	
-	static def commaVersion(){
-		"4.0.0"
+	static def xplusVersion(){
+		"0.1.0"
 	}
 	
 }
