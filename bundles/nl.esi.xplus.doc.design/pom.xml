@@ -76,7 +76,7 @@
                             <target>
                                 <replace token="platform:/resource/" value="../../../"
                                     dir="${project.build.directory}/meta-models">
-                                    <include name="**/*.ecore" />
+                                    <include name="*/model/generated/*.*" />
                                 </replace>
                             </target>
                         </configuration>
@@ -109,21 +109,11 @@
                     </execution>
                 </executions>
                 <dependencies>
-                    <!-- Don't know why these dependencies are not picked up from the MANIFEST.MF -->
+                    <!-- Don't know why this dependency is not picked up from the MANIFEST.MF -->
                     <dependency>
                         <groupId>org.eclipse.xtend</groupId>
                         <artifactId>org.eclipse.xtend.lib</artifactId>
                         <version>${xtend.version}</version>
-                    </dependency>
-<!--                    <dependency>-->
-<!--                        <groupId>org.eclipse.emf</groupId>-->
-<!--                        <artifactId>org.eclipse.emf.ecore</artifactId>-->
-<!--                        <version>2.37.0</version>-->
-<!--                    </dependency>-->
-                    <dependency>
-                        <groupId>org.eclipse.emf</groupId>
-                        <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
-                        <version>2.39.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -297,6 +287,30 @@
                         </fileSet>
                     </additionalFileSets>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <!--The Xtext builder reports errors on the copied xtext files,
+                so we'll clean them up immediately after the build-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>remove-meta-models</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.build.directory}/meta-models/</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

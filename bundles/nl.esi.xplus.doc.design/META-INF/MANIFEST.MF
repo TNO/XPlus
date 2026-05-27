@@ -18,6 +18,4 @@ Require-Bundle: com.google.guava,
  nl.esi.xtext.expressions;resolution:=optional,
  nl.esi.xtext.types;resolution:=optional,
  nl.esi.xtext.common.lang;resolution:=optional,
- nl.esi.xtext.lsp.generator;resolution:=optional,
- org.eclipse.emf.codegen.ecore;resolution:=optional,
- org.eclipse.emf.ecore.xmi;resolution:=optional
+ nl.esi.xtext.lsp.generator;resolution:=optional
