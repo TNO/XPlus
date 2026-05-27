@@ -27,9 +27,4 @@ class XPlusUtilities {
 		}
 		result
 	}
-	
-	static def xplusVersion(){
-		"0.1.0"
-	}
-	
 }
