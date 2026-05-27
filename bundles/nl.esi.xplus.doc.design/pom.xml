@@ -31,75 +31,42 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>unpack-ecore-models</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
+                            <stripVersion>true</stripVersion>
+                            <stripClassifier>true</stripClassifier>
+                            <stripType>true</stripType>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <includeGroupIds>nl.esi.xplus</includeGroupIds>
+                            <includes>META-INF/MANIFEST.MF,model/generated/*.*,**/*.xtext</includes>
+                            <outputDirectory>${project.build.directory}/meta-models/</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>unpack-adoc-resources</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
                             <includes>adoc/**</includes>
                             <outputDirectory>${project.build.directory}/adoc-ext</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <mainClass>nl.esi.xplus.doc.design.GenerateGrammarsDiagram</mainClass>
-                            <includePluginDependencies>true</includePluginDependencies>
-                            <arguments>
-                                <argument>${project.basedir}/..</argument>
-                                <argument>${project.build.directory}/adoc-gen/xtext-grammars.plantuml</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <!-- Don't know why this dependency is not picked up from the MANIFEST.MF -->
-                    <dependency>
-                        <groupId>org.eclipse.xtend</groupId>
-                        <artifactId>org.eclipse.xtend.lib</artifactId>
-                        <version>${xtend.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
 
-            <!-- Start: Preparing EcoreDoc -->
-            <!-- EcoreDoc cannot handle ecore references based on platform:/resource/ uris yet -->
-            <!-- Workaround: Copy all generated ecore models and change uris to relative uris -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/..</directory>
-                                    <includes>
-                                        <include>*/model/generated/*.ecore</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                            <outputDirectory>${project.build.directory}/meta-models</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
+            <!-- Start: Preparing EcoreDoc and GenerateGrammarsDiagram -->
+            <!-- Both cannot handle ecore references based on platform:/resource/ uris yet -->
+            <!-- Workaround: Process all generated ecore models and change uris to relative uris -->
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
@@ -119,7 +86,47 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- End: Preparing EcoreDoc -->
+            <!-- End: Preparing EcoreDoc and GenerateGrammarsDiagram -->
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>nl.esi.xplus.doc.design.GenerateGrammarsDiagram</mainClass>
+                            <includePluginDependencies>true</includePluginDependencies>
+                            <arguments>
+                                <argument>${project.build.directory}/meta-models</argument>
+                                <argument>${project.build.directory}/adoc-gen/xtext-grammars.plantuml</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!-- Don't know why these dependencies are not picked up from the MANIFEST.MF -->
+                    <dependency>
+                        <groupId>org.eclipse.xtend</groupId>
+                        <artifactId>org.eclipse.xtend.lib</artifactId>
+                        <version>${xtend.version}</version>
+                    </dependency>
+<!--                    <dependency>-->
+<!--                        <groupId>org.eclipse.emf</groupId>-->
+<!--                        <artifactId>org.eclipse.emf.ecore</artifactId>-->
+<!--                        <version>2.37.0</version>-->
+<!--                    </dependency>-->
+                    <dependency>
+                        <groupId>org.eclipse.emf</groupId>
+                        <artifactId>org.eclipse.emf.codegen.ecore</artifactId>
+                        <version>2.39.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
 
             <plugin>
                 <groupId>com.altran.general.emf.ecoredoc</groupId>

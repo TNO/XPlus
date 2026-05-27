@@ -17,20 +17,28 @@ import java.util.jar.Manifest
 import java.util.regex.Pattern
 import java.util.stream.Collectors
 import java.util.stream.Stream
+import org.eclipse.emf.codegen.ecore.genmodel.GenModel
+import org.eclipse.emf.codegen.ecore.genmodel.GenModelPackage
+import org.eclipse.emf.common.util.URI
+import org.eclipse.emf.ecore.EPackage
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
+import org.eclipse.emf.ecore.xmi.impl.EcoreResourceFactoryImpl
 import org.eclipse.xtend.lib.annotations.Accessors
 
 class GenerateGrammarsDiagram {
     static val TERMINALS_GRAMMAR = new Grammar => [
-        bundle = 'org.eclipse.xtext.common'
+        bundle = 'org.eclipse.xtext'
         name = 'org.eclipse.xtext.common.Terminals'
     ]
 
-    static val GRAMMAR_PATTERN = Pattern.compile('''^grammar\s+((\w+\.)*\w+)\s+with\s+((\w+\.)*\w+)''')
+    static val GRAMMAR_PATTERN = Pattern.compile('''^grammar\s+((\w+\.)*\w+)(\s+with\s+((\w+\.)*\w+))?(\s+hidden\s*\((\w+(,\s*\w+)*)\))?\s*''')
     static val GENERATE_PATTERN = Pattern.compile('''^generate\s+(\w+)\s+"([^"]+)"''')
     static val IMPORT_PATTERN = Pattern.compile('''^import\s+"([^"]+)"\s+as\s+(\w+)''')
-    static val FILE_EXTENSIONS_PATTERN = Pattern.compile('''^\s*fileExtensions\s+=\s+"([^"]+)"''')
 
     def static void main(String[] args) {
+        genmodelStandaloneSetup()
+
         if (args.size != 2) {
             System.err.println('Expected two arguments: [bundles_directory] [output-file]')
             System.exit(1)
@@ -39,12 +47,14 @@ class GenerateGrammarsDiagram {
         val outputFile = Path.of(args.get(1))
         println('''Generate diagram: «bundlesDir» => «outputFile»''')
 
-        val xtextFiles = Files.find(bundlesDir, Integer.MAX_VALUE, [$0.toString.endsWith('.xtext')]).toIterable
+        val xtextFiles = Files.find(bundlesDir, Integer.MAX_VALUE, [$1.regularFile && $0.toString.endsWith('.xtext')]).toIterable
         val grammars = xtextFiles.map[createGrammar(bundlesDir)].filterNull.toList
-        grammars += TERMINALS_GRAMMAR
+        if (!grammars.exists[name == 'org.eclipse.xtext.common.Terminals']) {
+            grammars += TERMINALS_GRAMMAR
+        }
         // Reduce grammar dependencies
         grammars.forEach[
-            bundleUses.removeAll(getParentGrammar(grammars)?.bundle)
+            bundleUses.removeAll(getParentGrammars(grammars).map[bundle])
             grammarUses.removeAll(getParentGrammars(grammars).map[uri])
         ]
         grammars.sortInplace[a, b |
@@ -58,6 +68,13 @@ class GenerateGrammarsDiagram {
         Files.write(outputFile, #[grammars.generatePlantUml])
 
         println(grammars.join('\n')['''<inputFile>${project.build.directory}/meta-models/«bundle»/model/generated/«simpleName».ecore</inputFile>'''])
+    }
+
+    def static void genmodelStandaloneSetup() {
+        if (!EPackage.Registry.INSTANCE.containsKey(GenModelPackage.eNS_URI)) {
+            EPackage.Registry.INSTANCE.put(GenModelPackage.eNS_URI, GenModelPackage.eINSTANCE)
+        }
+        Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap().put(GenModelPackage.eNAME, new EcoreResourceFactoryImpl());
     }
 
     def static String generatePlantUml(Iterable<Grammar> grammars) '''
@@ -97,25 +114,32 @@ class GenerateGrammarsDiagram {
     '''
 
     def static Grammar createGrammar(Path xtextFile, Path bundlesDir) {
-        if (xtextFile.contains(Path.of('target')) || xtextFile.contains(Path.of('bin'))) {
-            return null
-        }
+        println(xtextFile)
         val fileName = com.google.common.io.Files.getNameWithoutExtension(xtextFile.fileName.toString)
-        val xtextLines = Files.lines(xtextFile).toIterable
-        val mwe2Lines = Files.lines(xtextFile.resolveSibling('''Generate«fileName».mwe2''')).toIterable
         val bundlePath = xtextFile.getName(bundlesDir.nameCount)
+
+        val xtextLines = Files.lines(xtextFile).toIterable
+        val genmodel = bundlesDir.resolve(bundlePath).resolve('''model/generated/«fileName».genmodel''')
         val manifest = new Manifest(bundlesDir.resolve(bundlePath).resolve('META-INF/MANIFEST.MF').read)
         val requiredBundles = manifest.mainAttributes.getValue('Require-Bundle')
 
         return new Grammar => [
             bundle = bundlePath.toString
             name = xtextLines.matchAndReturn(GRAMMAR_PATTERN, '$1').head
-            parent = xtextLines.matchAndReturn(GRAMMAR_PATTERN, '$3').head
+            parent = xtextLines.matchAndReturn(GRAMMAR_PATTERN, '$4').head
             uri = xtextLines.matchAndReturn(GENERATE_PATTERN, '$2').head
             grammarUses += xtextLines.matchAndReturn(IMPORT_PATTERN, '$1')
             bundleUses += requiredBundles.split(',').map[split(';').head]
-            fileExtensions = mwe2Lines.matchAndReturn(FILE_EXTENSIONS_PATTERN, '$1').head
+            fileExtensions = genmodel.fileExtensions
         ]
+    }
+
+    def static String getFileExtensions(Path genmodelPath) {
+        if (!Files.isRegularFile(genmodelPath)) {
+            return null
+        }
+        val genmodelResource = new ResourceSetImpl().getResource(URI.createFileURI(genmodelPath.toString), true)
+        return genmodelResource.contents.filter(GenModel).flatMap[genPackages].map[fileExtensions].join(', ')
     }
 
     @Accessors
@@ -137,14 +161,13 @@ class GenerateGrammarsDiagram {
         def Set<Grammar> getParentGrammars(Iterable<Grammar> grammars) {
             val parents = newLinkedHashSet
             var parent = this.getParentGrammar(grammars)
-            while (parent !== null) {
-                parents += parent
+            while (parent !== null && parents.add(parent)) {
                 parent = parent.getParentGrammar(grammars)
             }
             return parents
         }
 
-        def Grammar getParentGrammar(Iterable<Grammar> grammars) {
+        def private Grammar getParentGrammar(Iterable<Grammar> grammars) {
             return grammars.findFirst[g | g.name == this.parent]
         }
     }
