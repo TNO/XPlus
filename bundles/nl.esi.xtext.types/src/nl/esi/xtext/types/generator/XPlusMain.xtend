@@ -41,7 +41,7 @@ class XPlusMain {
 	static final String ERR_LOCATION_WRONG = 'Location could not be found. '
 	
 	static final String INFO_GENERATION_FINISHED = 'Code generation finished.'
-	static final String INFO_COMMA_FINISHED = 'All XPlus Tasks are finished.'
+	static final String INFO_XPLUS_FINISHED = 'All XPlus Tasks are finished.'
 	static final String INFO_SEARCHING = 'Searching for {0} ({1}) files in {2}'
 	static final String INFO_OUTPUT = 'Output set: '
 	static final String INFO_STOP = 'Errors found, stopping generation.'
@@ -219,7 +219,7 @@ class XPlusMain {
 
 		// Configure and start the generator
 		fileAccess.outputPath = outputdir.toString
-		setCommaGen(fileAccess, outputdir.toString)
+		setXPlusGen(fileAccess, outputdir.toString)
 		
 		generator.generate(resource, fileAccess, cliContext)
 	}
@@ -335,7 +335,7 @@ class XPlusMain {
 		}
 		System.out.println(INFO_GENERATION_FINISHED)
 		System.out.println("")
-		System.out.println(INFO_COMMA_FINISHED)	
+		System.out.println(INFO_XPLUS_FINISHED)	
 	}
 
 	def Options createOptions() {
@@ -467,7 +467,7 @@ class XPlusMain {
 
 		// Configure and start the generator
 		fileAccess.outputPath = outputdir
-		setCommaGen(fileAccess, outputdir)
+		setXPlusGen(fileAccess, outputdir)
 		
 		generator.generate(resource, fileAccess, cliContext)
 	}
@@ -488,7 +488,7 @@ class XPlusMain {
 		var cliContext = new StepsParserContext(stepsPath.toString, contexts, outputdir)
 		// Configure and start the generator
 		fileAccess.outputPath = outputdir
-		setCommaGen(fileAccess, outputdir)
+		setXPlusGen(fileAccess, outputdir)
 		
 		generator.generate(resource, fileAccess, cliContext)
 	}
@@ -517,7 +517,7 @@ class XPlusMain {
 		}
 		// Configure and start the generator
 		fileAccess.outputPath = outputdir
-		setCommaGen(fileAccess, outputdir)
+		setXPlusGen(fileAccess, outputdir)
 		
 		try {
             generator.generate(resource, fileAccess, new CmdLineContext)
@@ -532,16 +532,16 @@ class XPlusMain {
 	def cleanOutput(CommandLine cmdLine, Path outputdir) {
 		if (cmdLine.hasOption(OPT_CLEAN)) {
 			println("Start cleaning output directory.")
-			val commagendir = outputdir.parent.resolve(nl.esi.xtext.types.generator.XPlusFileSystemAccess.COMMA_OUTPUT_CONF.outputDirectory).normalize
+			val xplusgendir = outputdir.parent.resolve(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_CONF.outputDirectory).normalize
 			//clean src-gen
 			if(new File(outputdir.toString).exists){
 				Files.walk(outputdir)
 				.sorted(Comparator.reverseOrder())
 				.forEach[Files::delete(it)]
 			}
-			//clean comma-gen
-			if(new File(commagendir.toString).exists){
-				Files.walk(commagendir)
+			//clean xplus-gen
+			if(new File(xplusgendir.toString).exists){
+				Files.walk(xplusgendir)
 				.sorted(Comparator.reverseOrder())
 				.forEach[Files::delete(it)]
 			}
@@ -549,15 +549,15 @@ class XPlusMain {
 		}
 	}
 
-	def setCommaGen(JavaIoFileSystemAccess fileAccess, String outputdir) {
-		val commaConf = nl.esi.xtext.types.generator.XPlusFileSystemAccess.COMMA_OUTPUT_CONF
-		commaConf.outputDirectory = Paths.get(outputdir).parent.toString + commaConf.outputDirectory
-		fileAccess.outputConfigurations.put(nl.esi.xtext.types.generator.XPlusFileSystemAccess.COMMA_OUTPUT_ID, commaConf)
+	def setXPlusGen(JavaIoFileSystemAccess fileAccess, String outputdir) {
+		val xplusConf = nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_CONF
+		xplusConf.outputDirectory = Paths.get(outputdir).parent.toString + xplusConf.outputDirectory
+		fileAccess.outputConfigurations.put(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_ID, xplusConf)
 	}
 	
-	def getCommaGen() {
-		val commaGen = fileAccess.outputConfigurations.get(nl.esi.xtext.types.generator.XPlusFileSystemAccess.COMMA_OUTPUT_ID)		
-		commaGen.outputDirectory
+	def getXPlusGen() {
+		val xplusGen = fileAccess.outputConfigurations.get(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_ID)		
+		xplusGen.outputDirectory
 	}
 
 	def getJarDir() {		

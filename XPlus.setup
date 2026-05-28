@@ -57,7 +57,7 @@
   <setupTask
       xsi:type="setup:EclipseIniTask"
       option="-Doomph.redirection.XPlus"
-      value="=https://raw.githubusercontent.com/TNO/XPlus/main/XPlus.setup->${git.clone.XPlus.location|uri}/XPlus.setup"
+      value="=https://raw.githubusercontent.com/TNO/XPlus/develop/XPlus.setup->${git.clone.XPlus.location|uri}/XPlus.setup"
       vm="true">
     <description>Set an Oomph redirection system property to redirect the logical location of this setup to its physical location in the Git clone.</description>
   </setupTask>
@@ -116,13 +116,13 @@
           value="false"/>
     </setupTask>
     <setupTask
-    xsi:type="setup:CompoundTask"
-    name="Java Development">
-  <setupTask
-      xsi:type="setup:PreferenceTask"
-      key="org.eclipse.jdt.core.compiler.codegen.methodParameters"
-      value="generate"/>
-</setupTask>
+        xsi:type="setup:CompoundTask"
+        name="Java Development">
+      <setupTask
+          xsi:type="setup:PreferenceTask"
+          key="org.eclipse.jdt.core.compiler.codegen.methodParameters"
+          value="generate"/>
+    </setupTask>
     <setupTask
         xsi:type="setup:CompoundTask"
         name="org.eclipse.debug.ui">

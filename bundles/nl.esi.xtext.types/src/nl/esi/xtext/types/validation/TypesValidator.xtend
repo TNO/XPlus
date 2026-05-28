@@ -252,7 +252,7 @@ class TypesValidator extends AbstractTypesValidator {
 	 @Inject
 	 override register(EValidatorRegistrar registrar) {
 	 	super.register(registrar)
-    	val VALIDATOR_ID = "nl.esi.xtext.types.commaValidator"
+    	val VALIDATOR_ID = "nl.esi.xtext.types.xplusValidator"
     	val reg = Platform.getExtensionRegistry()
     	if(reg !== null){
     		val extensions = reg.getConfigurationElementsFor(VALIDATOR_ID)

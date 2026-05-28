@@ -27,9 +27,4 @@ class XPlusUtilities {
 		}
 		result
 	}
-	
-	static def commaVersion(){
-		"4.0.0"
-	}
-	
 }

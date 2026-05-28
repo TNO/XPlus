@@ -123,7 +123,7 @@
          <meta.section type="examples"/>
       </appInfo>
       <documentation>
-         &lt;extension point=&quot;nl.esi.xtext.types.commaValidator&quot;&gt;
+         &lt;extension point=&quot;nl.esi.xtext.types.xplusValidator&quot;&gt;
     &lt;customValidator
         class=&quot;nl.esi.xplus.project.dynamics.validation.InterfaceValidator&quot;
         language=&quot;InterfaceDefinition&quot;&gt;

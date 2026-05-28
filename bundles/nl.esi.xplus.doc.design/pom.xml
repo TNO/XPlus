@@ -31,18 +31,63 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>unpack-ecore-models</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <useSubDirectoryPerArtifact>true</useSubDirectoryPerArtifact>
+                            <stripVersion>true</stripVersion>
+                            <stripClassifier>true</stripClassifier>
+                            <stripType>true</stripType>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <includeGroupIds>nl.esi.xplus</includeGroupIds>
+                            <includes>META-INF/MANIFEST.MF,model/generated/*.*,**/*.xtext</includes>
+                            <outputDirectory>${project.build.directory}/meta-models/</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>unpack-adoc-resources</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
                             <includes>adoc/**</includes>
                             <outputDirectory>${project.build.directory}/adoc-ext</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Start: Preparing EcoreDoc and GenerateGrammarsDiagram -->
+            <!-- Both cannot handle ecore references based on platform:/resource/ uris yet -->
+            <!-- Workaround: Process all generated ecore models and change uris to relative uris -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <target>
+                                <replace token="platform:/resource/" value="../../../"
+                                    dir="${project.build.directory}/meta-models">
+                                    <include name="*/model/generated/*.*" />
+                                </replace>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- End: Preparing EcoreDoc and GenerateGrammarsDiagram -->
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -57,7 +102,7 @@
                             <mainClass>nl.esi.xplus.doc.design.GenerateGrammarsDiagram</mainClass>
                             <includePluginDependencies>true</includePluginDependencies>
                             <arguments>
-                                <argument>${project.basedir}/..</argument>
+                                <argument>${project.build.directory}/meta-models</argument>
                                 <argument>${project.build.directory}/adoc-gen/xtext-grammars.plantuml</argument>
                             </arguments>
                         </configuration>
@@ -72,54 +117,6 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
-            <!-- Start: Preparing EcoreDoc -->
-            <!-- EcoreDoc cannot handle ecore references based on platform:/resource/ uris yet -->
-            <!-- Workaround: Copy all generated ecore models and change uris to relative uris -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/..</directory>
-                                    <includes>
-                                        <include>*/model/generated/*.ecore</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                            <outputDirectory>${project.build.directory}/meta-models</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <configuration>
-                            <target>
-                                <replace token="platform:/resource/" value="../../../"
-                                    dir="${project.build.directory}/meta-models">
-                                    <include name="**/*.ecore" />
-                                </replace>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- End: Preparing EcoreDoc -->
 
             <plugin>
                 <groupId>com.altran.general.emf.ecoredoc</groupId>
@@ -290,6 +287,30 @@
                         </fileSet>
                     </additionalFileSets>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <!--The Xtext builder reports errors on the copied xtext files,
+                so we'll clean them up immediately after the build-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>remove-meta-models</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.build.directory}/meta-models/</directory>
+                                </fileset>
+                            </filesets>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
