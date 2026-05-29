@@ -112,11 +112,31 @@ See <<how-to-add-an-expression-function-library>> for details on template functi
 Declared Functions can be called as follows:
 
 * `function_name(args)`
+* `function_name(positional_args, name = value, ...)`
 
 ....
 int total = sum(v)             // calls function explicitely declared in the model
 int numbers = range(1, 10, 2)  // calls a default function
 ....
+
+==== Named Arguments
+
+Function calls support named arguments, which allow specifying arguments by parameter name rather than position. Named arguments must appear after all positional (indexed) arguments:
+
+....
+function string formatDate(int year, int month, int day)
+
+string d1 = formatDate(2026, 5, 29)                    // all positional
+string d2 = formatDate(2026, month = 5, day = 29)      // mixed positional and named
+....
+
+Rules for named arguments:
+
+* Named arguments must come after all positional arguments.
+* A parameter cannot be specified both positionally and by name.
+* Duplicate named arguments (same name used twice) are not allowed.
+* The named argument name must match a declared parameter name.
+* The total number of positional plus named arguments must match the function's parameter count.
 
 === Parentheses
 

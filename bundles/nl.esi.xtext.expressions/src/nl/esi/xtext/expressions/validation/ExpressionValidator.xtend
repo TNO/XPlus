@@ -51,8 +51,8 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScopeProvider
 import org.eclipse.xtext.validation.Check
 
-import static extension nl.esi.xtext.expressions.utilities.ExpressionsUtilities.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
+import static extension nl.esi.xtext.expressions.utilities.ExpressionsUtilities.*
 
 /*
  * This class mainly captures the XPlus type system for expressions. Constraints are not formulated
@@ -254,29 +254,51 @@ class ExpressionValidator extends AbstractExpressionValidator {
 			}
             ExpressionFunctionCall: {
                 if (e.function === null || e.function.name === null) {
-                    error('''Function declaration not found. Name or number of args («e.args.size») is wrong''', null)
+                    error('''Function declaration not found. Name or number of args («e.args.size») is wrong''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
                     return
                 }
-                if (e.args.size != e.function.params.size) {
-                    error('''No Function «e.function.name» declared with «e.args.size» arguments.''', null)
-                } else {
-                    val ambiguousTypes = e.function.typeParams.filter[tp |tp.getActualFunctionTypes(e).size>1].toList
+                val totalArgs = e.args.size + e.namedArgs.size
+                val duplicates = e.namedArgs.groupBy[name].values.filter[size>1].flatten
+                if (!duplicates.empty) {
+                    for( it : e.namedArgs.groupBy[name].values.filter[size>1].flatten) {
+                        error('''Duplicate argument with name «name».''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS,e.namedArgs.indexOf(it))
+                    }
+                    return 
+                }
+                if (totalArgs != e.function.params.size) {
+                    error('''No Function «e.function.name» declared with «totalArgs» arguments.''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
+                    return
+                } 
 
-                    for (var i = 0; i < e.args.size; i++) {
-                        val arg = e.args.get(i)
-                        val param = e.function.params.get(i)
-                        val paramType = param.type.inferActualType(arg)?.typeObject
-                        val argType = arg.typeOf
-                        if (!argType.subTypeOf(paramType) ) {
-                            error('''Function «e.function.name» expects argument «param.name» to be of type «paramType.typeName».''',
-                                e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
-                        }
-                        val containedGenerics = param.type.genericsTypeParams
-                        val isAmbiguous = !containedGenerics.filter[ambiguousTypes.contains(it)].empty
-                        if (isAmbiguous){
-                            error('''Function «e.function.name» generic type mismatch typeParam «param.name» resolving is ambiguous''',
-                               e,  ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
-                        }
+                val paramList = e.function.params.map[name]
+                for (na : e.namedArgs){
+                    val paramIndex = paramList.indexOf(na.name)
+                    if(paramIndex === -1) {
+                        error('''Unknown argument name «na.name» for function «e.function.name»''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS, e.namedArgs.indexOf(na))
+                        return
+                    }
+                    if (paramIndex < e.args.size ) {
+                        error('''Argument name «na.name» with index «paramIndex» has already been specified as numbered arg''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS, e.namedArgs.indexOf(na))
+                        return
+                    }
+                }
+
+                val ambiguousTypes = e.function.typeParams.filter[tp |tp.getActualFunctionTypes(e).size>1].toList
+                val args = e.functionArgs
+                for (var i = 0; i < args.size; i++) {
+                    val arg = args.get(i)
+                    val param = e.function.params.get(i)
+                    val paramType = param.type.inferActualType(arg)?.typeObject
+                    val argType = arg.typeOf
+                    if (!argType.subTypeOf(paramType) ) {
+                        error('''Function «e.function.name» expects argument «param.name» to be of type «paramType.typeName».''',
+                            e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
+                    }
+                    val containedGenerics = param.type.genericsTypeParams
+                    val isAmbiguous = !containedGenerics.filter[ambiguousTypes.contains(it)].empty
+                    if (isAmbiguous){
+                        error('''Function «e.function.name» generic type mismatch typeParam «param.name» resolving is ambiguous''',
+                           e,  ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
                     }
                 }
             }
