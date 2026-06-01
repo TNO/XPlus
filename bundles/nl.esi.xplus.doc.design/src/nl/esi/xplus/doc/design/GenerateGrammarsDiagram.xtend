@@ -20,10 +20,8 @@ import java.util.stream.Stream
 import org.eclipse.xtend.lib.annotations.Accessors
 
 class GenerateGrammarsDiagram {
-    static val TERMINALS_GRAMMAR = new Grammar => [
-        bundle = 'org.eclipse.xtext'
-        name = 'org.eclipse.xtext.common.Terminals'
-    ]
+    static val TERMINALS_GRAMMAR__BUNDLE = 'org.eclipse.xtext'
+    static val TERMINALS_GRAMMAR__NAME = 'org.eclipse.xtext.common.Terminals'
 
     static val GRAMMAR_PATTERN = Pattern.compile('''^grammar\s+((\w+\.)*\w+)(\s+with\s+((\w+\.)*\w+))?(\s+hidden\s*\((\w+(,\s*\w+)*)\))?\s*''')
     static val GENERATE_PATTERN = Pattern.compile('''^generate\s+(\w+)\s+"([^"]+)"''')
@@ -31,18 +29,28 @@ class GenerateGrammarsDiagram {
     static val FILE_EXTENSIONS_PATTERN = Pattern.compile('''^.*fileExtensions\s*=\s*"([^"]+)".*''')
 
     def static void main(String[] args) {
-        if (args.size != 2) {
-            System.err.println('Expected two arguments: [bundles_directory] [output-file]')
+        if (args.size < 2 || args.size > 3) {
+            System.err.println('Usage: <bundles_directory> <output-file> [<includes>]')
+            System.err.println()
+            System.err.println('includes\tA comma separated list of bundle prefixes to include')
             System.exit(1)
         }
         val bundlesDir = Path.of(args.get(0)).toRealPath()
         val outputFile = Path.of(args.get(1))
-        println('''Generate diagram: «bundlesDir» => «outputFile»''')
+        val includes = args.length > 2 ? args.get(2).split(',').map[trim]
+        println('''Generate diagram: «bundlesDir» «includes» => «outputFile»''')
 
-        val xtextFiles = Files.find(bundlesDir, Integer.MAX_VALUE, [$1.regularFile && $0.toString.endsWith('.xtext')]).toIterable
+        val xtextFiles = Files.find(bundlesDir, Integer.MAX_VALUE, [ path, attrs |
+            val relativePath = bundlesDir.relativize(path).toString
+            val included = includes.isNullOrEmpty || includes.exists[include | relativePath.startsWith(include)]
+            return included && attrs.regularFile && relativePath.endsWith('.xtext')
+        ]).toIterable
         val grammars = xtextFiles.map[createGrammar(bundlesDir)].filterNull.toList
-        if (!grammars.exists[name == 'org.eclipse.xtext.common.Terminals']) {
-            grammars += TERMINALS_GRAMMAR
+        if (grammars.exists[parent == TERMINALS_GRAMMAR__NAME] && !grammars.exists[name == TERMINALS_GRAMMAR__NAME]) {
+            grammars += new Grammar => [
+                bundle = TERMINALS_GRAMMAR__BUNDLE
+                name = TERMINALS_GRAMMAR__NAME
+            ]
         }
         // Reduce grammar dependencies
         grammars.forEach[

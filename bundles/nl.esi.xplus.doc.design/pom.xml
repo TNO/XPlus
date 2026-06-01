@@ -43,7 +43,6 @@
                             <stripType>true</stripType>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
-                            <includeGroupIds>nl.esi.xplus</includeGroupIds>
                             <includes>META-INF/MANIFEST.MF,model/generated/*.*,**/*.xtext</includes>
                             <outputDirectory>${project.build.directory}/meta-models/</outputDirectory>
                         </configuration>
@@ -104,6 +103,7 @@
                             <arguments>
                                 <argument>${project.build.directory}/meta-models</argument>
                                 <argument>${project.build.directory}/adoc-gen/xtext-grammars.plantuml</argument>
+                                <argument>nl.esi.</argument>
                             </arguments>
                         </configuration>
                     </execution>

@@ -13,6 +13,6 @@
     <booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_CLASSPATH_ONLY_JAR" value="false"/>
     <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="nl.esi.xplus.doc.design.GenerateGrammarsDiagram"/>
     <stringAttribute key="org.eclipse.jdt.launching.MODULE_NAME" value="nl.esi.xplus.doc.design"/>
-    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="${project_loc}/target/meta-models ${project_loc}/target/adoc-gen/xtext-grammars.plantuml"/>
+    <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="${project_loc}/target/meta-models ${project_loc}/target/adoc-gen/xtext-grammars.plantuml nl.esi."/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="nl.esi.xplus.doc.design"/>
 </launchConfiguration>
