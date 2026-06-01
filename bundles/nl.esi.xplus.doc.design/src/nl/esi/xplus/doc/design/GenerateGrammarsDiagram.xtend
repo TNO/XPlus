@@ -125,7 +125,9 @@ class GenerateGrammarsDiagram {
             g.parent = xtextLines.matchAndReturn(GRAMMAR_PATTERN, '$4').head
             g.uri = xtextLines.matchAndReturn(GENERATE_PATTERN, '$2').head
             g.grammarUses += xtextLines.matchAndReturn(IMPORT_PATTERN, '$1')
-            g.bundleUses += requiredBundles.split(',').map[split(';').head]
+            if (!requiredBundles.isNullOrEmpty) {
+                g.bundleUses += requiredBundles.split(',').map[split(';').head]
+            }
             g.fileExtensions = fileExtensions
         ]
     }
