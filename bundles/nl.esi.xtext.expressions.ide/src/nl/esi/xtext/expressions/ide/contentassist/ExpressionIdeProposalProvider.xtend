@@ -88,7 +88,7 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         }
 
         try {
-            val defaultValue = ProposalHelper.defaultValue(typeAnn, targetName)
+            val defaultValue = createDefaultValueEntry(typeAnn, targetName, context)
             val proposal = proposalCreator.createProposal(defaultValue, context, [ entry |
                 entry.kind = ContentAssistEntry.KIND_SNIPPET
                 entry.label = ProposalHelper.getTypeName(typeAnn)
@@ -103,6 +103,10 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         }
     }
 
+    protected def String createDefaultValueEntry(TypeAnnotation typeAnn, String targetName, ContentAssistContext context) {
+        return ProposalHelper.defaultValue(typeAnn, targetName)
+    }
+
     protected def createDefaultValue(Type type, String targetName, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {
         if (type instanceof TypeReference && type.type instanceof EnumTypeDecl) {
             createEnumValues(type.type as EnumTypeDecl, context, acceptor)
@@ -110,7 +114,7 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         }
 
         try {
-            val defaultValue = ProposalHelper.defaultValue(type, targetName)
+            val defaultValue = createDefaultValueEntry(type, targetName, context)
             val proposal = proposalCreator.createProposal(defaultValue, context, [ entry |
                 entry.kind = ContentAssistEntry.KIND_SNIPPET
                 entry.label = ProposalHelper.getTypeName(type)
@@ -123,6 +127,10 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         } catch (UnsupportedTypeException e) {
             // Ignore
         }
+    }
+
+    protected def String createDefaultValueEntry(Type type, String targetName, ContentAssistContext context) {
+        return ProposalHelper.defaultValue(type, targetName)
     }
 
     protected def createEnumValues(EnumTypeDecl type, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {
