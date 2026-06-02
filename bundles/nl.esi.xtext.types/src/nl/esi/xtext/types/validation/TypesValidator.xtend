@@ -14,18 +14,18 @@ package nl.esi.xtext.types.validation
 
 import com.google.inject.Inject
 import java.util.Set
+import nl.esi.xtext.common.lang.base.BasePackage
+import nl.esi.xtext.common.lang.base.ModelContainer
 import nl.esi.xtext.types.BasicTypes
 import nl.esi.xtext.types.scoping.TypesImportUriGlobalScopeProvider
 import nl.esi.xtext.types.types.EnumTypeDecl
+import nl.esi.xtext.types.types.GenericsTypeParam
 import nl.esi.xtext.types.types.MapTypeConstructor
-import nl.esi.xtext.types.types.RecordFieldKind
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.SimpleTypeDecl
 import nl.esi.xtext.types.types.Type
 import nl.esi.xtext.types.types.TypesModel
 import nl.esi.xtext.types.types.TypesPackage
-import nl.esi.xtext.common.lang.base.BasePackage
-import nl.esi.xtext.common.lang.base.ModelContainer
 import org.eclipse.core.runtime.Platform
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EValidator
@@ -34,7 +34,6 @@ import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.EValidatorRegistrar
 
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
-import nl.esi.xtext.types.types.GenericsTypeParam
 
 /**
  * This class contains custom validation rules. 
@@ -240,19 +239,19 @@ class TypesValidator extends AbstractTypesValidator {
 	 *   + the chain of dependencies induced by record fields contains no cycles.
 	 *     Clarification: record R1 with field A of type R2, R2 with field b of type R1 is not allowed.
 	 *     Fields of vector types with base another record type should also be considered.
-	 *     In XPlus, records are treated as values. The structure mentioned above can never be created.
+	 *     In ComMA, records are treated as values. The structure mentioned above can never be created.
 	 */
 	 
 	 /*
 	  * This methods implements the mechanism for registering third-party extensions to the 
-	  * validators of the XPlus languages.
+	  * validators of the ComMA languages.
 	  * All languages that directly or indirectly extend Types language inherit it.
 	  */
 	  
 	 @Inject
 	 override register(EValidatorRegistrar registrar) {
 	 	super.register(registrar)
-    	val VALIDATOR_ID = "nl.esi.xtext.types.xplusValidator"
+    	val VALIDATOR_ID = "nl.esi.xtext.types.commaValidator"
     	val reg = Platform.getExtensionRegistry()
     	if(reg !== null){
     		val extensions = reg.getConfigurationElementsFor(VALIDATOR_ID)
@@ -265,16 +264,5 @@ class TypesValidator extends AbstractTypesValidator {
         		}
         	}	
     	}
-    }
-
-     /**
-     * All fields of a record cannot be marked symbolic.
-     */
-    @Check
-    def checkSymbolicField(RecordTypeDecl type) {
-        val allField = type.allFields
-        if (allField.forall[kind != RecordFieldKind::CONCRETE]) {
-            error('''At least 1 field must be concrete for record «type.name»''', TypesPackage.Literals.RECORD_TYPE_DECL__FIELDS)
-        }
     }
 }
