@@ -19,12 +19,12 @@ import "http://www.esi.nl/xtext/expressions/Expression" as expr
  * Root container solely used for testing.
  */
 ActionModel returns expr::ExpressionModel: {ActionModel}
-    imports += Import*
-    ( types += TypeDecl
-    | variables += VariableDecl
-    | functions += FunctionDecl
-    | actions += Action
-    )*
+	imports += Import*
+	( types += TypeDecl
+	| variables += VariableDecl
+	| functions += FunctionDecl
+	| actions += Action
+	)*
 ;
 
 /*
