@@ -1,0 +1,144 @@
+////
+  // Copyright (c) 2024, 2026 TNO-ESI
+  //
+  // This program and the accompanying materials are made
+  // available under the terms of the Eclipse Public License 2.0
+  // which is available at https://www.eclipse.org/legal/epl-2.0/
+  //
+  // SPDX-License-Identifier: EPL-2.0
+////
+
+[[nl.esi.xtext.actions]]
+= Actions
+:lang: en
+
+[.normal]
+
+== Action Language Overview
+
+Actions are imperative statements used to describe behavior in models. They include assignments, conditional logic, loops, function calls, and record field updates. Actions operate on variables and expressions defined using the <<nl.esi.xtext.expressions>> language.
+
+*Supported action types:* assignment, for-loop, if-then-else, record field assignment, function call.
+
+
+=== Assignment Action
+
+An assignment action updates the value of a previously declared variable using the `:=` operator:
+
+....
+variable := expression
+....
+
+Examples:
+
+....
+int x
+x := 5
+x := x + 1
+....
+
+=== For Action
+
+A for-loop iterates over the elements of a collection, executing a block of actions for each element:
+
+....
+for Type name in expression
+    do
+        actions
+end-for
+....
+
+Examples:
+
+....
+int[] numbers = <int[]>[1, 2, 3]
+int total
+for int n in numbers
+    do
+        total := total + n
+end-for
+....
+
+=== If Action
+
+A conditional action executes a block of actions when a guard expression evaluates to true. An optional `else` branch is executed when the guard is false:
+
+....
+if guard
+then
+    actions
+fi
+
+if guard
+then
+    actions
+else
+    actions
+fi
+....
+
+Examples:
+
+....
+int x
+x := 10
+int result
+if x > 5
+then
+    result := 1
+else
+    result := 0
+fi
+....
+
+=== Record Field Assignment Action
+
+A record field assignment updates a specific field of a record stored in a variable. The left-hand side uses dot notation to access the field:
+
+....
+variable.field := expression
+....
+
+Nested field access is also supported:
+
+....
+variable.field1.field2 := expression
+....
+
+Examples:
+
+....
+record Point { int x, int y }
+Point p = Point{x = 0, y = 0}
+p.x := 10
+p.y := 20
+....
+
+NOTE: Only fields of records stored in variables can be assigned. Collection element access such as `collection[i].field := value` is not supported.
+
+=== Function Call Action
+
+A function call can be used as a standalone action (statement). The function call syntax is the same as in expressions:
+
+....
+function_name(args)
+....
+
+Examples:
+
+....
+function int sum(int[] values)
+int[] data = <int[]>[1, 2, 3]
+sum(data)
+....
+
+NOTE: Function call actions use the same syntax as expression function calls. See <<nl.esi.xtext.expressions>> for details on function calls, named arguments, and template functions.
+
+=== Notes
+
+* Actions operate on variables declared using the Expressions language.
+* The `:=` operator is used for assignment (not `=`, which is used for initialization in variable declarations).
+* For-loops require an iterable expression (e.g., a vector).
+* If-actions require a boolean guard expression.
+* Record field assignments only work on variables, not on collection elements.
+* Function calls can be used both as expressions (returning a value) and as standalone actions.
