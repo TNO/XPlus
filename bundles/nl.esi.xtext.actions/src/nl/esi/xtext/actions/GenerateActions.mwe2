@@ -21,6 +21,9 @@ Workflow {
 			project = StandardProjectConfig {
 				baseName = "nl.esi.xtext.actions"
 				rootPath = rootPath
+                runtimeTest = {
+                    enabled = true
+                }
 				eclipsePlugin = {
 					enabled = true
 				}
