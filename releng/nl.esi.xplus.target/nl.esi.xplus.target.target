@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?pde version="3.8"?>
-<target name="Generated from OfflineMBT">
+<target name="Generated from XPlus">
   <locations>
+    <location type="Target" uri="file:${project_loc:/nl.esi.xplus.target}/nl.esi.xplus.maven.target"/>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="bcpg" version="0.0.0"/>
       <unit id="bcprov" version="0.0.0"/>
@@ -25,7 +26,6 @@
       <unit id="org.apache.commons.commons-beanutils" version="0.0.0"/>
       <unit id="org.apache.commons.commons-io" version="0.0.0"/>
       <unit id="org.apache.commons.lang" version="0.0.0"/>
-      <unit id="org.apache.commons.lang3" version="0.0.0"/>
       <unit id="org.apache.commons.logging" version="0.0.0"/>
       <unit id="org.apache.felix.scr" version="0.0.0"/>
       <unit id="org.bndtools.headless.build.manager" version="0.0.0"/>
@@ -63,6 +63,7 @@
       <unit id="org.osgi.service.http.whiteboard" version="0.0.0"/>
       <unit id="org.osgi.service.repository" version="0.0.0"/>
       <unit id="slf4j.api" version="0.0.0"/>
+      <unit id="slf4j.nop" version="0.0.0"/>
       <repository location="https://download.eclipse.org/releases/2024-09"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -71,11 +72,11 @@
       <repository location="https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/2024-09"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-      <unit id="net.sourceforge.plantuml.feature.feature.group" version="0.0.0"/>
+      <unit id="net.sourceforge.plantuml.lib" version="0.0.0"/>
       <repository location="http://hallvard.github.io/plantuml"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-      <unit id="org.eclipse.justj.openjdk.hotspot.jre.minimal.stripped" version="0.0.0"/>
+      <unit id="a.jre.org.eclipse.justj.openjdk.hotspot.jre.full.stripped" version="0.0.0"/>
       <repository location="https://download.eclipse.org/justj/jres/21/updates/release/latest"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -86,6 +87,5 @@
       <unit id="org.python.pydev.feature.feature.group" version="0.0.0"/>
       <repository location="https://www.pydev.org/updates/"/>
     </location>
-      <location type="Target" uri="file:${project_loc:/nl.esi.xplus.target}/nl.esi.xplus.maven.target"/>
   </locations>
 </target>

@@ -17,7 +17,7 @@
 
     <groupId>nl.esi.xplus</groupId>
     <artifactId>nl.esi.xplus.configuration</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -62,9 +62,9 @@
     </properties>
 
     <scm>
-        <connection>scm:git:git@github.com:dbera/OfflineMBT.git</connection>
-        <developerConnection>scm:git:git@github.com:dbera/OfflineMBT.git</developerConnection>
-        <url>https://github.com/dbera/OfflineMBT</url>
+        <connection>scm:git:git@github.com:TNO/XPlus.git</connection>
+        <developerConnection>scm:git:git@github.com:TNO/XPlus.git</developerConnection>
+        <url>https://github.com/TNO/XPlus</url>
         <tag>HEAD</tag>
     </scm>
 

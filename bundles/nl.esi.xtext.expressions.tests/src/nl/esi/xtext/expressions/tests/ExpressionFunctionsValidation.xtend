@@ -427,7 +427,86 @@ class ExpressionFunctionsValidation {
         ''')
         assertDoesNotThrow [EcoreUtil3.validate(result)]
     }
-    
+
+    // ========================================================================
+    // Named argument tests
+    // ========================================================================
+
+    @Test
+    def void namedArgs_validCall_noValidationError() {
+        val result = parse('''
+            function int myFn(int a, int b, int c)
+            int r = myFn(1, b = 2, c = 3)
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_sizeMismatch_tooFew_validationError() {
+        val result = parse('''
+            function int myFn(int a, int b, int c)
+            int r = myFn(1, b = 2)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('No Function myFn declared with 2 arguments'),
+            '''Expected size mismatch error but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_sizeMismatch_tooMany_validationError() {
+        val result = parse('''
+            function int myFn(int a, int b)
+            int r = myFn(1, 2, c = 3)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('No Function myFn declared with 3 arguments'),
+            '''Expected size mismatch error but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_namedBeforeIndexed_syntaxError() {
+        var result = parseHelper.parse('''
+            function int myFn(int a, int b, int c)
+            int r = myFn(a = 1, 2, 3)
+        ''')
+        assertNotNull(result)
+        val errors = result.eResource.errors.join(", ")
+        assertTrue(errors.contains('mismatched input'),
+            '''Expected mismatch input but got: «errors»''')
+    }
+
+    @Test
+    def void namedArgs_duplicateArgAndNamedArg_validationError() {
+        val result = parse('''
+            function int myFn(int a, int b, int c)
+            int r = myFn(1, 2, b = 3)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('already been specified as numbered arg'),
+            '''Expected duplicate arg error but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_duplicateNamedArg_validationError() {
+        val result = parse('''
+            function int myFn(int a, int b, int c)
+            int r = myFn(1, b = 2, b = 3)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Duplicate argument with name b'),
+            '''Expected duplicate named arg error but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_unknownName_validationError() {
+        val result = parse('''
+            function int myFn(int a, int b)
+            int r = myFn(1, x = 2)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Unknown argument name x'),
+            '''Expected unknown arg name error but got: «ex.message»''')
+    }
 
     private def ExpressionModel parse(String model) {
         val result = parseHelper.parse(model)

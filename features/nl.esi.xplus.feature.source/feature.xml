@@ -12,11 +12,11 @@
 -->
 <feature
       id="nl.esi.xplus.feature.source"
-      label="XPlus Core DSLs"
-      version="0.1.0.qualifier"
+      label="XPlus Core DSLs Source"
+      version="0.3.0.qualifier"
       provider-name="TNO-ESI"
       license-feature="nl.esi.xplus.license"
-      license-feature-version="0.1.0.qualifier">
+      license-feature-version="0.3.0.qualifier">
 
    <description>
       This feature provides reusable set of XPlus Core Domain-Specific

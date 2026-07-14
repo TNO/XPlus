@@ -34,6 +34,7 @@ import nl.esi.xtext.expressions.conversion.IExpressionConvertersProvider;
 import nl.esi.xtext.expressions.evaluation.IEvaluationContext;
 import nl.esi.xtext.expressions.expression.Expression;
 import nl.esi.xtext.expressions.expression.ExpressionFunctionCall;
+import nl.esi.xtext.expressions.utilities.ExpressionsUtilities;
 import nl.esi.xtext.types.types.Type;
 
 /**
@@ -193,7 +194,7 @@ public class ExpressionFunctionsRegistry {
 			return null;
 		}
 
-		var args = functionCall.getArgs();
+		var args = ExpressionsUtilities.getFunctionArgs(functionCall);
 		for (var method : candidates) {
 			if (method.getParameterTypes().length == args.size()) {
 				boolean allMatch = true;
@@ -215,7 +216,7 @@ public class ExpressionFunctionsRegistry {
 	/** Converts function call arguments to their Java object representations. */
 	private Object[] convertArguments(ExpressionFunctionCall funcCall, Class<?>[] paramTypes, IEvaluationContext context) {
 		var funcName = funcCall.getFunction().getName();
-		var argExprs = funcCall.getArgs();
+		var argExprs = ExpressionsUtilities.getFunctionArgs(funcCall);
 		if (argExprs.size() != paramTypes.length) {
 			throw new IllegalArgumentException("Argument count mismatch for function '" + funcName + "': expected "
 					+ paramTypes.length + " but got " + argExprs.size());

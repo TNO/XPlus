@@ -35,8 +35,6 @@ For more information about the reuse of existing grammars, please read the (i.e.
 
 include::{gendocdir}/xtext-grammars.plantuml[]
 
-artifact nl.esi.xtext.types.Types #white/aqua
-
 @enduml
 ....
 
@@ -46,3 +44,5 @@ include::{extdocdir}/nl.esi.xtext.types.adoc[leveloffset=2]
 
 include::{extdocdir}/nl.esi.xtext.expressions.adoc[leveloffset=2]
 include::{extdocdir}/expression-functions-framework-design.adoc[leveloffset=2]
+
+include::{extdocdir}/nl.esi.xtext.actions.adoc[leveloffset=2]

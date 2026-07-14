@@ -9,11 +9,23 @@
  */
 grammar nl.esi.xtext.actions.Actions with nl.esi.xtext.expressions.Expression
 
-generate actions "http://www.esi.nlxtext/actions/Actions"
+generate actions "http://www.esi.nl/xtext/actions/Actions"
 
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.esi.nl/xtext/types/Types" as types
 import "http://www.esi.nl/xtext/expressions/Expression" as expr
+
+/**
+ * Root container solely used for testing.
+ */
+ActionModel returns expr::ExpressionModel: {ActionModel}
+	imports += Import*
+	( types += TypeDecl
+	| variables += VariableDecl
+	| functions += FunctionDecl
+	| actions += Action
+	)*
+;
 
 /*
  * Actions are statements, acts of sending one or more events, or a declaration of 
@@ -36,7 +48,7 @@ FunctionCall:
 ;
 
 AssignmentAction:
-	 assignment =[expr::Variable | ID] ':=' exp=Expression (symbolic?='symbolic-ref')?
+	 assignment =[expr::Variable | ID] ':=' exp=Expression
 ;
 
 ForAction:
@@ -53,14 +65,15 @@ IfAction:
 ;
 
 RecordFieldAssignmentAction:
-	fieldAccess = FieldAccessExp ':=' exp=Expression (symbolic?='symbolic-ref')?
+	fieldAccess = FieldAccessExp ':=' exp=Expression
 ;
 
 /*
- * In XPlus we can only change field values of records that are stored in a variable.
- * Since we cannot access elements in collections, syntax like collection[i].a := v is not supported
+ * Restricted variant of ExpressionLevel8 from Expression.xtext, used as an
+ * assignment target. Only variable-rooted record field paths (e.g., v.a.b) are
+ * valid l-values. Map element access (e.g., m[k] or m[k].a) is not supported
+ * because collection elements cannot be assigned to in XPlus.
  */
- // TODO: Why not just reuse ExpressionRecordAccess here?
 FieldAccessExp returns expr::Expression:
 	ExpressionVariable ({expr::ExpressionRecordAccess.record = current} '.' field = [types::RecordField | ID])+
 ;

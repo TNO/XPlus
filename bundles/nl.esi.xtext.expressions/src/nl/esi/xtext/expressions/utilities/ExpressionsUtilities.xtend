@@ -70,6 +70,7 @@ import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
+import java.util.ArrayList
 
 class ExpressionsUtilities {
     static extension val ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.eINSTANCE
@@ -243,6 +244,34 @@ class ExpressionsUtilities {
 
     def static boolean isAssignableFrom(TypeObject lhs, Expression rhs) {
         TypeUtilities.subTypeOf(lhs, rhs.typeOf) || rhs instanceof ExpressionNullLiteral
+    }
+    
+    def static List<Expression> getFunctionArgs(ExpressionFunctionCall efc){
+        // don't validate here, that is part of the validator
+        if (efc.function === null) {
+            return List.of();
+        }
+        val result = new ArrayList(efc.args)
+        val params = efc.function.params
+        // Pad with nulls to match number of params
+        while(result.size < params.size) {
+            result.add(null)
+        }
+
+        // Build parameter name to index map for O(1) lookups
+        val paramNameIndexMap = newLinkedHashMap
+        for(var i = 0; i < params.size; i++) {
+            paramNameIndexMap.put(params.get(i).name, i)
+        }
+
+        // Fill in named arguments
+        for (na : efc.namedArgs){
+            val ind = paramNameIndexMap.get(na.name)
+            if (ind !== null){
+                result.set(ind, na.arg)
+            }
+        }
+        return result
     }
 
     def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){

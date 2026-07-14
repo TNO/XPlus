@@ -18,29 +18,43 @@
       <category name="XPlus"/>
    </feature>
    <feature id="nl.esi.xplus.ui.feature">
-      <category name="XPlus"/>
+      <category name="XPlus UI"/>
    </feature>
    <feature id="nl.esi.xplus.feature.source">
-      <category name="XPlus Source"/>
-   </feature>
-   <feature id="nl.esi.xplus.ui.feature.source">
-      <category name="XPlus Source"/>
-   </feature>
-   <feature id="nl.esi.xplus.license">
       <category name="XPlus"/>
    </feature>
-   <bundle id="nl.esi.xtext.lsp.server"/>
-   <bundle id="nl.esi.xtext.lsp.generator"/>
-   <bundle id="nl.esi.xtext.lsp.server.source"/>
-   <bundle id="nl.esi.xtext.lsp.generator.source"/>
+   <feature id="nl.esi.xplus.ui.feature.source">
+      <category name="XPlus UI"/>
+   </feature>
+   <feature id="nl.esi.xplus.lsp.feature.source">
+      <category name="LSP Support"/>
+   </feature>
+   <feature id="nl.esi.xplus.lsp.feature">
+      <category name="LSP Support"/>
+   </feature>
+   <bundle id="Java-WebSocket">
+      <category name="libs"/>
+   </bundle>
+   <bundle id="Java-WebSocket.source">
+      <category name="libs"/>
+   </bundle>
+   <bundle id="net.sourceforge.plantuml.lib">
+      <category name="libs"/>
+   </bundle>
    <category-def name="XPlus" label="XPlus">
       <description>
          XPlus Framework
       </description>
    </category-def>
-   <category-def name="XPlus Source" label="XPlus Source Code">
+   <category-def name="LSP Support" label="LSP Support">
       <description>
-         XPlus Framework - Source Code
+         XPlus Framework - LSP Support
       </description>
    </category-def>
+   <category-def name="XPlus UI" label="XPlus UI">
+      <description>
+         UI Project of XPlus
+      </description>
+   </category-def>
+   <category-def name="libs" label="Libraries"/>
 </site>

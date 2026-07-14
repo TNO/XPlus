@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Design Documentation
 Bundle-SymbolicName: nl.esi.xplus.doc.design;singleton:=true
-Bundle-Version: 0.1.0.qualifier
-Export-Package: nl.esi.xplus.doc.design;x-internal:=true
+Bundle-Version: 0.3.0.qualifier
+Export-Package: nl.esi.xplus.doc.design
 Bundle-Vendor: TNO-ESI
 Automatic-Module-Name: nl.esi.xplus.doc.design
 Bundle-RequiredExecutionEnvironment: JavaSE-21
