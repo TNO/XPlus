@@ -9,11 +9,12 @@
  */
 package nl.esi.xtext.types.generator
 
+import java.util.List
+import nl.esi.xtext.common.lang.reporting.StatusReportingSupport
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.util.CancelIndicator
-import java.util.List
 
-class StepsParserContext implements IGeneratorContext {
+class StepsParserContext extends StatusReportingSupport implements IGeneratorContext {
 	
 	public String stepsFilePath
 	public List<String> testContext

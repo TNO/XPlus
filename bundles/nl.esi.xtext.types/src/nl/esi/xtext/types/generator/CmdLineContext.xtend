@@ -11,8 +11,9 @@ package nl.esi.xtext.types.generator
 
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.util.CancelIndicator
+import nl.esi.xtext.common.lang.reporting.StatusReportingSupport
 
-class CmdLineContext implements IGeneratorContext {
+class CmdLineContext extends StatusReportingSupport implements IGeneratorContext {
 
 	final static String context = "CMD_LINE"
 

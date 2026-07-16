@@ -9,10 +9,11 @@
  */
 package nl.esi.xtext.types.generator
 
+import nl.esi.xtext.common.lang.reporting.StatusReportingSupport
 import org.eclipse.xtext.generator.IGeneratorContext
 import org.eclipse.xtext.util.CancelIndicator
 
-class SpecDiffContext implements IGeneratorContext {
+class SpecDiffContext extends StatusReportingSupport implements IGeneratorContext {
 	
 	public String oriFeaturePath
 	public String updFeaturePath

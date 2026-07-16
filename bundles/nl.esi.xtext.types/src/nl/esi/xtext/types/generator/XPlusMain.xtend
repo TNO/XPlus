@@ -18,20 +18,21 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.text.MessageFormat
+import java.util.ArrayList
 import java.util.Comparator
+import java.util.List
+import nl.esi.xtext.common.lang.reporting.Severity
+import nl.esi.xtext.common.lang.reporting.StatusReport
+import nl.esi.xtext.common.lang.reporting.StatusReportHelper
 import org.apache.commons.cli.CommandLine
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.HelpFormatter
 import org.apache.commons.cli.Options
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.ResourceSet
-import org.eclipse.xtext.diagnostics.Severity
 import org.eclipse.xtext.generator.GeneratorDelegate
 import org.eclipse.xtext.generator.JavaIoFileSystemAccess
-import org.eclipse.xtext.util.CancelIndicator
 import org.eclipse.xtext.util.StringInputStream
-import org.eclipse.xtext.validation.CheckMode
-import org.eclipse.xtext.validation.IResourceValidator
 
 class XPlusMain {
 	/*
@@ -135,8 +136,6 @@ class XPlusMain {
 	
 	@Inject Provider<ResourceSet> resourceSetProvider
 
-	@Inject IResourceValidator validator
-
 	@Inject GeneratorDelegate generator
 
 	@Inject JavaIoFileSystemAccess fileAccess
@@ -157,9 +156,7 @@ class XPlusMain {
 
 		val options = createOptions
 		if (args.empty) {
-			System::err.println(ERR_LOCATION_MISSING)
-			showInfo(description, options)
-			System.exit(1);
+			abort(ERR_LOCATION_MISSING, options)
 			return
 		}
 
@@ -198,9 +195,7 @@ class XPlusMain {
 		cleanOutput(cmdLine, outputdir)
 		
 		if (tspecPath === null) {
-			System::err.println(ERR_LOCATION_MISSING)
-			showInfo(description, options)
-			System.exit(1)
+			abort(ERR_LOCATION_MISSING, options)
 			return
 		}
 
@@ -223,7 +218,7 @@ class XPlusMain {
 		
 		generator.generate(resource, fileAccess, cliContext)
 	}
-	
+
 	def specDiffOPT(CommandLine cmdLine, Options options) {
 		val oriFeaturePath = getLocation(cmdLine, OPT_ORIGINALFEATURES)
 		val updFeaturePath = getLocation(cmdLine, OPT_UPDATEDFEATURES)
@@ -239,19 +234,15 @@ class XPlusMain {
 		if (oriFeaturePath === null
 			|| updFeaturePath === null
 		){
-			System::err.println(ERR_LOCATION_MISSING)
-			showInfo(description, options)
-			System.exit(1)
+			abort(ERR_LOCATION_MISSING, options)
 			return
 		}
 		if (!Files.exists(oriFeaturePath, LinkOption.NOFOLLOW_LINKS)) {
-			System.out.println(ERR_LOCATION_WRONG + oriFeaturePath.toString)
-			System.exit(1)
+			abort(ERR_LOCATION_WRONG + oriFeaturePath.toString)
 			return
 		}
 		if (!Files.exists(updFeaturePath, LinkOption.NOFOLLOW_LINKS)) {
-			System.out.println(ERR_LOCATION_WRONG + updFeaturePath.toString)
-			System.exit(1)
+			abort(ERR_LOCATION_WRONG + updFeaturePath.toString)
 			return
 		}
 
@@ -267,20 +258,16 @@ class XPlusMain {
 	def stepsParserOPT(CommandLine cmdLine, Options options) {
 		val stepPath = getLocation(cmdLine, OPT_STEPSFILES)
 		if (stepPath === null) {
-			System::err.println(ERR_LOCATION_MISSING)
-			showInfo(description, options)
-			System.exit(1)
+			abort(ERR_LOCATION_MISSING, options)
 			return
 		}
 		if (!Files.exists(stepPath, LinkOption.NOFOLLOW_LINKS)) {
-			System.out.println(ERR_LOCATION_WRONG + stepPath.toString)
-			System.exit(1)
+			abort(ERR_LOCATION_WRONG + stepPath.toString)
 			return
 		}
 		val context = cmdLine.getOptionValue(OPT_CONTEXT)
 		if (context === null) {
-			System::err.println(ERR_CONTEXT_MISSING)
-			System.exit(1)
+			abort(ERR_CONTEXT_MISSING)
 			return
 		}
 		val outputdir = Paths.get(cmdLine.getOptionValue(OPT_TESTCONFIGOUTPUT))
@@ -303,14 +290,11 @@ class XPlusMain {
 	def monitoringOPT(CommandLine cmdLine, Options options) {
 		val locationPath = getLocation(cmdLine, OPT_LOCATION)
 		if (locationPath === null) {
-			System::err.println(ERR_LOCATION_MISSING)
-			showInfo(description, options)
-			System.exit(1)
+			abort(ERR_LOCATION_MISSING, options)
 			return
 		}
 		if (!Files.exists(locationPath, LinkOption.NOFOLLOW_LINKS)) {
-			System.out.println(ERR_LOCATION_WRONG + locationPath.toString)
-			System.exit(1)
+			abort(ERR_LOCATION_WRONG + locationPath.toString)
 			return
 		}
 
@@ -318,24 +302,34 @@ class XPlusMain {
 		val outputdir = getOutputdir(cmdLine, locationPath, OPT_OUTPUT)
 		System.out.println(INFO_OUTPUT + outputdir)
 		cleanOutput(cmdLine, outputdir)
-
+		var statusReports = new ArrayList<StatusReport>() as List<StatusReport>
+		
 		if (Files.isDirectory(locationPath, LinkOption.NOFOLLOW_LINKS)) {
 			println(MessageFormat.format(INFO_SEARCHING, language, ext, locationPath.toString))
 			val dir = new File(locationPath.toString)
 			val prjFiles = dir.listFiles(createFileFilter(ext));
 			for (file : prjFiles) {
-				runGeneration(file.absolutePath, outputdir.toString, validation)
+				val reports = runGeneration(file.absolutePath, outputdir.toString, validation)
+				statusReports.addAll(reports)
+				if( reports.exists[severity == Severity.ERROR]) {
+                    exit(StatusReportHelper.errorReport(INFO_STOP, statusReports), null)    
+				}
 			}
 			if (prjFiles.empty) {
 				System.out.println(INFO_EMPTY_LOCATION + locationPath.toString)
 			}
 
 		} else {
-			runGeneration(locationPath.toString, outputdir.toString, validation)
+			val reports = runGeneration(locationPath.toString, outputdir.toString, validation)
+			statusReports.addAll(reports)
+            if( reports.exists[severity == Severity.ERROR]) {
+                exit(StatusReportHelper.errorReport(INFO_STOP, statusReports), null)    
+            }
 		}
 		System.out.println(INFO_GENERATION_FINISHED)
 		System.out.println("")
-		System.out.println(INFO_XPLUS_FINISHED)	
+		System.out.println(INFO_XPLUS_FINISHED)
+		exit(StatusReportHelper.infoReport(INFO_GENERATION_FINISHED, statusReports), null)	
 	}
 
 	def Options createOptions() {
@@ -493,46 +487,42 @@ class XPlusMain {
 		generator.generate(resource, fileAccess, cliContext)
 	}
 
-	def runGeneration(String string, String outputdir, Boolean validation) {
+	def List<StatusReport> runGeneration(String string, String outputdir, Boolean validation) {
 
 		// Load the resource
 		System.out.println(INFO_READING + string)
 
 		val set = resourceSetProvider.get
 		val resource = set.getResource(URI.createFileURI(string), true)
-
+        val context = new CmdLineContext
 		// Validate the resource
 		if (validation) {
-			val issues = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl)
-			if (!issues.empty) {
-				issues.forEach[System.err.println(it)]
-			}
-
-			val errors = issues.filter[it.severity == Severity.ERROR]
-			if (!errors.empty) {
-				System.out.println(INFO_STOP)
-				System.exit(1)
-				return;
-			}
+		    val report = StatusReportHelper.validate(resource)
+		    context.addReport(report)
+		    if (report.error) {
+		        // stop when error else continue
+		        return context.reports
+		    }
 		}
 		// Configure and start the generator
 		fileAccess.outputPath = outputdir
 		setXPlusGen(fileAccess, outputdir)
 		
 		try {
-            generator.generate(resource, fileAccess, new CmdLineContext)
-		} catch (Exception e) {
-            System.err.println(e.localizedMessage)
-            System.err.println(INFO_STOP)
-            System.exit(1)
-            return;
-		}
+            generator.generate(resource, fileAccess, context)
+        } catch (Exception e) {
+            //create a status report
+            val report = StatusReportHelper.fromException(e, INFO_STOP, null);
+            context.addReport(report)
+            
+        }
+        return context.reports
 	}
 
 	def cleanOutput(CommandLine cmdLine, Path outputdir) {
 		if (cmdLine.hasOption(OPT_CLEAN)) {
 			println("Start cleaning output directory.")
-			val xplusgendir = outputdir.parent.resolve(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_CONF.outputDirectory).normalize
+			val xplusgendir = outputdir.parent.resolve(XPlusFileSystemAccess.XPLUS_OUTPUT_CONF.outputDirectory).normalize
 			//clean src-gen
 			if(new File(outputdir.toString).exists){
 				Files.walk(outputdir)
@@ -550,13 +540,13 @@ class XPlusMain {
 	}
 
 	def setXPlusGen(JavaIoFileSystemAccess fileAccess, String outputdir) {
-		val xplusConf = nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_CONF
+		val xplusConf = XPlusFileSystemAccess.XPLUS_OUTPUT_CONF
 		xplusConf.outputDirectory = Paths.get(outputdir).parent.toString + xplusConf.outputDirectory
-		fileAccess.outputConfigurations.put(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_ID, xplusConf)
+		fileAccess.outputConfigurations.put(XPlusFileSystemAccess.XPLUS_OUTPUT_ID, xplusConf)
 	}
 	
 	def getXPlusGen() {
-		val xplusGen = fileAccess.outputConfigurations.get(nl.esi.xtext.types.generator.XPlusFileSystemAccess.XPLUS_OUTPUT_ID)		
+		val xplusGen = fileAccess.outputConfigurations.get(XPlusFileSystemAccess.XPLUS_OUTPUT_ID)		
 		xplusGen.outputDirectory
 	}
 
@@ -566,5 +556,31 @@ class XPlusMain {
 		println("Current directory: " + dir.toPath.toString)
 		return dir		
 	}
+	
+    private def void abort(String message) {
+        abort(message, null)
+    }
 
+    private def void abort(String message,  Options options) {
+        exit(StatusReportHelper.errorReport(message,null), options)
+    }
+
+    private def void exit(StatusReport statusReport, Options options) {
+        //be backwards compatible
+        System.err.println(statusReport.message())
+        saveReport(statusReport)
+        if(options !== null) {
+            showInfo(description, options)
+        }
+        System.out.println(String.format("Exiting with status %s(%d)", statusReport.severity().name, statusReport.severity().value))
+        System.err.println(String.format("Exiting with status %s(%d)", statusReport.severity().name, statusReport.severity().value))
+        System.exit(statusReport.severity().value)
+    }
+    
+    private def void saveReport(StatusReport report) {
+        //store the report with name `StatusReport.json` in the root of file_access
+        val resource = "report/StatusReport.json"
+        val charSequence = StatusReportHelper.toJson(report)
+        fileAccess.generateFile(resource, charSequence);
+    }
 }
