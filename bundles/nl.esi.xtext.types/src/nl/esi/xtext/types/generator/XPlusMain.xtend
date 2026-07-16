@@ -329,7 +329,7 @@ class XPlusMain {
 		System.out.println(INFO_GENERATION_FINISHED)
 		System.out.println("")
 		System.out.println(INFO_XPLUS_FINISHED)
-		exit(StatusReportHelper.infoReport(INFO_GENERATION_FINISHED, statusReports), null)	
+		exit(StatusReportHelper.okReport(INFO_GENERATION_FINISHED, statusReports), null)	
 	}
 
 	def Options createOptions() {

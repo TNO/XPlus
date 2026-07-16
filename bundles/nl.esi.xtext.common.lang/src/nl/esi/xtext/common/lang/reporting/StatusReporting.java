@@ -9,15 +9,27 @@
  */
 package nl.esi.xtext.common.lang.reporting;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * An interface for reporting status messages, allowing implementations to
  * handle the reporting of validation messages.
  */
-public interface StatusReporting {
+public class StatusReporting implements IStatusReporting {
+	List<StatusReport> reports = Collections.synchronizedList(new ArrayList<>());
 	/**
 	 * Reports a status message.
 	 *
 	 * @param report the status report to be reported
 	 */
-	void addReport(StatusReport report);
+	@Override
+	public void addReport(StatusReport report) {
+		reports.add(report);
+	}
+	
+	public List<StatusReport> getReports() {
+		return Collections.unmodifiableList(reports);
+	}
 }

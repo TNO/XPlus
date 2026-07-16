@@ -165,7 +165,7 @@ public class StatusReportHelper {
             Severity.fromValue(diagnostic.getSeverity()),
             diagnostic.getMessage(),
             source,
-            diagnostic.getCode(),
+            diagnostic.getCode() == 0 ? null : diagnostic.getCode(),
             details,
             node!= null ? node.getStartLine(): null,
     		node!= null ? node.getEndLine(): null,
@@ -198,6 +198,10 @@ public class StatusReportHelper {
 
 	public static StatusReport infoReport(String errorMessage, List<StatusReport> children) {
 		return fromMessage(Severity.INFO, errorMessage, children);
+	}
+
+	public static StatusReport okReport(String errorMessage, List<StatusReport> children) {
+		return fromMessage(Severity.OK, errorMessage, children);
 	}
 
 	private static StatusReport fromMessage(Severity severity, String errorMessage, List<StatusReport> children) {
