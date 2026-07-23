@@ -305,7 +305,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
     def void expressionMinus() {
         assertEval('int a = -1', 'int a = -1')
-        assertEval('int a = -1.0', 'int a = -1.0')
+        assertEval('real a = -1.0', 'real a = -1.0')
     }
 
     @Test
@@ -337,7 +337,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
     def void expressionPlus() {
         assertEval('int a = 1', 'int a = +1')
-        assertEval('int a = 1.0', 'int a = +1.0')
+        assertEval('real a = 1.0', 'real a = +1.0')
 
         // Resolved variable
         assertEval('''

@@ -87,7 +87,9 @@ ExpressionLevel5 returns Expression:		// Left associativity
 
 ExpressionLevel6 returns Expression:		// Right associativity
 	ExpressionLevel7
-	( ({ExpressionPower.left=current}		"^"     right=ExpressionLevel6)
+	( ({ExpressionPower.left=current}          "^"    right=ExpressionLevel6)
+    | ({ExpressionNullCoalescing.left=current} "??"   right=ExpressionLevel6)
+    | ({ExpressionConditional.left=current}    "?"    middle=ExpressionLevel6   ":"   right=ExpressionLevel6)
 	)?
 ;
 
@@ -111,8 +113,6 @@ ExpressionLevel8 returns Expression:
 	ExpressionLevel9 (({ExpressionRecordAccess.record = current} '.' field = [types::RecordField | ID]) |
 					  ({ExpressionMapRW.map = current} '[' key = Expression ('->' value = Expression)? ']'))*
 ;
-
-
 
 ExpressionLevel9 returns Expression:
 	ExpressionBracket |
@@ -197,7 +197,18 @@ Pair:
 
 // --- add extra superclasses in metamodel -------
 
-ExpressionBinary returns Expression:           
+ExpressionTernary returns Expression:
+    {ExpressionTernary}
+    left=Expression
+    middle=Expression
+    right=Expression
+;
+
+ConcreteExpressionTernary returns ExpressionTernary:
+    {ExpressionConditional}
+;
+
+ExpressionBinary returns Expression:
 	{ExpressionBinary}
 ;
 
@@ -218,6 +229,7 @@ ConcreteExpressionBinary returns ExpressionBinary:
 	| {ExpressionMinimum}
 	| {ExpressionModulo}
 	| {ExpressionPower}
+	| {ExpressionNullCoalescing}
 ;
 
 ExpressionUnary returns Expression:

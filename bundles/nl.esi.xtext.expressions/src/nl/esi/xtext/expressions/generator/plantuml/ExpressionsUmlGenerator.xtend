@@ -44,6 +44,8 @@ import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import org.eclipse.xtext.generator.IFileSystemAccess
 import nl.esi.xtext.types.generator.XPlusGenerator
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 
 class ExpressionsUmlGenerator extends XPlusGenerator{	
 	
@@ -104,6 +106,12 @@ class ExpressionsUmlGenerator extends XPlusGenerator{
     
      def dispatch CharSequence generateExpression(ExpressionPower expr) 
     '''«generateExpression(expr.left)» ^ «generateExpression(expr.right)»'''
+
+     def dispatch CharSequence generateExpression(ExpressionNullCoalescing expr) 
+    '''«generateExpression(expr.left)» ?? «generateExpression(expr.right)»'''
+
+     def dispatch CharSequence generateExpression(ExpressionConditional expr) 
+    '''«generateExpression(expr.left)» ? «generateExpression(expr.middle)» : «generateExpression(expr.right)»'''
 
     def dispatch CharSequence generateExpression(ExpressionMinus expr) 
     '''-«generateExpression(expr.sub)»'''

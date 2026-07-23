@@ -111,15 +111,19 @@ class ExpressionEvaluatorBasicTest extends ExpressionEvaluatorTestBase {
         assertEval('''
             bool v_eq_null_1 = true
             bool v_eq_null_2 = false
+            bool v_eq_null_3 = false
 
             bool v_neq_null_1 = false
             bool v_neq_null_2 = true
+            bool v_neq_null_3 = true
         ''', '''
             bool v_eq_null_1 = null == null
             bool v_eq_null_2 = null == 1
+            bool v_eq_null_3 = "" == null
 
             bool v_neq_null_1 = null != null
             bool v_neq_null_2 = null != 1
+            bool v_neq_null_3 = "" != null
         ''')
     }
 
@@ -218,16 +222,16 @@ class ExpressionEvaluatorBasicTest extends ExpressionEvaluatorTestBase {
             real v_add_real_1 = 3.3
             real v_add_real_2 = 6.6
 
-            int v_sub_real_1 = 1.1
-            int v_sub_real_2 = - 2.2
-            int v_sub_real_3 = 1.3
+            real v_sub_real_1 = 1.1
+            real v_sub_real_2 = - 2.2
+            real v_sub_real_3 = 1.3
         ''', '''
             real v_add_real_1 = 1.1 + 2.2
             real v_add_real_2 = 1.1 + 2.2 + 3.3
 
-            int v_sub_real_1 = 2.2 - 1.1
-            int v_sub_real_2 = 2.2 - 4.4
-            int v_sub_real_3 = 10.10 - 5.5 - 3.3
+            real v_sub_real_1 = 2.2 - 1.1
+            real v_sub_real_2 = 2.2 - 4.4
+            real v_sub_real_3 = 10.10 - 5.5 - 3.3
         ''')
     }
 
@@ -235,11 +239,11 @@ class ExpressionEvaluatorBasicTest extends ExpressionEvaluatorTestBase {
     def void level4String() {
         // Resolved variable
         assertEval('''
-            real v_add_string_1 = "aabb"
-            real v_add_string_2 = "aabbcc"
+            string v_add_string_1 = "aabb"
+            string v_add_string_2 = "aabbcc"
         ''', '''
-            real v_add_string_1 = "aa" + "bb"
-            real v_add_string_2 = "aa" + "bb" + "cc"
+            string v_add_string_1 = "aa" + "bb"
+            string v_add_string_2 = "aa" + "bb" + "cc"
         ''')
     }
 }
