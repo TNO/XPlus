@@ -10,6 +10,7 @@
 package nl.esi.xtext.expressions.tests
 
 import com.google.inject.Inject
+import java.net.URI
 import java.util.Optional
 import java.util.UUID
 import nl.esi.xtext.expressions.conversion.IExpressionConverter
@@ -22,6 +23,7 @@ import org.eclipse.xtext.resource.XtextResourceSet
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.net.URISyntaxException
 
 /**
  * Tests that custom converters can be registered and used to handle
@@ -46,10 +48,12 @@ class CustomConverterTest extends ExpressionEvaluatorTestBase {
         var handler = registry.getURIHandler()
         resourceSet.URIConverter?.URIHandlers?.add(0, handler)
         
-        // Register the sample library
+        // Register the sample libraries
         registry.addLibraryFunctions(SampleLibraryWithUUID)
-        // Add the converter
+        registry.addLibraryFunctions(SampleLibraryWithURI)
+        // Add the converters
         registry.addConverter(new UUIDConverter)
+        registry.addConverter(new URIConverter)
         initialized = true
         
     }
@@ -73,7 +77,11 @@ class CustomConverterTest extends ExpressionEvaluatorTestBase {
         Assertions.assertAll(
             [Assertions.assertTrue(content.contains("function uuid fromString("), "fromString")],
             [Assertions.assertTrue(content.contains("function string uuidToString("), "uuidToString")],
-            [Assertions.assertTrue(content.contains("function bool isValidUUID("), "isValidUUID")]
+            [Assertions.assertTrue(content.contains("function bool isValidUUID("), "isValidUUID")],
+            [Assertions.assertTrue(content.contains("function string getScheme("), "getScheme")],
+            [Assertions.assertTrue(content.contains("function string getHost("), "getHost")],
+            [Assertions.assertTrue(content.contains("function int getPort("), "getPort")],
+            [Assertions.assertTrue(content.contains("function string getPath("), "getPath")]
         )
     }
 
@@ -92,9 +100,13 @@ class CustomConverterTest extends ExpressionEvaluatorTestBase {
     @Test
     def void call_uuidToString_convertsUUIDToString() {
         assertEval('''
+            type uuid based on string
+
             uuid id = "550e8400-e29b-41d4-a716-446655440000"
             string result = "550e8400-e29b-41d4-a716-446655440000"
         ''', '''
+            type uuid based on string
+
             uuid id = "550e8400-e29b-41d4-a716-446655440000"
             string result = uuidToString(id)
         ''')
@@ -126,6 +138,28 @@ class CustomConverterTest extends ExpressionEvaluatorTestBase {
             bool result = isValidUUID("")
         ''')
     }
+
+    @Test
+    def void call_getComponents_getsComponentsOfAnURI() {
+        assertEval('''
+            type uri based on string
+
+            uri github = "https://github.com:443/TNO/XPlus"
+            string scheme = "https"
+            string host = "github.com"
+            int port = 443
+            string path = "/TNO/XPlus"
+        ''', '''
+            type uri based on string
+
+            uri github = "https://github.com:443/TNO/XPlus"
+            string scheme = getScheme(github)
+            string host = getHost(github)
+            int port = getPort(github)
+            string path = getPath(github)
+        ''')
+    }
+
 }
 
 /**
@@ -198,15 +232,82 @@ class UUIDConverter implements IExpressionConverter {
 
     override Optional<Expression> toExpression(Object object, Type type) {
         // Only convert UUID objects
-        if (!(object instanceof UUID)){
+        if (object instanceof UUID){
+            // Check if target type is string-like
+            var context = IEvaluationContext.EMPTY;
+            val result = context.toExpression(object.toString)
+            if (result !== null) {
+                return Optional.of(result)
+            }
+        }
+        return Optional.empty()
+    }
+}
+
+/**
+ * Sample library with URI-related functions.
+ * This demonstrates how a library might use custom Java types
+ * that require converters to work with the expression language.
+ */
+class SampleLibraryWithURI {
+    def static getScheme(URI uri) {
+        uri.scheme
+    }
+
+    def static getHost(URI uri) {
+        uri.host
+    }
+
+    def static getPort(URI uri) {
+        uri.port
+    }
+
+    def static getPath(URI uri) {
+        uri.path
+    }
+}
+
+/**
+ * Custom converter for UUID type.
+ * Converts between Expression (string literals) and java.util.UUID objects.
+ */
+class URIConverter implements IExpressionConverter {
+
+    override Optional<Object> toObject(Expression expression, Class<?> targetType) {
+        // Only convert to URI type
+        if (!targetType.equals(URI)){
             return Optional.empty()
         }
-        
-        // Check if target type is string-like
+
+        // Handle null
+        if (expression === null) {
+            return Optional.empty()
+        }
+
         var context = IEvaluationContext.EMPTY;
-        val result = context.toExpression(object.toString)
-        if (result !== null) {
-            return Optional.of(result)
+        // Convert string expression to URI
+        try {
+            val value = context.asString(expression)
+            if (value === null || value.empty) {
+                return Optional.empty()
+            }
+            val uri = new URI(value)
+            return Optional.of(uri)
+        } catch (URISyntaxException e) {
+            // Invalid URI format
+            return Optional.empty()
+        }
+    }
+
+    override Optional<Expression> toExpression(Object object, Type type) {
+        // Only convert URI objects
+        if (object instanceof URI) {
+            // Check if target type is string-like
+            var context = IEvaluationContext.EMPTY;
+            val result = context.toExpression(object.toString)
+            if (result !== null) {
+                return Optional.of(result)
+            }
         }
         return Optional.empty()
     }

@@ -16,6 +16,7 @@ import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
 import nl.esi.xtext.expressions.expression.ExpressionAny
 import nl.esi.xtext.expressions.expression.ExpressionBracket
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 import nl.esi.xtext.expressions.expression.ExpressionConstantBool
 import nl.esi.xtext.expressions.expression.ExpressionConstantInt
 import nl.esi.xtext.expressions.expression.ExpressionConstantReal
@@ -37,6 +38,7 @@ import nl.esi.xtext.expressions.expression.ExpressionModulo
 import nl.esi.xtext.expressions.expression.ExpressionMultiply
 import nl.esi.xtext.expressions.expression.ExpressionNEqual
 import nl.esi.xtext.expressions.expression.ExpressionNot
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 import nl.esi.xtext.expressions.expression.ExpressionNullLiteral
 import nl.esi.xtext.expressions.expression.ExpressionOr
 import nl.esi.xtext.expressions.expression.ExpressionPackage
@@ -48,11 +50,11 @@ import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.functions.ExpressionFunctionsRegistry
+import nl.esi.xtext.expressions.functions.ExpressionFunctionsRegistry.NoMatchingFunctionFoundException
 import org.eclipse.emf.common.util.EList
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.emf.ecore.util.EcoreUtil
-import nl.esi.xtext.expressions.functions.ExpressionFunctionsRegistry.NoMatchingFunctionFoundException
 
 @Singleton
 class ExpressionEvaluator {
@@ -254,6 +256,19 @@ class ExpressionEvaluator {
     protected dispatch def Expression doEvaluate(ExpressionPower expression, extension IEvaluationContext context) {
         return expression.calcIfInt[l, r | l.pow(r.intValueExact)]
             ?: expression.calcIfReal[l, r | l.pow(r.intValueExact)]
+    }
+
+    protected dispatch def Expression doEvaluate(ExpressionNullCoalescing expression, extension IEvaluationContext context) {
+        if (expression.left.isValue) {
+            return expression.left instanceof ExpressionNullLiteral ? expression.right : expression.left
+        }
+    }
+
+    protected dispatch def Expression doEvaluate(ExpressionConditional expression, extension IEvaluationContext context) {
+        val leftValue = asBool(expression.left);
+        if (leftValue !== null) {
+            return leftValue ? expression.middle : expression.right
+        }
     }
 
     // Unary

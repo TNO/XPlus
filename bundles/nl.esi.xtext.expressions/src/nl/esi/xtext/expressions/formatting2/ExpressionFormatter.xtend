@@ -45,6 +45,8 @@ import nl.esi.xtext.expressions.expression.VariableDecl
 import nl.esi.xtext.expressions.services.ExpressionGrammarAccess
 import nl.esi.xtext.types.formatting2.TypesFormatter
 import org.eclipse.xtext.formatting2.IFormattableDocument
+import nl.esi.xtext.expressions.expression.ExpressionConditional
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 
 class ExpressionFormatter extends TypesFormatter {
 	
@@ -164,11 +166,25 @@ class ExpressionFormatter extends TypesFormatter {
 	//-----------------------------------   ExpressionLevel6
 	
 	def dispatch void format(ExpressionPower expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel6Access.circumflexAccentKeyword_1_1).surround(oneSpace)		
+		expr.regionFor.keyword(expressionLevel6Access.circumflexAccentKeyword_1_0_1).surround(oneSpace)		
 		expr.right.format;
 		expr.left.format;
 	}
 	
+    def dispatch void format(ExpressionNullCoalescing expr, extension IFormattableDocument document) {
+        expr.regionFor.keyword(expressionLevel6Access.questionMarkQuestionMarkKeyword_1_1_1).surround(oneSpace)
+        expr.right.format;
+        expr.left.format;
+    }
+
+    def dispatch void format(ExpressionConditional expr, extension IFormattableDocument document) {
+        expr.regionFor.keyword(expressionLevel6Access.questionMarkKeyword_1_2_1).surround(oneSpace)
+        expr.regionFor.keyword(expressionLevel6Access.colonKeyword_1_2_3).surround(oneSpace)
+        expr.right.format;
+        expr.middle.format;
+        expr.left.format;
+    }
+
 	//-----------------------------------   ExpressionLevel7
 	
 	def dispatch void format(ExpressionNot expr, extension IFormattableDocument document) {

@@ -12,7 +12,6 @@ package nl.esi.xtext.expressions.utilities;
 import static nl.esi.xtext.types.utilities.TypeUtilities.getAllFields;
 
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -20,40 +19,6 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.common.base.Predicates;
 
-import nl.esi.xtext.expressions.expression.Expression;
-import nl.esi.xtext.expressions.expression.ExpressionAddition;
-import nl.esi.xtext.expressions.expression.ExpressionAnd;
-import nl.esi.xtext.expressions.expression.ExpressionAny;
-import nl.esi.xtext.expressions.expression.ExpressionBracket;
-import nl.esi.xtext.expressions.expression.ExpressionConstantBool;
-import nl.esi.xtext.expressions.expression.ExpressionConstantInt;
-import nl.esi.xtext.expressions.expression.ExpressionConstantReal;
-import nl.esi.xtext.expressions.expression.ExpressionConstantString;
-import nl.esi.xtext.expressions.expression.ExpressionDivision;
-import nl.esi.xtext.expressions.expression.ExpressionEnumLiteral;
-import nl.esi.xtext.expressions.expression.ExpressionEqual;
-import nl.esi.xtext.expressions.expression.ExpressionGeq;
-import nl.esi.xtext.expressions.expression.ExpressionGreater;
-import nl.esi.xtext.expressions.expression.ExpressionLeq;
-import nl.esi.xtext.expressions.expression.ExpressionLess;
-import nl.esi.xtext.expressions.expression.ExpressionMap;
-import nl.esi.xtext.expressions.expression.ExpressionMapRW;
-import nl.esi.xtext.expressions.expression.ExpressionMaximum;
-import nl.esi.xtext.expressions.expression.ExpressionMinimum;
-import nl.esi.xtext.expressions.expression.ExpressionMinus;
-import nl.esi.xtext.expressions.expression.ExpressionModulo;
-import nl.esi.xtext.expressions.expression.ExpressionMultiply;
-import nl.esi.xtext.expressions.expression.ExpressionNEqual;
-import nl.esi.xtext.expressions.expression.ExpressionNot;
-import nl.esi.xtext.expressions.expression.ExpressionNullLiteral;
-import nl.esi.xtext.expressions.expression.ExpressionOr;
-import nl.esi.xtext.expressions.expression.ExpressionPlus;
-import nl.esi.xtext.expressions.expression.ExpressionPower;
-import nl.esi.xtext.expressions.expression.ExpressionRecord;
-import nl.esi.xtext.expressions.expression.ExpressionRecordAccess;
-import nl.esi.xtext.expressions.expression.ExpressionSubtraction;
-import nl.esi.xtext.expressions.expression.ExpressionVariable;
-import nl.esi.xtext.expressions.expression.ExpressionVector;
 import nl.esi.xtext.expressions.expression.TypeAnnotation;
 import nl.esi.xtext.types.types.EnumTypeDecl;
 import nl.esi.xtext.types.types.MapTypeConstructor;
@@ -165,120 +130,5 @@ public class ProposalHelper {
 		} 
 		
 		throw new UnsupportedTypeException(type);
-	}
-
-	static String expression(Expression expression, Function<String, String> variablePrefix) {
-		if (expression instanceof ExpressionConstantInt) {
-			return Long.toString(((ExpressionConstantInt) expression).getValue());
-		} else if (expression instanceof ExpressionConstantString) {
-			return String.format("\"%s\"", ((ExpressionConstantString) expression).getValue());
-		} else if (expression instanceof ExpressionNot) {
-			return String.format("not (%s)", expression(((ExpressionNot) expression).getSub(), variablePrefix));
-		} else if (expression instanceof ExpressionConstantReal) {
-			return Double.toString(((ExpressionConstantReal) expression).getValue());
-		} else if (expression instanceof ExpressionConstantBool) {
-			return ((ExpressionConstantBool) expression).isValue() ? "True" : "False";
-		} else if (expression instanceof ExpressionAny) {
-			return "\"*\"";
-		} else if (expression instanceof ExpressionAddition) {
-			ExpressionAddition e = (ExpressionAddition) expression;
-			return String.format("%s + %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionSubtraction) {
-			ExpressionSubtraction e = (ExpressionSubtraction) expression;
-			return String.format("%s - %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionMultiply) {
-			ExpressionMultiply e = (ExpressionMultiply) expression;
-			return String.format("%s * %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionDivision) {
-			ExpressionDivision e = (ExpressionDivision) expression;
-			return String.format("%s / %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionModulo) {
-			ExpressionModulo e = (ExpressionModulo) expression;
-			return String.format("%s % %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionMinimum) {
-			ExpressionMinimum e = (ExpressionMinimum) expression;
-			return String.format("min(%s, %s)", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionMaximum) {
-			ExpressionMaximum e = (ExpressionMaximum) expression;
-			return String.format("max(%s, %s)", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionPower) {
-			ExpressionPower e = (ExpressionPower) expression;
-			return String.format("pow(%s, %s)", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionVariable) {
-			ExpressionVariable v = (ExpressionVariable) expression;
-			// return String.format("%s%s", variablePrefix.apply(v.getVariable().getName()), v.getVariable().getName());
-			return String.format("%s", variablePrefix.apply(v.getVariable().getName()));
-		} else if (expression instanceof ExpressionGreater) {
-			ExpressionGreater e = (ExpressionGreater) expression;
-			return String.format("%s > %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionLess) {
-			ExpressionLess e = (ExpressionLess) expression;
-			return String.format("%s < %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionLeq) {
-			ExpressionLeq e = (ExpressionLeq) expression;
-			return String.format("%s <= %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionGeq) {
-			ExpressionGeq e = (ExpressionGeq) expression;
-			return String.format("%s >= %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionEqual) {
-			ExpressionEqual e = (ExpressionEqual) expression;
-			return String.format("%s == %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionNEqual) {
-			ExpressionNEqual e = (ExpressionNEqual) expression;
-			return String.format("%s != %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionAnd) {
-			ExpressionAnd e = (ExpressionAnd) expression;
-			return String.format("%s and %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionOr) {
-			ExpressionOr e = (ExpressionOr) expression;
-			return String.format("%s or %s", expression(e.getLeft(), variablePrefix), expression(e.getRight(), variablePrefix));
-		} else if (expression instanceof ExpressionEnumLiteral) {
-			ExpressionEnumLiteral e = (ExpressionEnumLiteral) expression;
-			return String.format("\"%s:%s\"", e.getType().getName(), e.getLiteral().getName());
-		} else if (expression instanceof ExpressionNullLiteral) {
-			return "null";
-		} else if (expression instanceof ExpressionVector) {
-			ExpressionVector e = (ExpressionVector) expression;
-			return String.format("[%s]", e.getElements().stream().map(ee -> expression (ee, variablePrefix)).collect(Collectors.joining(", ")));
-		} else if (expression instanceof ExpressionMinus) {
-			ExpressionMinus e = (ExpressionMinus) expression;
-			return String.format("%s * -1", expression(e.getSub(), variablePrefix));
-		} else if (expression instanceof ExpressionPlus) {
-			ExpressionPlus e = (ExpressionPlus) expression;
-			return expression(e.getSub(), variablePrefix);
-		} else if (expression instanceof ExpressionBracket) {
-			ExpressionBracket e = (ExpressionBracket) expression;
-			return expression(e.getSub(), variablePrefix);
-		} else if (expression instanceof ExpressionMap) {
-			ExpressionMap e = (ExpressionMap) expression;
-			return String.format("{%s}", e.getPairs().stream().map(p -> {
-				String key = expression(p.getKey(), variablePrefix);
-				String value = expression(p.getValue(), variablePrefix);
-				return String.format("%s: %s", key, value);
-			}).collect(Collectors.joining(", ")));
-		} else if (expression instanceof ExpressionMapRW) {
-			ExpressionMapRW e = (ExpressionMapRW) expression;
-			String map = expression(e.getMap(), variablePrefix);
-			String key = expression(e.getKey(), variablePrefix);
-			if (e.getValue() == null) {
-				return String.format("%s[%s]", map, key);
-			} else {
-				String value = expression(e.getValue(), variablePrefix);
-				return String.format("{**%s, **{%s: %s}}", map, key, value);
-			}
-		} else if (expression instanceof ExpressionRecord) {
-			ExpressionRecord e = (ExpressionRecord) expression;
-			return String.format("{%s}", e.getFields().stream().map(p -> {
-				String key = p.getRecordField().getName();
-				String value = expression(p.getExp(), variablePrefix);
-				return String.format("\"%s\": %s", key, value);
-			}).collect(Collectors.joining(", ")));
-		} else if (expression instanceof ExpressionRecordAccess) {
-			ExpressionRecordAccess e = (ExpressionRecordAccess) expression;
-			String map = expression(e.getRecord(), variablePrefix);
-			return String.format("%s[\"%s\"]", map, e.getField().getName());
-		}
-		
-		throw new RuntimeException("Not supported");
 	}
 }

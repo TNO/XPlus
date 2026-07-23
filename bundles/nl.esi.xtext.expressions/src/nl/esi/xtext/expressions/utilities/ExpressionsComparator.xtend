@@ -27,6 +27,7 @@ import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.Variable
 import nl.esi.xtext.types.utilities.TypesComparator
+import nl.esi.xtext.expressions.expression.ExpressionTernary
 
 class ExpressionsComparator extends TypesComparator {
 	
@@ -34,6 +35,10 @@ class ExpressionsComparator extends TypesComparator {
 		v1.name == v2.name && v1.type.sameAs(v2.type)
 	}
 	
+    def dispatch boolean compare(ExpressionTernary exp1, ExpressionTernary exp2){
+        exp1.left.sameAs(exp2.left) && exp1.middle.sameAs(exp2.middle) && exp1.right.sameAs(exp2.right)
+    }
+
 	def dispatch boolean compare(ExpressionBinary exp1, ExpressionBinary exp2){
 		exp1.left.sameAs(exp2.left) && exp1.right.sameAs(exp2.right)
 	}

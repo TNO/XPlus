@@ -86,7 +86,7 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
                 tss = <string[]> [ "Hello", "Test!" ]
             }
             bool contains = contains(t.tss, "Hello")
-            bool notContains = contains(t.tis, "1")
+            bool notContains = contains(t.tis, 1)
         ''')
     }
 
