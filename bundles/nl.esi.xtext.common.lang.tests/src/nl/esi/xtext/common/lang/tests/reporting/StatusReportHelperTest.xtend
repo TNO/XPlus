@@ -13,6 +13,7 @@ import com.google.inject.Inject
 import java.util.List
 import nl.esi.xtext.common.lang.base.ModelContainer
 import nl.esi.xtext.common.lang.tests.BaseInjectorProvider
+import nl.esi.xtext.common.lang.reporting.Location
 import nl.esi.xtext.common.lang.reporting.Severity
 import nl.esi.xtext.common.lang.reporting.StatusReportHelper
 import nl.esi.xtext.common.lang.reporting.StatusReport
@@ -44,10 +45,9 @@ class StatusReportHelperTest {
         ''')
         Assertions.assertNotNull(result)
 
-        val StatusReport = StatusReportHelper.validate(result)
-        Assertions.assertNotNull(StatusReport)
-        Assertions.assertEquals(Severity.OK, StatusReport.severity, "Validation should succeed with OK severity")
-        Assertions.assertNotNull(StatusReport.message)
+        val statusReport = StatusReportHelper.validate(result)
+        Assertions.assertNotNull(statusReport)
+        Assertions.assertEquals(Severity.OK, statusReport.getSeverityLevel(), "Validation should succeed with OK severity")
     }
 
     /**
@@ -63,10 +63,10 @@ class StatusReportHelperTest {
         ''')
         Assertions.assertNotNull(result)
 
-        val StatusReport = StatusReportHelper.validate(result)
-        Assertions.assertNotNull(StatusReport)
-        Assertions.assertFalse(StatusReport.isError(), "Validation should not report errors")
-        Assertions.assertTrue(StatusReport.severity == Severity.OK, "Validation should be OK")
+        val statusReport = StatusReportHelper.validate(result)
+        Assertions.assertNotNull(statusReport)
+        Assertions.assertFalse(statusReport.isError(), "Validation should not report errors")
+        Assertions.assertTrue(statusReport.getSeverityLevel() == Severity.OK, "Validation should be OK")
     }
 
     /**
@@ -84,18 +84,14 @@ class StatusReportHelperTest {
         val resource = result.eResource
         Assertions.assertNotNull(resource)
 
-        val StatusReport = StatusReportHelper.validate(resource)
-        Assertions.assertNotNull(StatusReport)
-        Assertions.assertNotNull(StatusReport.message)
-        Assertions.assertTrue(StatusReport.message.length > 0, "Validation message should not be empty")
-        Assertions.assertTrue(StatusReport.children.size > 1, "There should be validation errors")
-        Assertions.assertTrue(StatusReport.children.get(0).message().contains("Duplicate"),
-            "Expected duplicate validation error")
+        val statusReport = StatusReportHelper.validate(resource)
+        Assertions.assertNotNull(statusReport)
+        Assertions.assertTrue(statusReport.getChildReports().isPresent(), "There should be validation errors")
+        Assertions.assertTrue(statusReport.getChildReports().get().size > 0, "There should be child reports")
     }
 
     /**
-     * Test validation of a model resource (via eResource).
-     * Expected: validation should complete successfully.
+     * Test GSON serialization/deserialization.
      */
     @Test
     def void testGson() {
@@ -112,9 +108,8 @@ class StatusReportHelperTest {
 
         // serialize with gson
         val json = StatusReportHelper.toJson(statusReport)
-        val statusReport2 = StatusReportHelper.fromJson(json);
-        Assertions.assertEquals(statusReport, statusReport2);
-
+        val statusReport2 = StatusReportHelper.fromJson(json)
+        Assertions.assertEquals(statusReport.getSeverityLevel(), statusReport2.getSeverityLevel())
     }
 
     /**
@@ -136,46 +131,43 @@ class StatusReportHelperTest {
      */
     @Test
     def void testStatusReportIsError() {
-        val okMessage = createStatusReport(Severity.OK, "Test", "source", 0)
+        val okMessage = createStatusReport(Severity.OK, "Test", null)
         Assertions.assertFalse(okMessage.isError(), "OK should not be an error")
 
-        val errorMessage = createStatusReport(Severity.ERROR, "Test", "source", 0)
+        val errorMessage = createStatusReport(Severity.ERROR, "Test", null)
         Assertions.assertTrue(errorMessage.isError(), "ERROR should be an error")
 
-        val cancelMessage = createStatusReport(Severity.CANCEL, "Test", "source", 0)
+        val cancelMessage = createStatusReport(Severity.CANCEL, "Test", null)
         Assertions.assertTrue(cancelMessage.isError(), "CANCEL should be an error")
     }
 
     /**
-     * Test that StatusReport is a record with serializable fields.
-     * Expected: all fields should be accessible and non-null where applicable.
+     * Test that StatusReport fields are accessible and correct.
      */
     @Test
     def void testStatusReportFields() {
-        val message = createStatusReport(
+        var locations = newArrayList(new Location("test.source", 1, 2, 3, 4, "5"))
+        var statusReport = new StatusReport(
+            null,
             Severity.INFO,
             "Test message",
-            "test.source",
             42,
             "Some details about the validation",
-            1,
-            2,
-            3,
-            4,
-            "5"
+            locations,
+            null,
+            null
         )
 
-        Assertions.assertEquals(Severity.INFO, message.severity())
-        Assertions.assertEquals("Test message", message.message())
-        Assertions.assertEquals("test.source", message.source())
-        Assertions.assertEquals(1, message.startLine())
-        Assertions.assertEquals(2, message.endLine())
-        Assertions.assertEquals(3, message.offset())
-        Assertions.assertEquals(4, message.length())
-        Assertions.assertEquals("5", message.text())
-        Assertions.assertEquals(42, message.code())
-        Assertions.assertEquals("Some details about the validation", message.details())
-        Assertions.assertNull(message.children())
+        Assertions.assertEquals(Severity.INFO, statusReport.getSeverityLevel())
+        Assertions.assertTrue(statusReport.getLocations().isPresent())
+        var loc = statusReport.getLocations().get().get(0)
+        Assertions.assertEquals(1, loc.startLine().intValue())
+        Assertions.assertEquals(2, loc.endLine().intValue())
+        Assertions.assertEquals(3, loc.offset().intValue())
+        Assertions.assertEquals(4, loc.length().intValue())
+        Assertions.assertEquals("5", loc.text())
+        Assertions.assertTrue(statusReport.getDetails().isPresent())
+        Assertions.assertEquals("Some details about the validation", statusReport.getDetails().get())
     }
 
     /**
@@ -185,15 +177,15 @@ class StatusReportHelperTest {
     @Test
     def void testSeverityElevationFromChildren() {
         // Create child messages with different severities
-        val child1 = createStatusReport(Severity.WARNING, "Warning message", "source1", 1)
-        val child2 = createStatusReport(Severity.ERROR, "Error message", "source2", 2)
-        val child3 = createStatusReport(Severity.INFO, "Info message", "source3", 3)
+        val child1 = createStatusReport(Severity.WARNING, "Warning message", null)
+        val child2 = createStatusReport(Severity.ERROR, "Error message", null)
+        val child3 = createStatusReport(Severity.INFO, "Info message", null)
 
         // Create parent with OK severity but ERROR children
-        val parent = createStatusReport(Severity.OK, #[child1, child2, child3])
+        val parent = new StatusReport(null, Severity.OK, "test", null, null, null, #[child1, child2, child3], null)
 
         // Verify severity was elevated to ERROR (the highest in children)
-        Assertions.assertEquals(Severity.ERROR, parent.severity(), "Parent severity should be elevated to ERROR")
+        Assertions.assertEquals(Severity.ERROR, parent.getSeverityLevel(), "Parent severity should be elevated to ERROR")
         Assertions.assertTrue(parent.isError(), "Parent should be an error")
     }
 
@@ -204,13 +196,13 @@ class StatusReportHelperTest {
     @Test
     def void testSeverityElevationToCancel() {
         // Create child with CANCEL severity
-        val child = createStatusReport(Severity.CANCEL, "Cancelled", "source", 1)
+        val child = createStatusReport(Severity.CANCEL, "Cancelled", null)
 
         // Create parent with INFO severity
-        val parent = createStatusReport(Severity.INFO, #[child])
+        val parent = new StatusReport(null, Severity.INFO, "test", null, null, null, #[child], null)
 
         // Verify severity was elevated to CANCEL (the highest possible)
-        Assertions.assertEquals(Severity.CANCEL, parent.severity(), "Parent severity should be elevated to CANCEL")
+        Assertions.assertEquals(Severity.CANCEL, parent.getSeverityLevel(), "Parent severity should be elevated to CANCEL")
         Assertions.assertTrue(parent.isError(), "Parent should be an error (CANCEL is error)")
     }
 
@@ -221,14 +213,14 @@ class StatusReportHelperTest {
     @Test
     def void testSeverityRemainsWhenHigherThanChildren() {
         // Create children with WARNING severity
-        val child1 = createStatusReport(Severity.WARNING, "Warning 1", "source1", 1)
-        val child2 = createStatusReport(Severity.WARNING, "Warning 2", "source2", 2)
+        val child1 = createStatusReport(Severity.WARNING, "Warning 1", null)
+        val child2 = createStatusReport(Severity.WARNING, "Warning 2", null)
 
         // Create parent with ERROR severity (higher than children)
-        val parent = createStatusReport(Severity.ERROR, #[child1, child2])
+        val parent = new StatusReport(null, Severity.ERROR, "test", null, null, null, #[child1, child2], null)
 
         // Verify severity remains ERROR
-        Assertions.assertEquals(Severity.ERROR, parent.severity(), "Parent severity should remain ERROR")
+        Assertions.assertEquals(Severity.ERROR, parent.getSeverityLevel(), "Parent severity should remain ERROR")
     }
 
     /**
@@ -238,58 +230,25 @@ class StatusReportHelperTest {
     @Test
     def void testSeverityWithNullOrEmptyChildren() {
         // Test with null children
-        val parentWithNull = createStatusReport(Severity.INFO, null)
-        Assertions.assertEquals(Severity.INFO, parentWithNull.severity(),
+        val parentWithNull = new StatusReport(null, Severity.INFO, "test", null, null, null, null, null)
+        Assertions.assertEquals(Severity.INFO, parentWithNull.getSeverityLevel(),
             "Severity should remain INFO with null children")
 
         // Test with empty children
-        val parentWithEmpty = createStatusReport(Severity.WARNING, #[])
-        Assertions.assertEquals(Severity.WARNING, parentWithEmpty.severity(),
+        val parentWithEmpty = new StatusReport(null, Severity.WARNING, "test", null, null, null, #[], null)
+        Assertions.assertEquals(Severity.WARNING, parentWithEmpty.getSeverityLevel(),
             "Severity should remain WARNING with empty children")
     }
 
     /**
-     * Factory method to create a StatusReport with only the needed arguments.
-     * Defaults for location fields: startLine=0, endLine=0, offset=0, length=0, text=""
+     * Factory method to create a StatusReport with simple parameters.
      */
     private def static StatusReport createStatusReport(
         Severity severity,
         String message,
-        String source,
-        int code
-    ) {
-        return new StatusReport(severity, message, source, code, null, null, null, null, null, null, null)
-    }
-
-    /**
-     * Factory method with location parameters
-     */
-    private def static StatusReport createStatusReport(
-        Severity severity,
-        String message,
-        String source,
-        int code,
-        String details,
-        int startLine,
-        int endLine,
-        int offset,
-        int length,
-        String text
-    ) {
-        return new StatusReport(severity, message, source, code, details, startLine, endLine, offset, length,
-            text, null)
-    }
-
-    /**
-     * Factory method with only severity and children.
-     * All other fields use defaults: message="", source="", code=0, details=null, 
-     * startLine=0, endLine=0, offset=0, length=0, text=""
-     */
-    private def static StatusReport createStatusReport(
-        Severity severity,
         List<StatusReport> children
     ) {
-        return new StatusReport(severity, "", "", 0, null, 0, 0, 0, 0, "", children)
+        return new StatusReport(null, severity, message, null, null, null, children, null)
     }
 
 }

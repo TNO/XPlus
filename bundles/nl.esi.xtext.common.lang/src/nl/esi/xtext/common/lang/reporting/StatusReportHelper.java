@@ -12,9 +12,9 @@ package nl.esi.xtext.common.lang.reporting;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.util.BasicDiagnostic;
 import org.eclipse.emf.common.util.Diagnostic;
 import org.eclipse.emf.ecore.EObject;
@@ -44,9 +44,9 @@ public class StatusReportHelper {
 	 * @see {@link EcoreUtil3#validate(EObject)}
 	 */
 	public static StatusReport validate(EObject eObject) {
-		Diagnostician diagnostician = new Diagnostician();
-		BasicDiagnostic diagnostics = diagnostician.createDefaultDiagnostic(eObject);
-		Map<Object, Object> context = diagnostician.createDefaultContext();
+		var diagnostician = new Diagnostician();
+		var diagnostics = diagnostician.createDefaultDiagnostic(eObject);
+		var context = diagnostician.createDefaultContext();
 
 		diagnostician.validate(eObject, diagnostics, context);
 		return fromDiagnostic(diagnostics);
@@ -57,9 +57,7 @@ public class StatusReportHelper {
 	 */
 	public static void validate(List<StatusReport> reports,  EObject object)  {
 		var report = validate(object);
-		if(report.severity() != Severity.OK) {
-			reports.add(report);
-		}
+		reports.add(report);
 	}
 
 	/**
@@ -67,10 +65,10 @@ public class StatusReportHelper {
 	 * @see {@link EcoreUtil3#validate(EObject)}
 	 */
 	public static StatusReport validate(Resource resource)  {
-		Diagnostician diagnostician = new Diagnostician();
-		BasicDiagnostic diagnostics = new BasicDiagnostic(EObjectValidator.DIAGNOSTIC_SOURCE, 0,
+		var diagnostician = new Diagnostician();
+		var diagnostics = new BasicDiagnostic(EObjectValidator.DIAGNOSTIC_SOURCE, 0,
 				"Diagnosis of " + resource.getURI(), new Object[] { resource });
-		Map<Object, Object> context = diagnostician.createDefaultContext();
+		var context = diagnostician.createDefaultContext();
 
 		for (EObject eObject : resource.getContents()) {
 			diagnostician.validate(eObject, diagnostics, context);
@@ -86,10 +84,10 @@ public class StatusReportHelper {
 	 */
 	public static boolean validate(List<StatusReport> reports,  Resource resource)  {
 		var report = validate(resource);
-		if(report.severity() != Severity.OK) {
+		if(report.getSeverityLevel() != Severity.OK) {
 			reports.add(report);
 		}
-		return reports.stream().anyMatch(r->r.severity() == Severity.ERROR);
+		return reports.stream().anyMatch(r->r.getSeverityLevel() == Severity.ERROR);
 	}
 
     /**
@@ -113,45 +111,23 @@ public class StatusReportHelper {
      * Mapping:
      * - severity -> severity
      * - message -> message
-     * - source -> source
      * - code -> code
      * - exception -> details (or null if none)
      * - children -> children (recursively converted)
-     * - location -> startLine, endLine, offset, length, text (extracted from diagnostic data if available)
+     * - location -> locations list (extracted from diagnostic data if available)
      *
      * @param diagnostic the diagnostic to convert
-     * @return a new ValidationMessage based on the diagnostic
+     * @return a new StatusReport based on the diagnostic
      */
     public static StatusReport fromDiagnostic(Diagnostic diagnostic) {
         if (diagnostic == null) {
             return null;
         }
 
-        String details = null;
-        Throwable exception = diagnostic.getException();
-        if (exception != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(exception.getClass().getName());
-            if (exception.getMessage() != null) {
-                sb.append(": ").append(exception.getMessage());
-            }
-            sb.append("\n");
-            
-            // Append stack trace (limited to 15 elements)
-            StackTraceElement[] stackTrace = exception.getStackTrace();
-            int limit = Math.min(stackTrace.length, 15);
-            for (int i = 0; i < limit; i++) {
-                sb.append("\tat ").append(stackTrace[i]).append("\n");
-            }
-            if (stackTrace.length > 15) {
-                sb.append("\t... ").append(stackTrace.length - 15).append(" more\n");
-            }
-            
-            details = sb.toString();
-        }
+        var exception = diagnostic.getException();
 
         List<StatusReport> children = null;
-        List<Diagnostic> diagnosticChildren = diagnostic.getChildren();
+        var diagnosticChildren = diagnostic.getChildren();
         if (diagnosticChildren != null && !diagnosticChildren.isEmpty()) {
             children = diagnosticChildren.stream()
                 .map(StatusReportHelper::fromDiagnostic)
@@ -160,19 +136,75 @@ public class StatusReportHelper {
 
         var source = extractSource(diagnostic);
         var node = extractLocationData(diagnostic);
+        
+        List<Location> locations = null;
+        if (node != null || source != null) {
+            locations = new ArrayList<>();
+            locations.add(new Location(
+                source,
+                node != null ? node.getStartLine() : null,
+                node != null ? node.getEndLine() : null,
+                node != null ? node.getOffset() : null,
+                node != null ? node.getLength() : null,
+                node != null ? node.getText() : null
+            ));
+        }
 
         return new StatusReport(
+            "unknown",  // pluginId - unknown from Diagnostic
             Severity.fromValue(diagnostic.getSeverity()),
             diagnostic.getMessage(),
-            source,
             diagnostic.getCode() == 0 ? null : diagnostic.getCode(),
-            details,
-            node!= null ? node.getStartLine(): null,
-    		node!= null ? node.getEndLine(): null,
-			node!= null ? node.getOffset(): null,
-			node!= null ? node.getLength(): null,
-			node!= null ? node.getText(): null ,
-            children
+            null,
+            locations,
+            children,
+            (Exception) exception
+        );
+    }
+
+    /**
+     * Converts an IStatus to a StatusReport.
+     * If the IStatus is already an instance of StatusReport, it is returned as-is.
+     * Otherwise, a new StatusReport is created from the IStatus data.
+     *
+     * @param status the IStatus to convert
+     * @return a StatusReport based on the IStatus, or null if status is null
+     */
+    public static StatusReport fromIStatus(IStatus status) {
+        if (status == null) {
+            return null;
+        }
+        
+        // If already a StatusReport, return it directly
+        if (status instanceof StatusReport statusReport) {
+            return statusReport;
+        }
+        
+        // Convert IStatus to StatusReport
+        List<StatusReport> children = null;
+        var statusChildren = status.getChildren();
+        if (statusChildren != null && statusChildren.length > 0) {
+            children = new ArrayList<>();
+            for (var child : statusChildren) {
+                var childReport = fromIStatus(child);
+                if (childReport != null) {
+                    children.add(childReport);
+                }
+            }
+            if (children.isEmpty()) {
+                children = null;
+            }
+        }
+        
+        return new StatusReport(
+            status.getPlugin(),  // pluginId
+            Severity.fromValue(status.getSeverity()),
+            status.getMessage(),
+            status.getCode() == 0 ? null : status.getCode(),
+            null,  // details - not available from IStatus
+            null,  // locations - not available from IStatus
+            children,
+            (Exception) status.getException()
         );
     }
 
@@ -203,21 +235,19 @@ public class StatusReportHelper {
 	public static StatusReport okReport(String errorMessage, List<StatusReport> children) {
 		return fromMessage(Severity.OK, errorMessage, children);
 	}
+	
+	
 
 	private static StatusReport fromMessage(Severity severity, String errorMessage, List<StatusReport> children) {
-		
 		return new StatusReport(
+			null,  // pluginId - unknown
 			severity,
 			errorMessage,
-			null,  // source - unknown
-			null,     // code - default
+			null,  // code - default
 			null,  // details - none
-			null,     // startLine - unknown
-			null,     // endLine - unknown
-			null,     // offset - unknown
-			null,     // length - unknown
-			null,    // text - unknown
-			children
+			null,  // locations - unknown
+			children,
+			null   // exception - none
 		);
 	}
 
@@ -240,10 +270,10 @@ public class StatusReportHelper {
             if (firstData instanceof EObject eObject) {
                 Resource resource = eObject.eResource();
                 if (resource != null) {
-                    return resource.getURI().toString();
+                    return resource.getURI().path();
                 }
             } else if (firstData instanceof Resource resource) {
-                return resource.getURI().toString();
+                return resource.getURI().path();
             }
         }
 
@@ -294,55 +324,35 @@ public class StatusReportHelper {
 		
 		seenExceptions.add(exception);
 		
-		// Build details string with class name and message
-		StringBuilder details = new StringBuilder();
-		details.append(exception.getClass().getName());
-		if (exception.getMessage() != null) {
-			details.append(": ").append(exception.getMessage());
-		}
-		details.append("\n");
-		
-		// Append stack trace (limited to 15 elements)
-		StackTraceElement[] stackTrace = exception.getStackTrace();
-		int limit = Math.min(stackTrace.length, 15);
-		for (int i = 0; i < limit; i++) {
-			details.append("\tat ").append(stackTrace[i]).append("\n");
-		}
-		if (stackTrace.length > 15) {
-			details.append("\t... ").append(stackTrace.length - 15).append(" more\n");
-		}
-		
 		// Process cause as child (if exists)
-		List<StatusReport> allChildren = new ArrayList<StatusReport>();
+		var allChildren = new ArrayList<StatusReport>();
 		if (children != null) {
 			allChildren.addAll(children);
 		}
-		Throwable cause = exception.getCause();
+		var cause = exception.getCause();
 		if (cause != null) {
-			StatusReport childReport = fromException(cause, null, null, seenExceptions);
+			var childReport = fromException(cause, null, null, seenExceptions);
 			if (childReport != null) {
 				allChildren.add(childReport);
 			}
 		}
 		
 		// Create StatusReport with defaults for unknown fields
-		StringBuffer message = new StringBuffer();
+		// Details will be filled automatically from exception if not provided
+		var message = new StringBuffer();
 		if (userMessage != null && !userMessage.isEmpty()) {
 			message.append(userMessage).append("\n");
 		}
 		message.append(exception.getLocalizedMessage() != null ? exception.getLocalizedMessage() : exception.getClass().getSimpleName());
 		return new StatusReport(
+			null,  // pluginId - unknown
 			Severity.ERROR,
 			message.toString(),
-			null,  // source - unknown
 			null,     // code - default
-			details.toString(),
-			null,     // startLine - unknown
-			null,     // endLine - unknown
-			null,     // offset - unknown
-			null,     // length - unknown
-			null,    // text - unknown
-			allChildren
+			null,     // details - will be filled from exception automatically
+			null,     // locations - unknown
+			allChildren,
+			(Exception) exception  // pass the exception to StatusReport
 		);
 	}
 

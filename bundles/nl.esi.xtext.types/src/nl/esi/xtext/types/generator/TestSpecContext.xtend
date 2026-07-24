@@ -9,11 +9,10 @@
  */
 package nl.esi.xtext.types.generator
 
-import java.nio.file.Path
 import org.eclipse.xtext.generator.IGeneratorContext
-import nl.esi.xtext.common.lang.reporting.StatusReporting
+import java.nio.file.Path
 
-class TestSpecContext extends StatusReporting implements IGeneratorContext {
+class TestSpecContext implements IGeneratorContext {
 	
 	public Path tspecPath
 	

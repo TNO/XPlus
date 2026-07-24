@@ -9,6 +9,8 @@
  */
 package nl.esi.xtext.common.lang.reporting;
 
+import org.eclipse.core.runtime.IStatus;
+
 /**
  * An interface for reporting status messages, allowing implementations to
  * handle the reporting of validation messages.
@@ -19,5 +21,12 @@ public interface IStatusReporting {
 	 *
 	 * @param report the status report to be reported
 	 */
-	void addReport(StatusReport report);
+	void addReport(IStatus report);
+	/**
+	 * Reports an exception message.
+	 *
+	 * @param report the status report to be reported
+	 */
+	void addReport(Exception report);
+
 }

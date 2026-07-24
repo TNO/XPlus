@@ -18,11 +18,12 @@ import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.text.MessageFormat
-import java.util.ArrayList
 import java.util.Comparator
 import java.util.List
+import nl.esi.xtext.common.lang.reporting.IStatusReporting
 import nl.esi.xtext.common.lang.reporting.Severity
 import nl.esi.xtext.common.lang.reporting.StatusReport
+import nl.esi.xtext.common.lang.reporting.StatusReportCollector
 import nl.esi.xtext.common.lang.reporting.StatusReportHelper
 import org.apache.commons.cli.CommandLine
 import org.apache.commons.cli.DefaultParser
@@ -139,6 +140,8 @@ class XPlusMain {
 	@Inject GeneratorDelegate generator
 
 	@Inject JavaIoFileSystemAccess fileAccess
+	
+	@Inject IStatusReporting statusReporting
 
 	String[] args
 	String description
@@ -302,17 +305,15 @@ class XPlusMain {
 		val outputdir = getOutputdir(cmdLine, locationPath, OPT_OUTPUT)
 		System.out.println(INFO_OUTPUT + outputdir)
 		cleanOutput(cmdLine, outputdir)
-		var statusReports = new ArrayList<StatusReport>() as List<StatusReport>
 		
 		if (Files.isDirectory(locationPath, LinkOption.NOFOLLOW_LINKS)) {
 			println(MessageFormat.format(INFO_SEARCHING, language, ext, locationPath.toString))
 			val dir = new File(locationPath.toString)
 			val prjFiles = dir.listFiles(createFileFilter(ext));
 			for (file : prjFiles) {
-				val reports = runGeneration(file.absolutePath, outputdir.toString, validation)
-				statusReports.addAll(reports)
-				if( reports.exists[severity == Severity.ERROR]) {
-                    exit(StatusReportHelper.errorReport(INFO_STOP, statusReports), null)    
+				runGeneration(file.absolutePath, outputdir.toString, validation)
+				if( reports.exists[getSeverityLevel == Severity.ERROR]) {
+                    exit(StatusReportHelper.errorReport(INFO_STOP, getReports()), null)    
 				}
 			}
 			if (prjFiles.empty) {
@@ -320,16 +321,15 @@ class XPlusMain {
 			}
 
 		} else {
-			val reports = runGeneration(locationPath.toString, outputdir.toString, validation)
-			statusReports.addAll(reports)
+			runGeneration(locationPath.toString, outputdir.toString, validation)
             if( reports.exists[severity == Severity.ERROR]) {
-                exit(StatusReportHelper.errorReport(INFO_STOP, statusReports), null)    
+                exit(StatusReportHelper.errorReport(INFO_STOP, getReports()), null)    
             }
 		}
 		System.out.println(INFO_GENERATION_FINISHED)
 		System.out.println("")
 		System.out.println(INFO_XPLUS_FINISHED)
-		exit(StatusReportHelper.okReport(INFO_GENERATION_FINISHED, statusReports), null)	
+		exit(StatusReportHelper.okReport(INFO_GENERATION_FINISHED, getReports()), null)	
 	}
 
 	def Options createOptions() {
@@ -487,7 +487,7 @@ class XPlusMain {
 		generator.generate(resource, fileAccess, cliContext)
 	}
 
-	def List<StatusReport> runGeneration(String string, String outputdir, Boolean validation) {
+	def void runGeneration(String string, String outputdir, Boolean validation) {
 
 		// Load the resource
 		System.out.println(INFO_READING + string)
@@ -498,10 +498,10 @@ class XPlusMain {
 		// Validate the resource
 		if (validation) {
 		    val report = StatusReportHelper.validate(resource)
-		    context.addReport(report)
+		    statusReporting.addReport(report)
 		    if (report.error) {
 		        // stop when error else continue
-		        return context.reports
+		        return
 		    }
 		}
 		// Configure and start the generator
@@ -513,10 +513,10 @@ class XPlusMain {
         } catch (Exception e) {
             //create a status report
             val report = StatusReportHelper.fromException(e, INFO_STOP, null);
-            context.addReport(report)
+            statusReporting.addReport(report)
             
         }
-        return context.reports
+        return
 	}
 
 	def cleanOutput(CommandLine cmdLine, Path outputdir) {
@@ -562,19 +562,19 @@ class XPlusMain {
     }
 
     private def void abort(String message,  Options options) {
-        exit(StatusReportHelper.errorReport(message,null), options)
+        exit(StatusReportHelper.errorReport(message,getReports()), options)
     }
 
     private def void exit(StatusReport statusReport, Options options) {
         //be backwards compatible
-        System.err.println(statusReport.message())
+        System.err.println(statusReport.getMessage())
         saveReport(statusReport)
         if(options !== null) {
             showInfo(description, options)
         }
-        System.out.println(String.format("Exiting with status %s(%d)", statusReport.severity().name, statusReport.severity().value))
-        System.err.println(String.format("Exiting with status %s(%d)", statusReport.severity().name, statusReport.severity().value))
-        System.exit(statusReport.severity().value)
+        System.out.println(String.format("Exiting with status %s(%d)", statusReport.getSeverityLevel().name, statusReport.getSeverityLevel().value))
+        System.err.println(String.format("Exiting with status %s(%d)", statusReport.getSeverityLevel().name, statusReport.getSeverityLevel().value))
+        System.exit(statusReport.getSeverityLevel().value)
     }
     
     private def void saveReport(StatusReport report) {
@@ -582,5 +582,12 @@ class XPlusMain {
         val resource = "report/StatusReport.json"
         val charSequence = StatusReportHelper.toJson(report)
         fileAccess.generateFile(resource, charSequence);
+    }
+    
+    private def List<StatusReport> getReports(){
+        if( statusReporting instanceof StatusReportCollector) {
+            return statusReporting.reports
+        }
+        throw new IllegalArgumentException("Excepting an instance of StatusReportCollector")
     }
 }
