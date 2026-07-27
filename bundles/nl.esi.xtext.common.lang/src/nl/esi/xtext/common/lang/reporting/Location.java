@@ -14,7 +14,6 @@ package nl.esi.xtext.common.lang.reporting;
  * Captures details such as line numbers, character offset, length, and text content.
  */
 public record Location(
-    String source,
     Integer startLine,
     Integer endLine,
     Integer offset,

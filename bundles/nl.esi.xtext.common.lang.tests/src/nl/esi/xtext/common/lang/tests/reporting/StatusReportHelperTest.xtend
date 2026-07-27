@@ -146,21 +146,22 @@ class StatusReportHelperTest {
      */
     @Test
     def void testStatusReportFields() {
-        var locations = newArrayList(new Location("test.source", 1, 2, 3, 4, "5"))
+        var location = new Location(1, 2, 3, 4, "5")
         var statusReport = new StatusReport(
             null,
             Severity.INFO,
             "Test message",
+            "test.source",
             42,
             "Some details about the validation",
-            locations,
+            location,
             null,
             null
         )
 
         Assertions.assertEquals(Severity.INFO, statusReport.getSeverityLevel())
-        Assertions.assertTrue(statusReport.getLocations().isPresent())
-        var loc = statusReport.getLocations().get().get(0)
+        Assertions.assertTrue(statusReport.getLocation().isPresent())
+        var loc = statusReport.getLocation().get()
         Assertions.assertEquals(1, loc.startLine().intValue())
         Assertions.assertEquals(2, loc.endLine().intValue())
         Assertions.assertEquals(3, loc.offset().intValue())
@@ -182,7 +183,7 @@ class StatusReportHelperTest {
         val child3 = createStatusReport(Severity.INFO, "Info message", null)
 
         // Create parent with OK severity but ERROR children
-        val parent = new StatusReport(null, Severity.OK, "test", null, null, null, #[child1, child2, child3], null)
+        val parent = new StatusReport(null, Severity.OK, "test", null, null, null, null, #[child1, child2, child3], null)
 
         // Verify severity was elevated to ERROR (the highest in children)
         Assertions.assertEquals(Severity.ERROR, parent.getSeverityLevel(), "Parent severity should be elevated to ERROR")
@@ -199,7 +200,7 @@ class StatusReportHelperTest {
         val child = createStatusReport(Severity.CANCEL, "Cancelled", null)
 
         // Create parent with INFO severity
-        val parent = new StatusReport(null, Severity.INFO, "test", null, null, null, #[child], null)
+        val parent = new StatusReport(null, Severity.INFO, "test", null, null, null, null, #[child], null)
 
         // Verify severity was elevated to CANCEL (the highest possible)
         Assertions.assertEquals(Severity.CANCEL, parent.getSeverityLevel(), "Parent severity should be elevated to CANCEL")
@@ -217,7 +218,7 @@ class StatusReportHelperTest {
         val child2 = createStatusReport(Severity.WARNING, "Warning 2", null)
 
         // Create parent with ERROR severity (higher than children)
-        val parent = new StatusReport(null, Severity.ERROR, "test", null, null, null, #[child1, child2], null)
+        val parent = new StatusReport(null, Severity.ERROR, "test", null, null, null, null, #[child1, child2], null)
 
         // Verify severity remains ERROR
         Assertions.assertEquals(Severity.ERROR, parent.getSeverityLevel(), "Parent severity should remain ERROR")
@@ -230,12 +231,12 @@ class StatusReportHelperTest {
     @Test
     def void testSeverityWithNullOrEmptyChildren() {
         // Test with null children
-        val parentWithNull = new StatusReport(null, Severity.INFO, "test", null, null, null, null, null)
+        val parentWithNull = new StatusReport(null, Severity.INFO, "test", null, null, null, null, null, null)
         Assertions.assertEquals(Severity.INFO, parentWithNull.getSeverityLevel(),
             "Severity should remain INFO with null children")
 
         // Test with empty children
-        val parentWithEmpty = new StatusReport(null, Severity.WARNING, "test", null, null, null, #[], null)
+        val parentWithEmpty = new StatusReport(null, Severity.WARNING, "test", null, null, null, null, #[], null)
         Assertions.assertEquals(Severity.WARNING, parentWithEmpty.getSeverityLevel(),
             "Severity should remain WARNING with empty children")
     }
@@ -248,7 +249,7 @@ class StatusReportHelperTest {
         String message,
         List<StatusReport> children
     ) {
-        return new StatusReport(null, severity, message, null, null, null, children, null)
+        return new StatusReport(null, severity, message, null, null, null, null, children, null)
     }
 
 }

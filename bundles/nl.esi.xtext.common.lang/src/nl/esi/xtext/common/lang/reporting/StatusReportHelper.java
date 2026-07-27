@@ -137,26 +137,25 @@ public class StatusReportHelper {
         var source = extractSource(diagnostic);
         var node = extractLocationData(diagnostic);
         
-        List<Location> locations = null;
+        Location location = null;
         if (node != null || source != null) {
-            locations = new ArrayList<>();
-            locations.add(new Location(
-                source,
+            location = new Location(
                 node != null ? node.getStartLine() : null,
                 node != null ? node.getEndLine() : null,
                 node != null ? node.getOffset() : null,
                 node != null ? node.getLength() : null,
                 node != null ? node.getText() : null
-            ));
+            );
         }
 
         return new StatusReport(
             "unknown",  // pluginId - unknown from Diagnostic
             Severity.fromValue(diagnostic.getSeverity()),
             diagnostic.getMessage(),
+            source,
             diagnostic.getCode() == 0 ? null : diagnostic.getCode(),
             null,
-            locations,
+            location,
             children,
             (Exception) exception
         );
@@ -200,6 +199,7 @@ public class StatusReportHelper {
             status.getPlugin(),  // pluginId
             Severity.fromValue(status.getSeverity()),
             status.getMessage(),
+            status.getPlugin(),
             status.getCode() == 0 ? null : status.getCode(),
             null,  // details - not available from IStatus
             null,  // locations - not available from IStatus
@@ -243,6 +243,7 @@ public class StatusReportHelper {
 			null,  // pluginId - unknown
 			severity,
 			errorMessage,
+			null,
 			null,  // code - default
 			null,  // details - none
 			null,  // locations - unknown
@@ -348,6 +349,7 @@ public class StatusReportHelper {
 			null,  // pluginId - unknown
 			Severity.ERROR,
 			message.toString(),
+			null,    // source - unknown
 			null,     // code - default
 			null,     // details - will be filled from exception automatically
 			null,     // locations - unknown

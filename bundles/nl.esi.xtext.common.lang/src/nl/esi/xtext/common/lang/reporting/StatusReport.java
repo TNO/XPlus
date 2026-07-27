@@ -20,12 +20,13 @@ import org.eclipse.core.runtime.IStatus;
  */
 public final class StatusReport implements IStatus {
 
-	private String pluginId;
+	private String plugin;
 	private final int code;
 	private final String message;
+	private final String source;
 	private final Severity severity;
 	private final String details;
-	private final List<Location> locations; // Supports multiple sources for one status message
+	private final Location location; 
 	private final List<StatusReport> children;
 	private transient final Exception exception; // covered by details, not serialized
 
@@ -36,7 +37,7 @@ public final class StatusReport implements IStatus {
 	 * found in the children list, ensuring that the parent always reflects the most
 	 * severe condition among its children.
 	 *
-	 * @param pluginId  the plugin identifier for this status
+	 * @param plugin    the plugin identifier for this status
 	 * @param severity  the initial severity level (will be elevated if children
 	 *                  have higher severity)
 	 * @param message   the message describing the situation
@@ -51,12 +52,13 @@ public final class StatusReport implements IStatus {
 	 * @param exception the exception associated with this status (transient, not
 	 *                  serialized)
 	 */
-	public StatusReport(String pluginId, Severity severity, String message, Integer code, String details,
-			List<Location> locations, List<StatusReport> children, Exception exception) {
-		this.pluginId = pluginId;
+	public StatusReport(String plugin, Severity severity, String message, String source, Integer code, String details, 
+			Location location, List<StatusReport> children, Exception exception) {
+		this.plugin = plugin;
 		this.code = code != null ? code : 0;
 		this.message = message;
 		this.exception = exception;
+		this.source = source;
 
 		// If details is null but exception is not null, generate stack trace string
 		var effectiveDetails = details == null && exception != null ? getStackTraceAsString(exception) : details;
@@ -70,7 +72,7 @@ public final class StatusReport implements IStatus {
 
 		this.severity = effectiveSeverity;
 		this.details = effectiveDetails;
-		this.locations = (locations != null && !locations.isEmpty()) ? locations : null;
+		this.location = location;
 		this.children = (children != null && !children.isEmpty()) ? children : null;
 	}
 
@@ -96,13 +98,17 @@ public final class StatusReport implements IStatus {
 		return message;
 	}
 
+	public String getSource() {
+		return source;
+	}
+
 	@Override
 	public String getPlugin() {
-		return pluginId;
+		return plugin;
 	}
 
 	public void setPluginId(String pluginId) {
-		this.pluginId = pluginId;
+		this.plugin = pluginId;
 	}
 
 	@Override
@@ -146,8 +152,8 @@ public final class StatusReport implements IStatus {
 	 * @return an Optional containing the list of locations, or empty if no
 	 *         locations
 	 */
-	public Optional<List<Location>> getLocations() {
-		return Optional.ofNullable(locations);
+	public Optional<Location> getLocation() {
+		return Optional.ofNullable(location);
 	}
 
 	/**
@@ -174,7 +180,7 @@ public final class StatusReport implements IStatus {
 	 * @return an Optional containing the plugin ID, or empty if not set
 	 */
 	public Optional<String> getPluginId() {
-		return Optional.ofNullable(pluginId);
+		return Optional.ofNullable(plugin);
 	}
 
 	/**
@@ -257,8 +263,8 @@ public final class StatusReport implements IStatus {
 
 	@Override
 	public String toString() {
-		return "StatusReport [pluginId=" + pluginId + ", code=" + code + ", message=" + message + ", severity="
-				+ severity + ", details=" + details + ", locations=" + locations + ", children=" + children + "]";
+		return "StatusReport [pluginId=" + plugin + ", code=" + code + ", message=" + message + ", severity="
+				+ severity + ", details=" + details + ", location=" + location + ", children=" + children + "]";
 	}
 
 }
