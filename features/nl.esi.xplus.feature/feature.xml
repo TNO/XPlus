@@ -31,10 +31,6 @@ Languages.
       %license
    </license>
 
-   <requires>
-      <import plugin="net.sourceforge.plantuml.lib" version="1.2024.5" match="compatible"/>
-   </requires>
-
    <plugin
          id="nl.esi.xtext.types.ide"
          version="0.0.0"/>

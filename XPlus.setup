@@ -384,8 +384,6 @@
         <repository
             url="https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/2024-09"/>
         <repository
-            url="http://hallvard.github.io/plantuml"/>
-        <repository
             url="https://download.eclipse.org/justj/jres/21/updates/release/latest"/>
         <repository
             url="https://artifacts.itemis.cloud/repository/p2/xtext-updates/releases/2.1.1/"/>
