@@ -71,6 +71,8 @@ import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 import java.util.ArrayList
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 
 class ExpressionsUtilities {
     static extension val ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.eINSTANCE
@@ -180,7 +182,12 @@ class ExpressionsUtilities {
                 else
                     null
             }
-            
+            ExpressionNullCoalescing: {
+                e.left.typeOf.getCommonType(e.right.typeOf)
+            }
+            ExpressionConditional: {
+                e.middle.typeOf.getCommonType(e.right.typeOf)
+            }
         }
     }
 
@@ -274,7 +281,7 @@ class ExpressionsUtilities {
         return result
     }
 
-    def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){
+    private def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){
         val leftType = e.left.typeOf
         val rightType = e.right.typeOf
         switch(e){

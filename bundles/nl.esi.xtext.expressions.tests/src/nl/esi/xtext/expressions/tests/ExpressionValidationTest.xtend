@@ -210,6 +210,25 @@ class ExpressionValidationTest {
         ''')
     }
 
+    @Test
+    def void expressionNullCoalescing() {
+        validate('''
+            int i = 1 ?? 2
+            real r = null ?? 2.0
+            string a = "a" ?? null
+        ''')
+    }
+
+    @Test
+    def void expressionConditional() {
+        validate('''
+            int i = true ? 1 : 2
+            real r = false ? 1.0 : 2.0
+            bool b = true ? true : false
+            string a = b ? "a" : null
+        ''')
+    }
+
     private def validate(String text) {
         val result = parseHelper.parse(text)
 

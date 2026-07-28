@@ -141,8 +141,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
 			ExpressionModulo |
 			ExpressionPower |
 			ExpressionMinimum |
-			ExpressionMaximum |
-			ExpressionNullCoalescing: {
+			ExpressionMaximum: {
 				val leftType = e.left.typeOf
 				val rightType = e.right.typeOf
 				if(leftType === null || rightType === null) {return}
@@ -167,16 +166,24 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				}
 				
 			}
+            ExpressionNullCoalescing: {
+                val leftType = e.left.typeOf
+                val rightType = e.right.typeOf
+                if(leftType === null || rightType === null) {return}
+                if(e.typeOf === null) {
+                    error("Arguments must be of compatible types", e.eContainer, e.eContainingFeature)
+                    return
+                }
+            }
 			ExpressionConditional: {
                 val leftType = e.left.typeOf
                 val middleType = e.left.typeOf
                 val rightType = e.right.typeOf
-
                 if(leftType === null || middleType === null || rightType === null) {return}
                 if(!leftType.identical(BasicTypes.getBoolType(e))) {
                     error("Type mismatch: expected type bool", ExpressionPackage.Literals.EXPRESSION_TERNARY__LEFT)
                 }
-                if(!middleType.synonym(rightType)){
+                if(e.typeOf === null) {
                     error("Arguments must be of compatible types", e.eContainer, e.eContainingFeature)
                     return
                 }
