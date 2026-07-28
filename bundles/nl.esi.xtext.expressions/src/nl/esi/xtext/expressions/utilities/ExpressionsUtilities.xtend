@@ -326,8 +326,12 @@ class ExpressionsUtilities {
         if (type === null) return null
         return switch (type) {
             VectorTypeConstructor: createVectorTypeConstructor => [
+                val subType = resolutionMap.get(type.type)
                 type = substituteGenerics(type.typeObject.elementType.asType, resolutionMap).type
                 dimensions += type.dimensions.copyAll
+                if(subType.isVectorType) {
+                    dimensions += subType.dimensions
+                }
             ]
             MapTypeConstructor: createMapTypeConstructor => [
                 type = substituteGenerics(type.typeObject.keyType.asType, resolutionMap).type

@@ -31,6 +31,7 @@ import nl.esi.xtext.types.types.VectorTypeConstructor
 import nl.esi.xtext.types.types.VectorTypeDecl
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EcoreUtil
+import nl.esi.xtext.types.types.Dimension
 
 class TypeUtilities {
 	/*
@@ -61,6 +62,16 @@ class TypeUtilities {
 	def static boolean isVectorType(Type t){
 		return t.getTypeObject.isVectorType
 	}
+
+    def static List<Dimension> getDimensions(Type t){
+        if(t instanceof VectorTypeConstructor) {
+            return t.dimensions
+        }
+        if (t instanceof VectorTypeDecl) {
+            return t.constructor.dimensions
+        }
+        return List.of
+    }
 	
 	def static boolean isVectorType(TypeObject t){
 		t instanceof VectorTypeConstructor || t instanceof VectorTypeDecl
@@ -300,8 +311,8 @@ class TypeUtilities {
         if (subType instanceof VectorTypeConstructor) {
             if (baseType instanceof VectorTypeConstructor) {
                 if(!subType.type.subTypeOf(baseType.type)) return false
-                if(subType.dimensions.size < baseType.dimensions.size) return false
-                for (i : 0 ..< baseType.dimensions.size) {
+                if(subType.dimensions.size != baseType.dimensions.size) return false
+                for (i : 0 ..< subType.dimensions.size) {
                     if(subType.dimensions.get(i).size != baseType.dimensions.get(i).size) return false
                 }
                 return true
