@@ -138,7 +138,7 @@ public class StatusReportHelper {
         var node = extractLocationData(diagnostic);
         
         Location location = null;
-        if (node != null || source != null) {
+        if (node != null) {
             location = new Location(
                 node != null ? node.getStartLine() : null,
                 node != null ? node.getEndLine() : null,
