@@ -328,10 +328,10 @@ class ExpressionsUtilities {
             VectorTypeConstructor: createVectorTypeConstructor => [
                 val substituteType = resolutionMap.get(targetType.type)
                 type = substituteGenerics(targetType.typeObject.elementType.asType, resolutionMap).type
-                dimensions += targetType.dimensions.copyAll
                 if(substituteType.isVectorType) {
-                    dimensions += substituteType.dimensions
+                    dimensions += substituteType.dimensions.copyAll
                 }
+                dimensions += targetType.dimensions.copyAll
             ]
             MapTypeConstructor: createMapTypeConstructor => [
                 type = substituteGenerics(targetType.typeObject.keyType.asType, resolutionMap).type
