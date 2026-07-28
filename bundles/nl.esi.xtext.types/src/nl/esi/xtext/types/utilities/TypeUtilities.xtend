@@ -300,8 +300,8 @@ class TypeUtilities {
         if (subType instanceof VectorTypeConstructor) {
             if (baseType instanceof VectorTypeConstructor) {
                 if(!subType.type.subTypeOf(baseType.type)) return false
-                if(subType.dimensions.size != baseType.dimensions.size) return false
-                for (i : 0 ..< subType.dimensions.size) {
+                if(subType.dimensions.size < baseType.dimensions.size) return false
+                for (i : 0 ..< baseType.dimensions.size) {
                     if(subType.dimensions.get(i).size != baseType.dimensions.get(i).size) return false
                 }
                 return true

@@ -209,6 +209,34 @@ class ExpressionValidationTest {
             int d = 2 ^ 3 ^ 2
         ''')
     }
+    
+    @Test
+    def void testListOfLists(){
+          validate('''
+            record Config {
+                string[][]  listOfListOfStrings
+                string[]  listOfStrings
+                string aString
+            }
+        Config config = Config {
+         listOfListOfStrings = <string[][]>[
+             <string[]>['0a','0b','0c'],
+             <string[]>['1a','1b','1c'],
+             <string[]>['2a','2b','2c']
+         ],
+                  listOfStrings = null,
+                  aString = null
+         }
+        Config out = Config {
+           listOfListOfStrings = null,
+           listOfStrings = get(config.listOfListOfStrings, 0), // expected returned value: ['0a', '0b', '0c']
+           aString = get(get(config.listOfListOfStrings, 0), 0)
+         }
+         
+         string s = out.aString
+         string[] s1 = out.listOfStrings
+          ''')
+    }
 
     private def validate(String text) {
         val result = parseHelper.parse(text)
