@@ -38,9 +38,6 @@
    <bundle id="Java-WebSocket.source">
       <category name="libs"/>
    </bundle>
-   <bundle id="net.sourceforge.plantuml.lib">
-      <category name="libs"/>
-   </bundle>
    <category-def name="XPlus" label="XPlus">
       <description>
          XPlus Framework

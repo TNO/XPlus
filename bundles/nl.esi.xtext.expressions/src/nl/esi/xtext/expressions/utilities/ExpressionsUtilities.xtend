@@ -322,23 +322,27 @@ class ExpressionsUtilities {
     /**
      * Recursively substitute generic type parameters in a type structure.
      */
-    private def static Type substituteGenerics(Type type, Map<GenericsTypeParam, Type> resolutionMap) {
-        if (type === null) return null
-        return switch (type) {
+    private def static Type substituteGenerics(Type targetType, Map<GenericsTypeParam, Type> resolutionMap) {
+        if (targetType === null) return null
+        return switch (targetType) {
             VectorTypeConstructor: createVectorTypeConstructor => [
-                type = substituteGenerics(type.typeObject.elementType.asType, resolutionMap).type
-                dimensions += type.dimensions.copyAll
+                val substituteType = resolutionMap.get(targetType.type)
+                type = substituteGenerics(targetType.typeObject.elementType.asType, resolutionMap).type
+                if(substituteType.isVectorType) {
+                    dimensions += substituteType.dimensions.copyAll
+                }
+                dimensions += targetType.dimensions.copyAll
             ]
             MapTypeConstructor: createMapTypeConstructor => [
-                type = substituteGenerics(type.typeObject.keyType.asType, resolutionMap).type
-                valueType = substituteGenerics(type.typeObject.valueType.asType, resolutionMap).asExprType
+                type = substituteGenerics(targetType.typeObject.keyType.asType, resolutionMap).type
+                valueType = substituteGenerics(targetType.typeObject.valueType.asType, resolutionMap).asExprType
             ]
             TypeReference: {
                 // resolve generics or just the original type decl
-                return resolutionMap.getOrDefault(type.type,type)
+                return resolutionMap.getOrDefault(targetType.type,targetType)
             }
             default:
-               type
+               targetType
         }
     }
 

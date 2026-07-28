@@ -319,4 +319,58 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
             }
         ''')
     }
+
+
+    @Test
+    def void testListOfLists() {
+        assertEval('''
+            record Config { 
+                string [ ] [ ] listOfListOfStrings string [ ] 
+                listOfStrings 
+                string aString
+            } 
+            Config config = Config {
+             listOfListOfStrings = <string[][]>[
+                 <string[]>['0a','0b','0c'],
+                 <string[]>['1a','1b','1c'],
+                 <string[]>['2a','2b','2c']
+             ],
+              listOfStrings = null,
+              aString = null
+             }
+            Config out = Config { 
+                listOfListOfStrings = null , 
+                listOfStrings = < string [ ] > [ "0a" , "0b" , "0c" ] , 
+                aString = "0a"
+            } 
+            
+            string s = "0a" 
+            string [ ] sArray = < string [ ] > [ "0a" , "0b" , "0c" ]       
+        ''', '''
+            record Config {
+                string[][]  listOfListOfStrings
+                string[]  listOfStrings
+                string aString
+            }
+            Config config = Config {
+             listOfListOfStrings = <string[][]>[
+                 <string[]>['0a','0b','0c'],
+                 <string[]>['1a','1b','1c'],
+                 <string[]>['2a','2b','2c']
+             ],
+              listOfStrings = null,
+              aString = null
+             }
+            Config out = Config {
+               listOfListOfStrings = null,
+               listOfStrings = get(config.listOfListOfStrings, 0), // expected returned value: ['0a', '0b', '0c']
+               aString = get(get(config.listOfListOfStrings, 0), 0)
+             }
+             string s = out.aString
+             string[] sArray = out.listOfStrings
+          ''')
+        
+    }
+    
+    
 }
