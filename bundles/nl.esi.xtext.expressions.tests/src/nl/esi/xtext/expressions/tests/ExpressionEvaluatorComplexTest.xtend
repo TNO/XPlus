@@ -114,6 +114,65 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     }
 
     @Test
+    def void recordAccess() {
+        val types = '''
+            record S {
+                T t
+            }
+
+            record T {
+                string ts
+            }
+        '''
+
+        assertEval('''
+            «types»
+
+            S a = null
+            S b = S {
+                t = null
+            }
+            S c = S {
+                t = T {
+                    ts = "Hello World!"
+                }
+            }
+
+            string u = a.t.ts
+            string v = b.t.ts
+            string w = "Hello World!"
+
+            string x = null
+            string y = null
+            string z = "Hello World!"
+
+            string nullCoalescing = "My default"
+        ''', '''
+            «types»
+
+            S a = null
+            S b = S {
+                t = null
+            }
+            S c = S {
+                t = T {
+                    ts = "Hello World!"
+                }
+            }
+
+            string u = a.t.ts
+            string v = b.t.ts
+            string w = c.t.ts
+
+            string x = a?.t?.ts
+            string y = b?.t?.ts
+            string z = c?.t?.ts
+
+            string nullCoalescing = b?.t?.ts ?? "My default"
+        ''')
+    }
+
+    @Test
     def void complexExpression() {
         val types = '''
             record T {

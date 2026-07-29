@@ -206,7 +206,7 @@ class ExpressionFormatter extends TypesFormatter {
 	//-----------------------------------   ExpressionLevel8
 	
 	def dispatch void format(ExpressionRecordAccess expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel8Access.fullStopKeyword_1_0_1).surround(noSpace)		
+		expr.regionFor.keyword(expressionLevel8Access.fullStopKeyword_1_0_1_1).surround(noSpace)		
 	}
 	
 	//-----------------------------------   ExpressionLevel9

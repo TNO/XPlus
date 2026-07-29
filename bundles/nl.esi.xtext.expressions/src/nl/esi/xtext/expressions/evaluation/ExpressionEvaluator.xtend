@@ -145,6 +145,8 @@ class ExpressionEvaluator {
         if (recordExpression instanceof ExpressionRecord) {
             // TODO: Should we throw an Exception when the field is not associated with a value?
             return recordExpression.fields.findFirst[recordField == expression.field]?.exp
+        } else if (expression.nullSafe && recordExpression instanceof ExpressionNullLiteral) {
+            return recordExpression
         }
     }
 

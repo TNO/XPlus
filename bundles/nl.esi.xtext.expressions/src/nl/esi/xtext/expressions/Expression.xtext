@@ -110,7 +110,7 @@ ExpressionPlus:
 ;
 
 ExpressionLevel8 returns Expression:
-	ExpressionLevel9 (({ExpressionRecordAccess.record = current} '.' field = [types::RecordField | ID]) |
+	ExpressionLevel9 (({ExpressionRecordAccess.record = current} (nullSafe?='?.' | '.') field = [types::RecordField | ID]) |
 					  ({ExpressionMapRW.map = current} '[' key = Expression ('->' value = Expression)? ']'))*
 ;
 
