@@ -56,6 +56,15 @@ class TypeUtilities {
         }
 	}
 	
+    def static TypeDecl asTypeDecl(TypeObject t) {
+        return switch (t) {
+        	TypeDecl: t
+            MapTypeConstructor: TypesFactory.eINSTANCE.createMapTypeDecl => [constructor = t]
+            VectorTypeConstructor: TypesFactory.eINSTANCE.createVectorTypeDecl => [constructor = t]
+            default: throw new IllegalArgumentException('''Unsupported type: «t?.class?.name»''')
+        }
+    }
+
 	/*
 	 * Some useful predicates
 	 */
@@ -285,12 +294,14 @@ class TypeUtilities {
 
         if (t1 instanceof SimpleTypeDecl) {
             if (t2 instanceof SimpleTypeDecl) {
+                // Climbing the base type for t1 will find the common ancestor (if any)
                 return t1.base.getCommonType(t2)
             }
         }
 
         if (t1 instanceof RecordTypeDecl) {
             if (t2 instanceof RecordTypeDecl) {
+                // Climbing the parent type for t1 will find the common ancestor (if any)
                 return t1.parent.getCommonType(t2)
             }
         }
@@ -306,16 +317,15 @@ class TypeUtilities {
             }
         }
 
-        // FIXME: Add support for maps
-//        if (t1 instanceof MapTypeConstructor) {
-//            if (t2 instanceof MapTypeConstructor) {
-//                val keyType = t1.keyType.getCommonType(t2.keyType)
-//                val valueType = t1.valueType.getCommonType(t2.valueType)
-//                if (keyType !== null && valueType !== null) {
-//                    return mapOf(keyType, valueType)
-//                }
-//            }
-//        }
+        if (t1 instanceof MapTypeConstructor) {
+            if (t2 instanceof MapTypeConstructor) {
+                val keyType = t1.keyType.getCommonType(t2.keyType)
+                val valueType = t1.valueType.typeObject.getCommonType(t2.valueType.typeObject)
+                if (keyType !== null && valueType !== null) {
+                    return mapOf(keyType.asTypeDecl, valueType.asTypeDecl)
+                }
+            }
+        }
     }
 
     def static boolean identical(TypeObject t1, TypeObject t2) {

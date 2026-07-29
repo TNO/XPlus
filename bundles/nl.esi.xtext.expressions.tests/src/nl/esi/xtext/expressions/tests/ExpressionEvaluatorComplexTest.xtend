@@ -422,7 +422,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
         assertEval('int a = 1', 'int a = 1 ?? 2')
         assertEval('real a = 2.0', 'real a = null ?? 2.0')
 
-        // Resolved variable
+        // A resolved variable ( example: int a ==1) used in (c = a ?? b) must be reduced to c =1
         assertEval('''
             int a = 1
             int b = null
@@ -441,7 +441,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
             int z = x ?? y
         ''')
 
-        // Unresolved variable
+        // An unresolved / undefined variable (example int a) should not be reduced
         assertEval('''
             int a
             int b = 1
@@ -466,7 +466,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
         assertEval('int a = 1', 'int a = true ? 1 : 2')
         assertEval('real a = 2.0', 'real a = false ? null : 2.0')
 
-        // Resolved variable
+        // A Ternary expression that can be evaluated ( example bool a = true) must be reduced to corresponding true or `false`` expression
         assertEval('''
             bool a = true
             int b = 1
@@ -509,7 +509,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
             int z = w ? x : y
         ''')
 
-        // Unresolved variable
+        // Unresolved variable should not be evaluated/reduced
         assertEval('''
             bool a
             int b = 1
