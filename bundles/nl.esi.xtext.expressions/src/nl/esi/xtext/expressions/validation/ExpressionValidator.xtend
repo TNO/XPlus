@@ -379,4 +379,10 @@ class ExpressionValidator extends AbstractExpressionValidator {
 			error('Several record types with this name exist. Use an explicit interface name.', ExpressionPackage.Literals.EXPRESSION_RECORD__TYPE)
 	}
 	
+	@Check
+	def checkDeprecatedAtFunctionCall(ExpressionFunctionCall call) {
+	    if (call?.function?.name == "at") {
+	        warning("The 'at' function is deprecated and will be removed in the next version, please use the 'set' function instead.", ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
+	    }
+	}
 }
