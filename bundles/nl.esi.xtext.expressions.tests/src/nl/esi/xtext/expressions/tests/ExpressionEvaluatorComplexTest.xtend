@@ -114,6 +114,65 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     }
 
     @Test
+    def void recordAccess() {
+        val types = '''
+            record S {
+                T t
+            }
+
+            record T {
+                string ts
+            }
+        '''
+
+        assertEval('''
+            «types»
+
+            S a = null
+            S b = S {
+                t = null
+            }
+            S c = S {
+                t = T {
+                    ts = "Hello World!"
+                }
+            }
+
+            string u = a.t.ts
+            string v = b.t.ts
+            string w = "Hello World!"
+
+            string x = null
+            string y = null
+            string z = "Hello World!"
+
+            string nullCoalescing = "My default"
+        ''', '''
+            «types»
+
+            S a = null
+            S b = S {
+                t = null
+            }
+            S c = S {
+                t = T {
+                    ts = "Hello World!"
+                }
+            }
+
+            string u = a.t.ts
+            string v = b.t.ts
+            string w = c.t.ts
+
+            string x = a?.t?.ts
+            string y = b?.t?.ts
+            string z = c?.t?.ts
+
+            string nullCoalescing = b?.t?.ts ?? "My default"
+        ''')
+    }
+
+    @Test
     def void complexExpression() {
         val types = '''
             record T {
@@ -305,7 +364,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
     def void expressionMinus() {
         assertEval('int a = -1', 'int a = -1')
-        assertEval('int a = -1.0', 'int a = -1.0')
+        assertEval('real a = -1.0', 'real a = -1.0')
     }
 
     @Test
@@ -337,7 +396,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
     def void expressionPlus() {
         assertEval('int a = 1', 'int a = +1')
-        assertEval('int a = 1.0', 'int a = +1.0')
+        assertEval('real a = 1.0', 'real a = +1.0')
 
         // Resolved variable
         assertEval('''
@@ -355,6 +414,132 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
         ''', '''
             int a
             int b = +a
+        ''')
+    }
+
+    @Test
+    def void expressionNullCoalescing() {
+        assertEval('int a = 1', 'int a = 1 ?? 2')
+        assertEval('real a = 2.0', 'real a = null ?? 2.0')
+
+        // A resolved variable ( example: int a ==1) used in (c = a ?? b) must be reduced to c =1
+        assertEval('''
+            int a = 1
+            int b = null
+            int c = 1
+
+            int x = null
+            int y = 5
+            int z = 5
+        ''', '''
+            int a = 1
+            int b = null
+            int c = a ?? b
+
+            int x = null
+            int y = 5
+            int z = x ?? y
+        ''')
+
+        // An unresolved / undefined variable (example int a) should not be reduced
+        assertEval('''
+            int a
+            int b = 1
+            int c = a ?? b
+
+            int x = 4
+            int y
+            int z = 4
+        ''', '''
+            int a
+            int b = 1
+            int c = a ?? b
+
+            int x = 4
+            int y
+            int z = x ?? y
+        ''')
+    }
+
+    @Test
+    def void expressionConditional() {
+        assertEval('int a = 1', 'int a = true ? 1 : 2')
+        assertEval('real a = 2.0', 'real a = false ? null : 2.0')
+
+        // A Ternary expression that can be evaluated ( example bool a = true) must be reduced to corresponding true or `false`` expression
+        assertEval('''
+            bool a = true
+            int b = 1
+            int c = 2
+            int d = 1
+
+            bool f = true
+            int g = null
+            int h = 2
+            int i = null
+
+            bool j = false
+            int k = 1
+            int l = null
+            int m = null
+
+            bool w = null
+            int x = 1
+            int y = 2
+            int z = null ? x : y
+        ''', '''
+            bool a = true
+            int b = 1
+            int c = 2
+            int d = a ? b : c
+
+            bool f = true
+            int g = null
+            int h = 2
+            int i = f ? g : h
+
+            bool j = false
+            int k = 1
+            int l = null
+            int m = j ? k : l
+
+            bool w = null
+            int x = 1
+            int y = 2
+            int z = w ? x : y
+        ''')
+
+        // Unresolved variable should not be evaluated/reduced
+        assertEval('''
+            bool a
+            int b = 1
+            int c = 2
+            int d = a ? b : c
+
+            bool f = true
+            int g
+            int h = 2
+            int i = g
+
+            bool j = false
+            int k = 1
+            int l
+            int m = l
+        ''', '''
+            bool a
+            int b = 1
+            int c = 2
+            int d = a ? b : c
+
+            bool f = true
+            int g
+            int h = 2
+            int i = f ? g : h
+
+            bool j = false
+            int k = 1
+            int l
+            int m = j ? k : l
         ''')
     }
 }

@@ -56,6 +56,15 @@ class TypeUtilities {
         }
 	}
 	
+    def static TypeDecl asTypeDecl(TypeObject t) {
+        return switch (t) {
+        	TypeDecl: t
+            MapTypeConstructor: TypesFactory.eINSTANCE.createMapTypeDecl => [constructor = t]
+            VectorTypeConstructor: TypesFactory.eINSTANCE.createVectorTypeDecl => [constructor = t]
+            default: throw new IllegalArgumentException('''Unsupported type: «t?.class?.name»''')
+        }
+    }
+
 	/*
 	 * Some useful predicates
 	 */
@@ -276,7 +285,50 @@ class TypeUtilities {
 		return null
 	}
 	
-   def static boolean identical(TypeObject t1, TypeObject t2) {
+    def static TypeObject getCommonType(TypeObject t1, TypeObject t2) {
+        if (t1 === null || t2 === null) return null
+
+        if (t1.subTypeOf(t2)) return t2
+
+        if (t2.subTypeOf(t1)) return t1
+
+        if (t1 instanceof SimpleTypeDecl) {
+            if (t2 instanceof SimpleTypeDecl) {
+                // Climbing the base type for t1 will find the common ancestor (if any)
+                return t1.base.getCommonType(t2)
+            }
+        }
+
+        if (t1 instanceof RecordTypeDecl) {
+            if (t2 instanceof RecordTypeDecl) {
+                // Climbing the parent type for t1 will find the common ancestor (if any)
+                return t1.parent.getCommonType(t2)
+            }
+        }
+
+        if (t1 instanceof VectorTypeConstructor) {
+            if (t2 instanceof VectorTypeConstructor) {
+                if(t1.dimensions.size == t2.dimensions.size) {
+                    val elementType = t1.elementType.getCommonType(t2.elementType)
+                    if (elementType !== null) {
+                        return vectorOf(elementType)
+                    }
+                }
+            }
+        }
+
+        if (t1 instanceof MapTypeConstructor) {
+            if (t2 instanceof MapTypeConstructor) {
+                val keyType = t1.keyType.getCommonType(t2.keyType)
+                val valueType = t1.valueType.typeObject.getCommonType(t2.valueType.typeObject)
+                if (keyType !== null && valueType !== null) {
+                    return mapOf(keyType.asTypeDecl, valueType.asTypeDecl)
+                }
+            }
+        }
+    }
+
+    def static boolean identical(TypeObject t1, TypeObject t2) {
         if(t1 === null || t2 === null) return false
 
         if (t1 instanceof SimpleTypeDecl)
@@ -361,9 +413,13 @@ class TypeUtilities {
     }
 
     def static dispatch VectorTypeConstructor vectorOf(VectorTypeDecl vtd) {
-        val vtc = EcoreUtil.copy(vtd.constructor)
-        vtc.dimensions += TypesFactory.eINSTANCE.createDimension
-        return vtc
+        return vectorOf(vtd.constructor)
+    }
+
+    def static dispatch VectorTypeConstructor vectorOf(VectorTypeConstructor vtc) {
+        return EcoreUtil.copy(vtc) => [
+            dimensions += TypesFactory.eINSTANCE.createDimension
+        ]
     }
 
     def static MapTypeConstructor mapOf(TypeDecl keyType, TypeDecl valueType) {

@@ -49,6 +49,7 @@ abstract class ExpressionEvaluatorTestBase {
     protected def String eval(String input) {
         val expressions = parser.parse(input)
         Assertions.assertTrue(expressions.eResource.errors.isEmpty, '''Unexpected errors in input: «expressions.eResource.errors.join(", ")»''')
+        EcoreUtil3.validate(expressions)
         Assertions.assertEquals(expressions.variables.size, expressions.variables.map[variable.name].toSet.size, 'Variables cannot be declared multiple times')
         val context = expressions.variables.toMap([variable], [expression])
         for (assignment : expressions.variables.reject[expression === null]) {

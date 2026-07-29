@@ -13,6 +13,7 @@
 package nl.esi.xtext.expressions.tests
 
 import com.google.inject.Inject
+import nl.esi.xtext.common.lang.utilities.EcoreUtil3
 import nl.esi.xtext.expressions.expression.ExpressionModel
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.extensions.InjectionExtension
@@ -20,7 +21,6 @@ import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.^extension.ExtendWith
-import nl.esi.xtext.common.lang.utilities.EcoreUtil3
 
 @ExtendWith(InjectionExtension)
 @InjectWith(ExpressionInjectorProvider)
@@ -236,6 +236,88 @@ class ExpressionValidationTest {
          string s = out.aString
          string[] s1 = out.listOfStrings
           ''')
+    }
+
+    @Test
+    def void expressionNullCoalescing() {
+        validate('''
+            int i = 1 ?? 2
+            real r = null ?? 2.0
+            string a = "a" ?? null
+        ''')
+    }
+
+    @Test
+    def void expressionConditional() {
+        validate('''
+            int i = true ? 1 : 2
+            real r = false ? 1.0 : 2.0
+            bool b = true ? true : false
+            string a = b ? "a" : null
+        ''')
+    }
+
+    @Test
+    def void expressionGetCommonType() {
+        val typedVars = '''
+            record A {
+                string a
+            }
+            record B extends A {
+                string b
+            }
+            record C extends A {
+                string c
+            }
+
+            A a = A {
+                a = "a"
+            }
+            B b = B {
+                a = "b",
+                b = "b"
+            }
+            C c = C {
+                a = "c",
+                c = "c"
+            }
+        '''
+
+        // Single values
+        validate('''
+            «typedVars»
+
+            B bb = b ?? b
+            C cc = c ?? c
+
+            // Downcast
+            A aa = b ?? b
+            A aa = c ?? b
+        ''')
+
+        // Lists
+        validate('''
+            «typedVars»
+
+            B[] bb = <B[]>[b] ?? <B[]>[b]
+            C[] cc = <C[]>[c] ?? <C[]>[c]
+
+            // Downcast
+            A[] aa = <B[]>[b] ?? <B[]>[b]
+            A[] aa = <C[]>[c] ?? <B[]>[b]
+        ''')
+
+        // Maps
+        validate('''
+            «typedVars»
+
+            map<int, B> bb = <map<int, B>>{ 1 -> b } ?? <map<int, B>>{ 1 -> b }
+            map<int, C> cc = <map<int, C>>{ 1 -> c } ?? <map<int, C>>{ 1 -> c }
+
+            // Downcast
+            map<int, A> aa = <map<int, B>>{ 1 -> b } ?? <map<int, B>>{ 1 -> b }
+            map<int, A> aa = <map<int, C>>{ 1 -> c } ?? <map<int, B>>{ 1 -> b }
+        ''')
     }
 
     private def validate(String text) {

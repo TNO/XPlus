@@ -9,6 +9,7 @@
  */
 package nl.esi.xtext.expressions.utilities
 
+import java.util.ArrayList
 import java.util.Collection
 import java.util.List
 import java.util.Map
@@ -19,6 +20,7 @@ import nl.esi.xtext.expressions.expression.ExpressionAnd
 import nl.esi.xtext.expressions.expression.ExpressionAny
 import nl.esi.xtext.expressions.expression.ExpressionBinary
 import nl.esi.xtext.expressions.expression.ExpressionBracket
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 import nl.esi.xtext.expressions.expression.ExpressionConstantBool
 import nl.esi.xtext.expressions.expression.ExpressionConstantInt
 import nl.esi.xtext.expressions.expression.ExpressionConstantReal
@@ -41,6 +43,7 @@ import nl.esi.xtext.expressions.expression.ExpressionModulo
 import nl.esi.xtext.expressions.expression.ExpressionMultiply
 import nl.esi.xtext.expressions.expression.ExpressionNEqual
 import nl.esi.xtext.expressions.expression.ExpressionNot
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 import nl.esi.xtext.expressions.expression.ExpressionNullLiteral
 import nl.esi.xtext.expressions.expression.ExpressionOr
 import nl.esi.xtext.expressions.expression.ExpressionPlus
@@ -70,7 +73,6 @@ import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
-import java.util.ArrayList
 
 class ExpressionsUtilities {
     static extension val ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.eINSTANCE
@@ -180,7 +182,12 @@ class ExpressionsUtilities {
                 else
                     null
             }
-            
+            ExpressionNullCoalescing: {
+                e.left.typeOf.getCommonType(e.right.typeOf)
+            }
+            ExpressionConditional: {
+                e.middle.typeOf.getCommonType(e.right.typeOf)
+            }
         }
     }
 
@@ -242,10 +249,6 @@ class ExpressionsUtilities {
        return result.map[asType].toList
     }
 
-    def static boolean isAssignableFrom(TypeObject lhs, Expression rhs) {
-        TypeUtilities.subTypeOf(lhs, rhs.typeOf) || rhs instanceof ExpressionNullLiteral
-    }
-    
     def static List<Expression> getFunctionArgs(ExpressionFunctionCall efc){
         // don't validate here, that is part of the validator
         if (efc.function === null) {
@@ -274,7 +277,7 @@ class ExpressionsUtilities {
         return result
     }
 
-    def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){
+    private def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){
         val leftType = e.left.typeOf
         val rightType = e.right.typeOf
         switch(e){
