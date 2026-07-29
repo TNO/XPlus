@@ -80,10 +80,10 @@ class ExpressionValidator extends AbstractExpressionValidator {
     //Type checking
     @Check
     def checkVariableDecl(VariableDecl vd){
-        val lhs = vd.variable.type.typeObject
-        var rhs = vd.expression
-        if (rhs !== null && !lhs.isAssignableFrom(rhs)) {
-            error('''Type mismatch: declared type '«lhs.typeName»' does not match the expected type '«rhs.typeOf.typeName»' ''', ExpressionPackage.Literals.VARIABLE_DECL__VARIABLE)
+        val lhs = vd?.variable?.type?.typeObject
+        val rhs = vd?.expression?.typeOf
+        if(lhs !== null && rhs !== null && !rhs.subTypeOf(lhs)){
+            error('''Type mismatch: declared type '«lhs.typeName»' does not match the expected type '«rhs.typeName»' ''', ExpressionPackage.Literals.VARIABLE_DECL__VARIABLE)
         }
     }
 	
