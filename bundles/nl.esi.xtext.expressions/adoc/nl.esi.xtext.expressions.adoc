@@ -52,7 +52,7 @@ bool flag = true
 * Logical: `and`, `or`, `not` (case-insensitive: `AND`/`and`, `OR`/`or`, `NOT`/`not`)
 * Comparison: `==`, `!=`, `<`, `&lt;=`, `>`, `>=`
 * Arithmetic: `+`, `-`, `*`, `/`, `mod`, `^`, `max`, `min`
-* Postfix: record field access `record.field`, map access `map[key]`, map write `map[key -> value]`
+* Postfix: record field access `record.field`, null-safe record field access `record?.field`, map access `map[key]`, map write `map[key -> value]`
 
 === Function Declarations
 
@@ -198,14 +198,30 @@ map<int, string> v2 = m[2 -> "c"]
 
 The `null` literal represents the absence of a value. It can be used with any type.
 
+The nullish coalescing `??` operator is a logical operator that returns its right-hand side operand when its left-hand side operand is `null`, and otherwise returns its left-hand side operand.
+
+----
+int a = null
+int b = a ?? 10 // b now holds the value 10
+----
+
+=== Ternary Expression
+
+The conditional (ternary) operator is the only operator that takes three operands: a condition followed by a question mark `?`, then an expression to execute if the condition is truthy followed by a colon `:`, and finally the expression to execute if the condition is falsy.
+This operator is frequently used as an alternative to an `if...else` statement.
+
+`string x = flag ? "Hello" : "Goodbye"`
+
 === Operator Precedence
 
 Operators are evaluated in the following order (highest to lowest):
 
 . Parentheses and literals
-. Postfix: record field access `record.field`, map access `map[key]`, map write `map[key -> value]`
+. Postfix: (null-safe) record field access `record.field` or `record?.field`, map access `map[key]`, map write `map[key -> value]`
 . Unary: `not`, unary `+`, unary `-`
 . Power: `^` (right-associative)
+. Null-coalescing: `??` (right-associative)
+. Conditional (ternary): `? :` (right-associative)
 . Multiplicative: `*`, `/`, `mod`, `max`, `min` (left-associative)
 . Additive: `+`, `-` (left-associative)
 . Comparison: `<`, `&lt;=`, `>`, `>=` (left-associative)
@@ -220,7 +236,7 @@ Operators are evaluated in the following order (highest to lowest):
 * Map write access uses the syntax `map[key -> value]`.
 * Type annotation is required for vector and map construction.
 * Logical operators `and`, `or`, and `not` are case-insensitive and accept both lowercase and uppercase forms (e.g., `AND`, `and`, `OR`, `or`, `NOT`, `not`).
-* Operator associativity: most operators are left-associative; the power operator `^` is right-associative.
+* Operator associativity: most operators are left-associative; the power `^`, null-coalescing `??` and Conditional (ternary) `? :` operators are right-associative.
 * Variables can be declared with optional initialization: `Type name = expression` or just `Type name`.
 
 NOTE: When invoking functions with custom Java types, `IExpressionConverter` instances are evaluated in order until one successfully converts the argument. The first successful conversion is used. This allows custom converters to handle specific types while falling back to default converters for built-in types. See <<how-to-add-an-expression-function-library>> for details on implementing custom converters.
