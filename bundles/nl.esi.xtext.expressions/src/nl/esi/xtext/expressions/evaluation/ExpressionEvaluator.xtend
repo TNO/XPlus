@@ -81,8 +81,11 @@ class ExpressionEvaluator {
     }
 
     protected def boolean shouldOptimize(EReference eReference, EObject eObject) {
-        return switch (eReference) {
-            case ExpressionPackage.Literals.EXPRESSION_RECORD_ACCESS__RECORD: false
+        return switch (eObject) {
+            ExpressionNullCoalescing case eReference == ExpressionPackage.Literals.EXPRESSION_BINARY__RIGHT,
+            ExpressionConditional case eReference == ExpressionPackage.Literals.EXPRESSION_TERNARY__MIDDLE,
+            ExpressionConditional case eReference == ExpressionPackage.Literals.EXPRESSION_TERNARY__RIGHT,
+            case eReference == ExpressionPackage.Literals.EXPRESSION_RECORD_ACCESS__RECORD: false
             default: true
         }
     }
@@ -260,14 +263,16 @@ class ExpressionEvaluator {
 
     protected dispatch def Expression doEvaluate(ExpressionNullCoalescing expression, extension IEvaluationContext context) {
         if (expression.left.isValue) {
-            return expression.left instanceof ExpressionNullLiteral ? expression.right : expression.left
+            // Note that the RHS will only be evaluated if the LHS evaluates to null
+            return expression.left instanceof ExpressionNullLiteral ? expression.right.evaluate(context) : expression.left
         }
     }
 
     protected dispatch def Expression doEvaluate(ExpressionConditional expression, extension IEvaluationContext context) {
         val leftValue = asBool(expression.left);
         if (leftValue !== null) {
-            return leftValue ? expression.middle : expression.right
+            // Note that the middle and right expressions will only be evaluated when the left expression evaluates to a boolean value
+            return leftValue ? expression.middle.evaluate(context) : expression.right.evaluate(context)
         }
     }
 

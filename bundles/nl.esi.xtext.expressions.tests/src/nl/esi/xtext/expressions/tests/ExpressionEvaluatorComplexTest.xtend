@@ -386,7 +386,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
         assertEval('''
             int a
             int b = 1
-            int c = a ?? 1
+            int c = a ?? b
 
             int x = 4
             int y
@@ -427,7 +427,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
             bool w = null
             int x = 1
             int y = 2
-            int z = null ? 1 : 2
+            int z = null ? x : y
         ''', '''
             bool a = true
             int b = 1
@@ -455,7 +455,7 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
             bool a
             int b = 1
             int c = 2
-            int d = a ? 1 : 2
+            int d = a ? b : c
 
             bool f = true
             int g
