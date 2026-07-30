@@ -53,6 +53,8 @@ import org.eclipse.xtext.validation.Check
 
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 import static extension nl.esi.xtext.expressions.utilities.ExpressionsUtilities.*
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 
 /*
  * This class mainly captures the XPlus type system for expressions. Constraints are not formulated
@@ -78,10 +80,10 @@ class ExpressionValidator extends AbstractExpressionValidator {
     //Type checking
     @Check
     def checkVariableDecl(VariableDecl vd){
-        val lhs = vd.variable.type.typeObject
-        var rhs = vd.expression
-        if (rhs !== null && !lhs.isAssignableFrom(rhs)) {
-            error('''Type mismatch: declared type '«lhs.typeName»' does not match the expected type '«rhs.typeOf.typeName»' ''', ExpressionPackage.Literals.VARIABLE_DECL__VARIABLE)
+        val lhs = vd?.variable?.type?.typeObject
+        val rhs = vd?.expression?.typeOf
+        if(lhs !== null && rhs !== null && !rhs.subTypeOf(lhs)){
+            error('''Type mismatch: declared type '«lhs.typeName»' does not match the expected type '«rhs.typeName»' ''', ExpressionPackage.Literals.VARIABLE_DECL__VARIABLE)
         }
     }
 	
@@ -133,13 +135,13 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				}
 			}
 			ExpressionAddition |
-			ExpressionSubtraction | 
+			ExpressionSubtraction |
 			ExpressionMultiply |
 			ExpressionDivision |
 			ExpressionModulo |
 			ExpressionPower |
 			ExpressionMinimum |
-			ExpressionMaximum : {
+			ExpressionMaximum: {
 				val leftType = e.left.typeOf
 				val rightType = e.right.typeOf
 				if(leftType === null || rightType === null) {return}
@@ -163,6 +165,28 @@ class ExpressionValidator extends AbstractExpressionValidator {
 					error("Type mismatch: expected type int or real", ExpressionPackage.Literals.EXPRESSION_BINARY__LEFT)
 				}
 				
+			}
+            ExpressionNullCoalescing: {
+                val leftType = e.left.typeOf
+                val rightType = e.right.typeOf
+                if(leftType === null || rightType === null) {return}
+                if(e.typeOf === null) {
+                    error("Arguments must be of compatible types", e.eContainer, e.eContainingFeature)
+                    return
+                }
+            }
+			ExpressionConditional: {
+                val leftType = e.left.typeOf
+                val middleType = e.left.typeOf
+                val rightType = e.right.typeOf
+                if(leftType === null || middleType === null || rightType === null) {return}
+                if(!leftType.identical(BasicTypes.getBoolType(e))) {
+                    error("Type mismatch: expected type bool", ExpressionPackage.Literals.EXPRESSION_TERNARY__LEFT)
+                }
+                if(e.typeOf === null) {
+                    error("Arguments must be of compatible types", e.eContainer, e.eContainingFeature)
+                    return
+                }
 			}
 			ExpressionMinus |
 			ExpressionPlus : {
@@ -355,4 +379,10 @@ class ExpressionValidator extends AbstractExpressionValidator {
 			error('Several record types with this name exist. Use an explicit interface name.', ExpressionPackage.Literals.EXPRESSION_RECORD__TYPE)
 	}
 	
+	@Check
+	def checkDeprecatedAtFunctionCall(ExpressionFunctionCall call) {
+	    if (call?.function?.name == "at") {
+	        warning("The 'at' function is deprecated and will be removed in the next version, please use the 'set' function instead.", ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
+	    }
+	}
 }
