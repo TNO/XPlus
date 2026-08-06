@@ -59,4 +59,12 @@ Languages.
          id="nl.esi.xtext.actions.ide.source"
          version="0.0.0"/>
 
+   <plugin
+         id="nl.esi.xtext.common.lang.source"
+         version="0.0.0"/>
+
+   <plugin
+         id="nl.esi.xtext.common.lang.ide.source"
+         version="0.0.0"/>
+
 </feature>
