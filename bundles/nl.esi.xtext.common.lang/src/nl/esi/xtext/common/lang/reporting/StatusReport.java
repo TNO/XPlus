@@ -22,8 +22,8 @@ public final class StatusReport implements IStatus {
 
 	private String plugin;
 	private final int code;
-	private final String message;
-	private final String source;
+	private String message;
+	private String source;
 	private final Severity severity;
 	private final String details;
 	private final Location location; 
@@ -97,9 +97,17 @@ public final class StatusReport implements IStatus {
 	public String getMessage() {
 		return message;
 	}
+	
+	public void setMessage(String message) {
+		this.message = message;
+	}
 
 	public String getSource() {
 		return source;
+	}
+	
+	public void setSource(String source) {
+		this.source = source;
 	}
 
 	@Override

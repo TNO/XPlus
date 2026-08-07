@@ -67,7 +67,7 @@ public class StatusReportHelper {
 	public static StatusReport validate(Resource resource)  {
 		var diagnostician = new Diagnostician();
 		var diagnostics = new BasicDiagnostic(EObjectValidator.DIAGNOSTIC_SOURCE, 0,
-				"Diagnosis of " + resource.getURI(), new Object[] { resource });
+				"Diagnosis of " + resource.getURI().lastSegment(), new Object[] { resource });
 		var context = diagnostician.createDefaultContext();
 
 		for (EObject eObject : resource.getContents()) {

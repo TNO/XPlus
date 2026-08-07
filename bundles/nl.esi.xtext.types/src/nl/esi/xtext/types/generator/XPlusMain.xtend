@@ -329,7 +329,7 @@ class XPlusMain {
 		System.out.println(INFO_GENERATION_FINISHED)
 		System.out.println("")
 		System.out.println(INFO_XPLUS_FINISHED)
-		exit(StatusReportHelper.okReport(INFO_GENERATION_FINISHED, getReports()), null)	
+		exit(StatusReportHelper.infoReport(INFO_GENERATION_FINISHED, getReports()), null)	
 	}
 
 	def Options createOptions() {
@@ -567,6 +567,8 @@ class XPlusMain {
 
     private def void exit(StatusReport statusReport, Options options) {
         //be backwards compatible
+        statusReport.cleanMessages
+        statusReport.cleanSources
         System.err.println(statusReport.getMessage())
         saveReport(statusReport)
         if(options !== null) {
@@ -581,7 +583,29 @@ class XPlusMain {
         //store the report with name `StatusReport.json` in the root of file_access
         val resource = "report/StatusReport.json"
         val charSequence = StatusReportHelper.toJson(report)
+        
         fileAccess.generateFile(resource, charSequence);
+    }
+
+    private def void cleanMessages(StatusReport report) {
+        if(report.message !==null) {
+            for(p: fileAccess.outputConfigurations.values) {
+                report.message = report.message.replace(p.outputDirectory,"");
+                report.message = report.message.replace(p.outputDirectory.replace("\\","/"),"")
+            }
+        }
+        report.children.filter(StatusReport).forEach[cleanMessages]
+    }
+
+    private def void cleanSources(StatusReport report) {
+        if(report.source !==null) {
+            report.source = report.source.replace("\\","/");
+            for(p: fileAccess.outputConfigurations.values) {
+                val normOut = p.outputDirectory.replace("\\","/")
+                report.source = report.source.replaceFirst(".*"+normOut,"");
+            }
+        }
+        report.children.filter(StatusReport).forEach[cleanSources]
     }
     
     private def List<StatusReport> getReports(){
