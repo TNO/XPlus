@@ -192,7 +192,7 @@ public class StatusReportHelper {
 
 
 
-        var source = diagnostic.getLocation();
+        var source = diagnostic.getLocation().replaceAll("\\","/").replaceAll(".*/", "");
         var location = extractLocationData(diagnostic);
 
         return new StatusReport(
@@ -318,10 +318,10 @@ public class StatusReportHelper {
             if (firstData instanceof EObject eObject) {
                 Resource resource = eObject.eResource();
                 if (resource != null) {
-                    return resource.getURI().path();
+                    return resource.getURI().lastSegment();
                 }
             } else if (firstData instanceof Resource resource) {
-                return resource.getURI().path();
+                return resource.getURI().lastSegment();
             }
         }
 

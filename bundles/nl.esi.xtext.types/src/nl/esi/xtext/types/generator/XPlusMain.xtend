@@ -567,8 +567,6 @@ class XPlusMain {
 
     private def void exit(StatusReport statusReport, Options options) {
         //be backwards compatible
-        statusReport.cleanMessages
-        statusReport.cleanSources
         System.err.println(statusReport.getMessage())
         saveReport(statusReport)
         if(options !== null) {
@@ -587,36 +585,6 @@ class XPlusMain {
         fileAccess.generateFile(resource, charSequence);
     }
 
-    private def void cleanMessages(StatusReport report) {
-        if(report.message !==null) {
-            report.message = report.message.cleanURI
-            for(p: fileAccess.outputConfigurations.values) {
-                report.message = report.message.cleanPath(p.outputDirectory)
-            }
-        }
-        report.children.filter(StatusReport).forEach[cleanMessages]
-    }
-
-    private def void cleanSources(StatusReport report) {
-        if(report.source !==null) {
-            report.source = report.source.cleanURI
-            for(p: fileAccess.outputConfigurations.values) {
-                report.source = report.source.cleanPath(p.outputDirectory)
-            }
-        }
-        report.children.filter(StatusReport).forEach[cleanSources]
-    }
-    
-    private static def String cleanURI(String str) {
-        return str.replaceAll("(URI:\\s*)?((platform:resource|file):/{1,3}", "");
-    }
-
-    /** do a best effort to avoid exposing local paths to the end user. */
-    private static def String cleanPath(String str, String dir) {
-        val strip = Path.of(dir).toUri.fragment
-        return str.replace(dir, "").replace(dir.replace("\\","/"), "").replace(strip,"")
-    }
-    
     private def List<StatusReport> getReports(){
         if( statusReporting instanceof StatusReportCollector) {
             return statusReporting.reports
