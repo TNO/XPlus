@@ -178,8 +178,8 @@ public final class StatusReport implements IStatus {
 	 *
 	 * @return an Optional containing the children list, or empty if no children
 	 */
-	public Optional<List<StatusReport>> getChildReports() {
-		return Optional.ofNullable(children);
+	public List<StatusReport> getChildReports() {
+		return Optional.ofNullable(children).orElse(List.of());
 	}
 
 	/**

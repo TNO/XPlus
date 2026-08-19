@@ -86,8 +86,8 @@ class StatusReportHelperTest {
 
         val statusReport = StatusReportHelper.validate(resource)
         Assertions.assertNotNull(statusReport)
-        Assertions.assertTrue(statusReport.getChildReports().isPresent(), "There should be validation errors")
-        Assertions.assertTrue(statusReport.getChildReports().get().size > 0, "There should be child reports")
+        Assertions.assertFalse(statusReport.getChildReports().empty, "There should be validation errors")
+        Assertions.assertTrue(statusReport.getChildReports().size > 0, "There should be child reports")
     }
 
     /**

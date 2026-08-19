@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.common.util.BasicDiagnostic;
@@ -61,20 +62,40 @@ public class StatusReportHelper {
 	}
 
 	/**
-	 * validate the given resource
+	 * validate the given resource syntactically and semantically.
 	 * @see {@link EcoreUtil3#validate(EObject)}
 	 */
 	public static StatusReport validate(Resource resource)  {
+		// Add syntax errors to the report if any exist
+		var syntactic = new ArrayList<StatusReport>();
+		if (!resource.getErrors().isEmpty()) {
+			for (Resource.Diagnostic error : resource.getErrors()) {
+				syntactic.add(fromDiagnostic(error));
+			}
+		}
+
+		// Add semantic validation errors to the report if any exist
 		var diagnostician = new Diagnostician();
 		var diagnostics = new BasicDiagnostic(EObjectValidator.DIAGNOSTIC_SOURCE, 0,
-				"Diagnosis of " + resource.getURI().lastSegment(), new Object[] { resource });
+				resource.getURI().lastSegment(), new Object[] { resource });
 		var context = diagnostician.createDefaultContext();
 
 		for (EObject eObject : resource.getContents()) {
 			diagnostician.validate(eObject, diagnostics, context);
 		}
-		
-		return fromDiagnostic(diagnostics);
+		var semantic = fromDiagnostic(diagnostics);
+		List<StatusReport> combinedChildren = Stream.concat(syntactic.stream(), semantic.getChildReports().stream()).toList();
+		return new StatusReport(
+			semantic.getPlugin(), 
+			semantic.getSeverityLevel(),
+			semantic.getMessage(),
+			semantic.getSource(),
+			semantic.getCode(),
+			semantic.getDetails().orElse(null),
+			null,
+			combinedChildren,
+			null
+		);
 
 	}
 
@@ -135,18 +156,7 @@ public class StatusReportHelper {
         }
 
         var source = extractSource(diagnostic);
-        var node = extractLocationData(diagnostic);
-        
-        Location location = null;
-        if (node != null) {
-            location = new Location(
-                node != null ? node.getStartLine() : null,
-                node != null ? node.getEndLine() : null,
-                node != null ? node.getOffset() : null,
-                node != null ? node.getLength() : null,
-                node != null ? node.getText() : null
-            );
-        }
+        var location = extractLocationData(diagnostic);
 
         return new StatusReport(
             "unknown",  // pluginId - unknown from Diagnostic
@@ -158,6 +168,43 @@ public class StatusReportHelper {
             location,
             children,
             (Exception) exception
+        );
+    }
+
+	/**
+     * Generates a ValidationMessage from a Diagnostic instance, including Children.
+     * 
+     * Mapping:
+     * - severity -> severity
+     * - message -> message
+     * - code -> code
+     * - exception -> details (or null if none)
+     * - children -> children (recursively converted)
+     * - location -> locations list (extracted from diagnostic data if available)
+     *
+     * @param diagnostic the diagnostic to convert
+     * @return a new StatusReport based on the diagnostic
+     */
+    public static StatusReport fromDiagnostic(Resource.Diagnostic diagnostic) {
+        if (diagnostic == null) {
+            return null;
+        }
+
+
+
+        var source = diagnostic.getLocation();
+        var location = extractLocationData(diagnostic);
+
+        return new StatusReport(
+            "unknown",  // pluginId - unknown from Diagnostic
+            Severity.ERROR,  // Resource.Diagnostic is always an error
+            diagnostic.getMessage(),
+            source,
+            null,
+            null,
+            location,
+            null,
+            (Exception) null
         );
     }
 
@@ -288,7 +335,7 @@ public class StatusReportHelper {
 	 * @return Object array [startLine, endLine, offset, length, text] with default
 	 *         values if not available
 	 */
-	private static ICompositeNode extractLocationData(Diagnostic diagnostic) {
+	private static Location extractLocationData(Diagnostic diagnostic) {
 		if (diagnostic == null || diagnostic.getData() == null || diagnostic.getData().isEmpty()) {
 			return null;
 		}
@@ -299,13 +346,35 @@ public class StatusReportHelper {
 			ICompositeNode node = NodeModelUtils.getNode(eObject);
 
 			if (node != null) {
-				return node;
+	            return new Location(
+	                node != null ? node.getStartLine() : null,
+	                node != null ? node.getEndLine() : null,
+	                node != null ? node.getOffset() : null,
+	                node != null ? node.getLength() : null,
+	                node != null ? node.getText() : null
+	            );
 			}
 		}
 
 		return null;
 	}
-	
+
+	/**
+	 * Gets detailed location information including line, column, offset
+	 * 
+	 * @param diagnostic The diagnostic to extract location from
+	 * @return Object array [startLine, endLine, offset, length, text] with default
+	 *         values if not available
+	 */
+	private static Location extractLocationData(Resource.Diagnostic diagnostic) {
+		if (diagnostic == null || diagnostic.getLine() <= 0 ) {
+			return null;
+		}
+
+		//TODO: If more detailed location information is available in Resource.Diagnostic, extract it here.
+		return new Location(diagnostic.getLine(), diagnostic.getLine(), null, null, null);
+	}
+
 	/**
 	 * Internal method to convert exception with cycle detection.
 	 * 

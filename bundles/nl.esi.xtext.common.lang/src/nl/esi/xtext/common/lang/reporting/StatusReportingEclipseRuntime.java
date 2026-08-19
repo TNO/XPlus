@@ -9,9 +9,9 @@
  */
 package nl.esi.xtext.common.lang.reporting;
 
+import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.emf.common.util.Logger;
 
 import com.google.inject.Inject;
 
@@ -21,20 +21,15 @@ import com.google.inject.Inject;
  */
 public class StatusReportingEclipseRuntime implements IStatusReporting {
 	
-	private final Logger logger;
+	private final ILog logger;
 	private final String pluginId;
 	
 	private boolean skipOkStatus = true;
 	
 	@Inject
     public StatusReportingEclipseRuntime(Plugin plugin) {
-		if( plugin instanceof Logger logger) {
-			this.logger = logger;
-			this.pluginId = plugin.getBundle().getSymbolicName();
-		}
-		else {
-			throw new IllegalArgumentException("Plugin must implement Logger interface");
-		}
+		this.pluginId = plugin.getBundle().getSymbolicName();
+		this.logger = plugin.getLog();
 	}
 	/**
 	 * Reports a status message.
@@ -61,7 +56,7 @@ public class StatusReportingEclipseRuntime implements IStatusReporting {
 	 */
 	@Override
 	public void addReport(Exception exception) {
-		this.logger.log(exception);
+		this.logger.error(exception.getMessage(), exception);
 	}
 
 }

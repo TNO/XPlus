@@ -574,9 +574,9 @@ class XPlusMain {
         if(options !== null) {
             showInfo(description, options)
         }
-        System.out.println(String.format("Exiting with status %s(%d)", statusReport.getSeverityLevel().name, statusReport.getSeverityLevel().value))
-        System.err.println(String.format("Exiting with status %s(%d)", statusReport.getSeverityLevel().name, statusReport.getSeverityLevel().value))
-        System.exit(statusReport.getSeverityLevel().value)
+        System.out.println(String.format("Exiting with status %s(%d)", statusReport.severityLevel.name, statusReport.getSeverityLevel().value))
+        System.err.println(String.format("Exiting with status %s(%d)", statusReport.severityLevel.name, statusReport.getSeverityLevel().value))
+        System.exit(statusReport.severityLevel.isError ? statusReport.severityLevel.value : 0 )
     }
     
     private def void saveReport(StatusReport report) {
@@ -589,9 +589,9 @@ class XPlusMain {
 
     private def void cleanMessages(StatusReport report) {
         if(report.message !==null) {
+            report.message = report.message.cleanURI
             for(p: fileAccess.outputConfigurations.values) {
-                report.message = report.message.replace(p.outputDirectory,"");
-                report.message = report.message.replace(p.outputDirectory.replace("\\","/"),"")
+                report.message = report.message.cleanPath(p.outputDirectory)
             }
         }
         report.children.filter(StatusReport).forEach[cleanMessages]
@@ -599,13 +599,22 @@ class XPlusMain {
 
     private def void cleanSources(StatusReport report) {
         if(report.source !==null) {
-            report.source = report.source.replace("\\","/");
+            report.source = report.source.cleanURI
             for(p: fileAccess.outputConfigurations.values) {
-                val normOut = p.outputDirectory.replace("\\","/")
-                report.source = report.source.replaceFirst(".*"+normOut,"");
+                report.source = report.source.cleanPath(p.outputDirectory)
             }
         }
         report.children.filter(StatusReport).forEach[cleanSources]
+    }
+    
+    private static def String cleanURI(String str) {
+        return str.replaceAll("(URI:\\s*)?((platform:resource|file):/{1,3}", "");
+    }
+
+    /** do a best effort to avoid exposing local paths to the end user. */
+    private static def String cleanPath(String str, String dir) {
+        val strip = Path.of(dir).toUri.fragment
+        return str.replace(dir, "").replace(dir.replace("\\","/"), "").replace(strip,"")
     }
     
     private def List<StatusReport> getReports(){

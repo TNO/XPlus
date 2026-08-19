@@ -55,15 +55,15 @@ public class FileSystemAccessUtil {
 	}
 
 	public static Resource loadResource(IFileSystemAccess2 fsa, String fileName, ResourceSet resourceSet) {
-		return checkResource(resourceSet.getResource(fsa.getURI(fileName), true));
+		return resourceSet.getResource(fsa.getURI(fileName), true);
 	}
 
 	public static Resource loadResource(IFileSystemAccess2 fsa, String fileName, String outputConfiguration,
 			ResourceSet resourceSet) {
-		return checkResource(resourceSet.getResource(fsa.getURI(fileName, outputConfiguration), true));
+		return resourceSet.getResource(fsa.getURI(fileName, outputConfiguration), true);
 	}
 	
-	private static Resource checkResource(Resource resource) {
+	public static Resource checkResource(Resource resource) {
 		if (!resource.getErrors().isEmpty()) {
 			StringBuilder message = new StringBuilder(resource.getURI() + " contains errors");
 			for (Diagnostic error : resource.getErrors()) {
