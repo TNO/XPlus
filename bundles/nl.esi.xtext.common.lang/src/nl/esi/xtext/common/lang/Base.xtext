@@ -12,7 +12,6 @@ grammar nl.esi.xtext.common.lang.Base with org.eclipse.xtext.common.Terminals
 generate base "http://www.esi.nl/xtext/common/lang/Base"
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
-
 /*
  * Top level container element that may transitively import zero or more existing base models.
  */
@@ -34,7 +33,28 @@ Import:
     'import' importURI = STRING
 ;
 
+fragment Annotations returns HasAnnotations:
+   (annotations+=Annotation (',' annotations+=Annotation)* )?
+;
+
+Annotation  :
+    '@' name=ID ( '(' (params+=AnnotationParam (',' params+=AnnotationParamName)* )? ')' )?
+;
+
+AnnotationParam returns AnnotationParam:  
+    (name=ID '=')? value = AnnotationValue
+;
+
+AnnotationParamName returns AnnotationParam:  
+    name=ID '=' value = AnnotationValue
+;
+
+AnnotationValue returns ecore::EJavaObject:
+    LONG|BOOL|STRING
+;
+
 BaseNamedElement returns NamedElement: {BaseNamedElement}
+    Annotations
     name = ID
 ;
 
@@ -57,6 +77,7 @@ TableRow: {TableRow}
  * Abstract class for all NamedElements
  */
 NamedElement: {NamedElement}
+    Annotations
     name = ID
 ;
 
