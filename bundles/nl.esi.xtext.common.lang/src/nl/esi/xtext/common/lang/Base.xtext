@@ -34,7 +34,7 @@ Import:
 ;
 
 fragment Annotations returns HasAnnotations:
-   (annotations+=Annotation (',' annotations+=Annotation)* )?
+   (annotations+=Annotation (annotations+=Annotation)* )?
 ;
 
 Annotation  :
@@ -49,8 +49,8 @@ AnnotationParamName returns AnnotationParam:
     name=ID '=' value = AnnotationValue
 ;
 
-AnnotationValue returns ecore::EJavaObject:
-    LONG|BOOL|STRING
+AnnotationValue:
+    LONG|BOOL|STRING|DOUBLE
 ;
 
 BaseNamedElement returns NamedElement: {BaseNamedElement}

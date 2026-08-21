@@ -81,15 +81,18 @@ EnumTypeDecl:
  */
 EIntegerObject returns ecore::EIntegerObject: INT;
 EnumElement:
+    Annotations
 	name = ID ('=' value = EIntegerObject)?
 ;
 
 RecordTypeDecl:
+    Annotations
 	'record' name = ID ('extends' parent = [RecordTypeDecl])? 
 	'{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
 ;	
 
 RecordField:
+    Annotations
 	(kind = RecordFieldKind)? type = Type name = ID
 ;
 

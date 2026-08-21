@@ -58,7 +58,7 @@ class TypesFormatter extends BaseFormatter {
 		kwEnum.prepend(newLine)
 		kwEnum.append(oneSpace)
 		
-		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_0) 
+		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_1) 
 		kwRecord.prepend[]
 		
 		val brackets = rFinder.keywordPairs(enumTypeDeclAccess.leftCurlyBracketKeyword_2, enumTypeDeclAccess.rightCurlyBracketKeyword_4)?.get(0)
@@ -75,19 +75,19 @@ class TypesFormatter extends BaseFormatter {
 	def dispatch void format(EnumElement enumElement, extension IFormattableDocument document) {
 		enumElement.prepend(newLine)
 		val regionFor = enumElement.regionFor
-		regionFor.keyword(enumElementAccess.equalsSignKeyword_1_0)?.surround(oneSpace)
+		regionFor.keyword(enumElementAccess.equalsSignKeyword_2_0)?.surround(oneSpace)
 	}
 	
 	
 	def dispatch void format(RecordTypeDecl recordTypeDecl, extension IFormattableDocument document) {
 		val rFinder = recordTypeDecl.regionFor
 		
-		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_0) 
+		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_1) 
 		kwRecord.prepend(newLine)
 		kwRecord.append(oneSpace)
 		
-		val allBrackets = rFinder.keywordPairs(recordTypeDeclAccess.leftCurlyBracketKeyword_3,
-			recordTypeDeclAccess.rightCurlyBracketKeyword_5)		
+		val allBrackets = rFinder.keywordPairs(recordTypeDeclAccess.leftCurlyBracketKeyword_4,
+			recordTypeDeclAccess.rightCurlyBracketKeyword_6)		
 		if (!allBrackets.empty) {
 			val brackets = allBrackets.get(0)
 			brackets.interior(indent)
@@ -96,7 +96,7 @@ class TypesFormatter extends BaseFormatter {
 			brackets.value.prepend(newLine)
 		}		
 		
-		for(ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_4_1_0)) {
+		for(ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_5_1_0)) {
 			region.prepend(noSpace)
 		}
 		

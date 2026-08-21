@@ -23,6 +23,7 @@ ExpressionModel returns base::ModelContainer: {ExpressionModel}
 ;
 
 Variable:
+    Annotations
     type = Type name = ID
 ;
 
@@ -31,10 +32,12 @@ VariableDecl:
 ;
 
 FunctionDecl:
+    Annotations
     'function' ('<' typeParams += GenericsTypeParam  (',' typeParams += GenericsTypeParam)* '>')? returnType = Type name = ID '(' (params += FunctionParam (',' params += FunctionParam)*)? ')'
 ;
 
 FunctionParam:
+    Annotations
     type = Type name = ID
 ;
 
@@ -130,10 +133,12 @@ ExpressionLevel9 returns Expression:
 ;
 
 ExpressionFunctionCall: 
+    Annotations
     function = [FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
 ;
 
 NamedArgument:
+    Annotations
     name = ID '=' arg=Expression
 ;
 

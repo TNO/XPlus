@@ -58,7 +58,7 @@ class ExpressionFormatter extends TypesFormatter {
     }
 
 	def dispatch void format(Variable variable, extension IFormattableDocument document) {		
-		variable.regionFor.assignment(variableAccess.typeAssignment_0).append(oneSpace)
+		variable.regionFor.assignment(variableAccess.typeAssignment_1).append(oneSpace)
 	}
 
 	//-----------------------------------   ExpressionLevel1
