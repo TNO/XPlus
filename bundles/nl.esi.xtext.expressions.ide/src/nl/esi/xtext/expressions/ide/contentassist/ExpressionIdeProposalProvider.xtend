@@ -16,13 +16,13 @@ import com.google.inject.Inject
 import nl.esi.xtext.expressions.expression.ExpressionMap
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.Field
-import nl.esi.xtext.expressions.expression.MapTypeConstructor
 import nl.esi.xtext.expressions.expression.Pair
 import nl.esi.xtext.expressions.expression.TypeAnnotation
 import nl.esi.xtext.expressions.services.ExpressionGrammarAccess
 import nl.esi.xtext.expressions.utilities.ProposalHelper
 import nl.esi.xtext.expressions.utilities.UnsupportedTypeException
 import nl.esi.xtext.types.types.EnumTypeDecl
+import nl.esi.xtext.types.types.MapTypeConstructor
 import nl.esi.xtext.types.types.Type
 import nl.esi.xtext.types.types.TypeReference
 import nl.esi.xtext.types.utilities.TypeUtilities

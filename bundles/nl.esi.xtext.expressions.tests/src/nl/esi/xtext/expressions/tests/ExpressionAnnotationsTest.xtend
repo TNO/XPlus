@@ -1,10 +1,10 @@
 /**
  * Copyright (c) 2024, 2026 TNO-ESI
- *
+ * 
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
- *
+ * 
  * SPDX-License-Identifier: EPL-2.0
  */
 /*
@@ -13,6 +13,7 @@
 package nl.esi.xtext.expressions.tests
 
 import com.google.inject.Inject
+import nl.esi.xtext.common.lang.utilities.AnnotationUtil
 import nl.esi.xtext.expressions.expression.ExpressionModel
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.extensions.InjectionExtension
@@ -20,10 +21,8 @@ import org.eclipse.xtext.testing.util.ParseHelper
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.^extension.ExtendWith
-import nl.esi.xtext.common.lang.base.HasAnnotations
-import nl.esi.xtext.expressions.expression.VariableDecl
-import nl.esi.xtext.common.lang.utilities.AnnotationUtil
-import nl.esi.xtext.expressions.expression.ExpressionFunctionCall
+
+import static extension nl.esi.xtext.common.lang.utilities.AnnotationUtil.*
 
 @ExtendWith(InjectionExtension)
 @InjectWith(ExpressionInjectorProvider)
@@ -34,42 +33,38 @@ class ExpressionAnnotationsTest {
     @Test
     def void testVariable() {
         val result = parseHelper.parse('''
-           @id( aInt = 3, aString = "aString", aBool = true, aDouble=3.0 )
-           @singleWithKey( a = 4 )
-           @singleWithoutKey( 5 )
+            @id( aInt = 3, aString = "aString", aBool = true, aDouble=3.0 )
+            @singleWithKey( a = 4 )
+            @singleWithoutKey( 5 )
             bool test = true
         ''')
         Assertions.assertNotNull(result)
-        val decl = result.variables.get(0) as VariableDecl
-        Assertions.assertTrue(decl instanceof VariableDecl)
-        Assertions.assertTrue(decl.variable instanceof HasAnnotations)
-        val map = AnnotationUtil.getAnnotations(decl.variable, "id");
-        Assertions.assertEquals(3, map.get("aInt"))
+        val decl = result.variables.head
+        val map = AnnotationUtil.getAnnotationValues(decl.variable, "id");
+        Assertions.assertEquals(3L, map.get("aInt"))
         Assertions.assertEquals(true, map.get("aBool"))
         Assertions.assertEquals("aString", map.get("aString"))
         Assertions.assertEquals(3.0, map.get("aDouble"))
         Assertions.assertEquals(3, Integer.valueOf(map.get("aInt").toString()))
         // return the first value of id
-        Assertions.assertEquals(4, AnnotationUtil.getAsInteger(decl.variable, "singleWithKey"))
-        Assertions.assertEquals(5, AnnotationUtil.getAsInteger(decl.variable, "singleWithoutKey"))
+        Assertions.assertEquals(4, decl.variable.getAnnotationValue("singleWithKey", "a").orElse(42))
+        Assertions.assertEquals(5, decl.variable.getAnnotationValue("singleWithoutKey").orElse(42))
         val errors = result.eResource.errors
         Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
     }
-    
-        @Test
+
+    @Test
     def void testFunctionCall() {
         val result = parseHelper.parse('''
-            int[] test = [1,2,3]
-            @a (1)
-            int x = @b (2) get( test,2)
+            int[] test = [1,2,3,4]
+            @index (1)
+            int x = get( test,2)
+            int y = get( test,3)
         ''')
         Assertions.assertNotNull(result)
-        val decl = result.variables.get(1) as VariableDecl
-        Assertions.assertTrue(decl instanceof VariableDecl)
-        Assertions.assertEquals(1, AnnotationUtil.getAsInteger(decl.variable, "a"))
-        val fc = decl.expression as ExpressionFunctionCall
-        Assertions.assertEquals(2, AnnotationUtil.getAsInteger(fc, "b"))
-        
+        val declX = result.variables.get(1)
+        Assertions.assertEquals(1, declX.variable.getAnnotationValue("index").orElse(42))
+        val declY = result.variables.get(2)
+        Assertions.assertEquals(42, declY.variable.getAnnotationValue("index").orElse(42))
     }
-    
 }

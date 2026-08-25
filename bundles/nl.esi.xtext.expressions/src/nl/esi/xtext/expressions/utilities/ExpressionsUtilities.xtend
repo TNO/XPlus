@@ -64,6 +64,7 @@ import nl.esi.xtext.types.types.SimpleTypeDecl
 import nl.esi.xtext.types.types.Type
 import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypeReference
+import nl.esi.xtext.types.types.TypesFactory
 import nl.esi.xtext.types.types.VectorTypeConstructor
 import nl.esi.xtext.types.types.VectorTypeDecl
 import nl.esi.xtext.types.utilities.TypeUtilities
@@ -75,6 +76,7 @@ import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 
 class ExpressionsUtilities {
+    static extension val TypesFactory TYPES_FACTORY = TypesFactory.eINSTANCE
     static extension val ExpressionFactory EXPRESSION_FACTORY = ExpressionFactory.eINSTANCE
 
     def static Type asExprType(Type type) {

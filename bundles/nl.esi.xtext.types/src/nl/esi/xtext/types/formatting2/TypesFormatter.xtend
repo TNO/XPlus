@@ -48,20 +48,20 @@ class TypesFormatter extends BaseFormatter {
 	
 	def dispatch void format(TypeDecl typeDecl, extension IFormattableDocument document) {
 		val rFinder = typeDecl.regionFor		
-		rFinder.keyword(simpleTypeDeclAccess.typeKeyword_0).prepend(newLine).append(oneSpace)		
+		rFinder.keyword(simpleTypeDeclAccess.typeKeyword_1).prepend(newLine).append(oneSpace)		
 	}
 
 	def dispatch void format(EnumTypeDecl enumTypeDecl, extension IFormattableDocument document) {		
 		val rFinder = enumTypeDecl.regionFor
 		
-		val kwEnum = rFinder.keyword(enumTypeDeclAccess.enumKeyword_0)
+		val kwEnum = rFinder.keyword(enumTypeDeclAccess.enumKeyword_1)
 		kwEnum.prepend(newLine)
 		kwEnum.append(oneSpace)
 		
 		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_1) 
 		kwRecord.prepend[]
 		
-		val brackets = rFinder.keywordPairs(enumTypeDeclAccess.leftCurlyBracketKeyword_2, enumTypeDeclAccess.rightCurlyBracketKeyword_4)?.get(0)
+		val brackets = rFinder.keywordPairs(enumTypeDeclAccess.leftCurlyBracketKeyword_3, enumTypeDeclAccess.rightCurlyBracketKeyword_5)?.get(0)
 		if(brackets !== null) {
 			brackets.interior(indent)			
 			brackets.key.prepend(oneSpace)
@@ -116,9 +116,9 @@ class TypesFormatter extends BaseFormatter {
 	def dispatch void format(VectorTypeDecl vectorTypeDecl, extension IFormattableDocument document) {
 		var regionFor = vectorTypeDecl.regionFor
 		
-		regionFor.keyword(vectorTypeDeclAccess.vectorKeyword_0).append(oneSpace)
-		regionFor.assignment(vectorTypeDeclAccess.nameAssignment_1).append(oneSpace)	
-		regionFor.keyword(vectorTypeDeclAccess.equalsSignKeyword_2).append(oneSpace)
+		regionFor.keyword(vectorTypeDeclAccess.vectorKeyword_1).append(oneSpace)
+		regionFor.assignment(vectorTypeDeclAccess.nameAssignment_2).append(oneSpace)	
+		regionFor.keyword(vectorTypeDeclAccess.equalsSignKeyword_3).append(oneSpace)
 		
 		vectorTypeDecl.constructor.format
 		vectorTypeDecl.append(newLine)
