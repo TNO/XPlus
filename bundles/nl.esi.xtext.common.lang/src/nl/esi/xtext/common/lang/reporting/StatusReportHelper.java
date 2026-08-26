@@ -54,14 +54,6 @@ public class StatusReportHelper {
 	}
 
 	/**
-	 * validate the given EObject and add it to the reports if not OK.
-	 */
-	public static void validate(List<StatusReport> reports,  EObject object)  {
-		var report = validate(object);
-		reports.add(report);
-	}
-
-	/**
 	 * validate the given resource syntactically and semantically.
 	 * @see {@link EcoreUtil3#validate(EObject)}
 	 */
@@ -86,7 +78,7 @@ public class StatusReportHelper {
 		var semantic = fromDiagnostic(diagnostics);
 		List<StatusReport> combinedChildren = Stream.concat(syntactic.stream(), semantic.getChildReports().stream()).toList();
 		return new StatusReport(
-			semantic.getPlugin(), 
+			semantic.getPlugin(),
 			semantic.getSeverityLevel(),
 			semantic.getMessage(),
 			semantic.getSource(),
@@ -97,18 +89,6 @@ public class StatusReportHelper {
 			null
 		);
 
-	}
-
-	/**
-	 * validate the given resource and add it to the reports if not OK.
-	 * returns true if the resource an error exists in reports after validation.
-	 */
-	public static boolean validate(List<StatusReport> reports,  Resource resource)  {
-		var report = validate(resource);
-		if(report.getSeverityLevel() != Severity.OK) {
-			reports.add(report);
-		}
-		return reports.stream().anyMatch(r->r.getSeverityLevel() == Severity.ERROR);
 	}
 
     /**
