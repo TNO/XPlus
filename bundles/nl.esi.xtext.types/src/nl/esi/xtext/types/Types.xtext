@@ -69,10 +69,12 @@ QualifiedNameWithWildcard: QualifiedName '.*'? ;
  * can be used as values of the type.
  */
 SimpleTypeDecl:
+    Annotations
 	'type' name = ID ('based' 'on' base = [SimpleTypeDecl])?
 ;
 
 EnumTypeDecl:
+    Annotations
 	'enum' name = ID '{' literals+=EnumElement* '}'
 ;
 
@@ -101,15 +103,21 @@ enum RecordFieldKind:
 ;
 
 VectorTypeDecl:
+    Annotations
 	'vector' name = ID '=' constructor = VectorTypeConstructor 
 ;
 
 MapTypeDecl:
+    Annotations
 	name = ID '=' constructor = MapTypeConstructor
 ;
 
-GenericsTypeParam returns TypeDecl:
-    {GenericsTypeParam} name = ID
+GenericsTypeParamBase returns TypeDecl:
+    GenericsTypeParam
+;
+
+GenericsTypeParam:
+    name = ID
 ;
 
 /*

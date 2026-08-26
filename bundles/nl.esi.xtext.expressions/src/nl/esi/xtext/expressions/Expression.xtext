@@ -133,12 +133,10 @@ ExpressionLevel9 returns Expression:
 ;
 
 ExpressionFunctionCall: 
-    Annotations
     function = [FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
 ;
 
 NamedArgument:
-    Annotations
     name = ID '=' arg=Expression
 ;
 
@@ -246,30 +244,4 @@ ConcreteExpressionUnary returns ExpressionUnary:
 	| {ExpressionMinus}
 	| {ExpressionPlus}
 	| {ExpressionBracket}	
-;
-
-
-//Extensions to the Types language
-
-@Override
-Type returns types::Type:
-	TypeReference | VectorTypeConstructor | MapTypeConstructor
-;
-
-@Override 
-TypeReference: type = [types::TypeDecl] ;
-
-@Override 
-VectorTypeConstructor:
-	type = [types::TypeDecl] (dimensions += Dimension)+
-;
-
-@Override 
-MapTypeConstructor: 
-	'map' '<' type = [types::TypeDecl] ',' valueType = Type '>'
-;
-
-@Override
-GenericsTypeParam returns types::GenericsTypeParam:
-    name = ID
 ;

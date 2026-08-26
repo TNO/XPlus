@@ -307,7 +307,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
                     }
                 }
 
-                val ambiguousTypes = e.function.typeParams.filter[tp |tp.getActualFunctionTypes(e).size>1].toList
+                val ambiguousTypes = e.function.typeParams.filter[tp | tp.getActualFunctionTypes(e).size>1].toList
                 val args = e.functionArgs
                 for (var i = 0; i < args.size; i++) {
                     val arg = args.get(i)

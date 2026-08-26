@@ -10,9 +10,11 @@
 package nl.esi.xtext.expressions.tests
 
 import com.google.inject.Inject
-import nl.esi.xtext.expressions.expression.ExpressionModel
 import nl.esi.xtext.common.lang.utilities.EcoreUtil3
 import nl.esi.xtext.common.lang.utilities.EcoreUtil3.ValidationException
+import nl.esi.xtext.expressions.expression.ExpressionModel
+import nl.esi.xtext.types.types.MapTypeConstructor
+import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.testing.InjectWith
 import org.eclipse.xtext.testing.extensions.InjectionExtension
 import org.eclipse.xtext.testing.util.ParseHelper
@@ -20,8 +22,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.^extension.ExtendWith
 
 import static org.junit.jupiter.api.Assertions.*
-import nl.esi.xtext.expressions.expression.MapTypeConstructor
-import org.eclipse.emf.ecore.util.EcoreUtil
 
 @ExtendWith(InjectionExtension)
 @InjectWith(ExpressionInjectorProvider)

@@ -12,7 +12,7 @@
  */
 package nl.esi.xtext.common.lang.validation
 
-import nl.esi.xtext.common.lang.base.BaseModel
+import nl.esi.xtext.common.lang.base.Annotatable
 import nl.esi.xtext.common.lang.base.BasePackage
 import nl.esi.xtext.common.lang.base.Import
 import nl.esi.xtext.common.lang.base.NamedElement
@@ -22,6 +22,7 @@ import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.nodemodel.util.NodeModelUtils
 import org.eclipse.xtext.validation.Check
+import nl.esi.xtext.common.lang.base.Annotation
 
 /**
  * This class contains custom validation rules. 
@@ -51,8 +52,13 @@ class BaseValidator extends AbstractBaseValidator {
     }
 
     @Check
-    def checkBaseModelElementsDuplicateName(BaseModel model) {
-        model.elements.checkForNameDuplicationsVerbose('element', '', null)
+    def checkAnnotationsDuplicateName(Annotatable annotatable) {
+        annotatable.annotations.checkForNameDuplicationsVerbose('annotation', '', null)
+    }
+
+    @Check
+    def checkAnnotationParametersDuplicateName(Annotation annotation) {
+        annotation.params.checkForNameDuplicationsVerbose('annotation parameter', '', null)
     }
 
     // Generic method to detect name duplications in a collection of a named elements

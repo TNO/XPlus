@@ -55,11 +55,13 @@ class StatusReportHelperTest {
      * Expected: validation should succeed without errors.
      */
     @Test
-    def void testValidateModelWithNamedElements() {
+    def void testValidateModelWithAnnotations() {
         val result = parseHelper.parse('''
             import "dummy.base_lang"
-            TestElement
-            AnotherElement
+            @TestAnnotation
+            @AnotherAnnotation
+            |Header|
+            |Cell  |
         ''')
         Assertions.assertNotNull(result)
 
@@ -77,8 +79,10 @@ class StatusReportHelperTest {
     def void testValidateResource() {
         val result = parseHelper.parse('''
             import "dummy.base_lang"
-            Same
-            Same
+            @SameAnnotation
+            @SameAnnotation
+            |Header|
+            |Cell  |
         ''')
         Assertions.assertNotNull(result)
         val resource = result.eResource
@@ -97,8 +101,10 @@ class StatusReportHelperTest {
     def void testGson() {
         val result = parseHelper.parse('''
             import "dummy.base_lang"
-            Same
-            Same
+            @SameAnnotation
+            @SameAnnotation
+            |Header|
+            |Cell  |
         ''')
         Assertions.assertNotNull(result)
         val resource = result.eResource
