@@ -12,6 +12,7 @@ package nl.esi.xtext.common.lang.generator;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 import org.eclipse.core.resources.IResource;
@@ -51,7 +52,9 @@ public class FileSystemAccessUtil {
 
 	private static Iterable<String> list(IFileSystemAccess2 fsa, URI uri) {
 		// TODO: There should be a better way than going via java.io.File
-		return Arrays.asList(new File(EcoreUtil3.toPath(uri)).list());
+		String path = EcoreUtil3.toPath(uri);
+		String[] files = path == null ? null : new File(path).list();
+		return files == null ? Collections.emptyList() : Arrays.asList(files);
 	}
 
 	public static Resource loadResource(IFileSystemAccess2 fsa, String fileName, ResourceSet resourceSet) {
