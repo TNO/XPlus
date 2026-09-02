@@ -68,8 +68,9 @@ public class StatusReportHelper {
 
 		// Add semantic validation errors to the report if any exist
 		var diagnostician = new Diagnostician();
+		var filename = ( resource.getURI() != null) ? resource.getURI().lastSegment(): "unknown_resource";
 		var diagnostics = new BasicDiagnostic(EObjectValidator.DIAGNOSTIC_SOURCE, 0,
-				resource.getURI().lastSegment(), new Object[] { resource });
+				filename, new Object[] { resource });
 		var context = diagnostician.createDefaultContext();
 
 		for (EObject eObject : resource.getContents()) {
@@ -172,7 +173,8 @@ public class StatusReportHelper {
 
 
 
-        var source = diagnostic.getLocation().replaceAll("\\","/").replaceAll(".*/", "");
+        String locationStr = diagnostic.getLocation();
+        var source = (locationStr!= null) ? locationStr.replaceAll("\\","/").replaceAll(".*/", "") : null;
         var location = extractLocationData(diagnostic);
 
         return new StatusReport(
@@ -297,11 +299,13 @@ public class StatusReportHelper {
             Object firstData = data.get(0);
             if (firstData instanceof EObject eObject) {
                 Resource resource = eObject.eResource();
-                if (resource != null) {
+                if (resource != null && resource.getURI() != null) {
                     return resource.getURI().lastSegment();
                 }
             } else if (firstData instanceof Resource resource) {
-                return resource.getURI().lastSegment();
+                if (resource.getURI() != null) {
+                    return resource.getURI().lastSegment();
+                }
             }
         }
 
@@ -327,11 +331,11 @@ public class StatusReportHelper {
 
 			if (node != null) {
 	            return new Location(
-	                node != null ? node.getStartLine() : null,
-	                node != null ? node.getEndLine() : null,
-	                node != null ? node.getOffset() : null,
-	                node != null ? node.getLength() : null,
-	                node != null ? node.getText() : null
+	                node.getStartLine(),
+	                node.getEndLine(),
+	                node.getOffset(),
+	                node.getLength(),
+	                node.getText()
 	            );
 			}
 		}
