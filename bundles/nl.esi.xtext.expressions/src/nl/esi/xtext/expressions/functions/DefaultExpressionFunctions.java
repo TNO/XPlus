@@ -10,6 +10,7 @@
 package nl.esi.xtext.expressions.functions;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +103,11 @@ public class DefaultExpressionFunctions {
 		return new BigDecimal(value);
 	}
 
+	/** Converts a real (BigDecimal) to an integer. */
+	public static long asInt(BigDecimal value) {
+		return value.longValue();
+	}
+
 	/** Returns the absolute value of an integer. */
 	public static long abs(long value) {
 		return Math.abs(value);
@@ -110,6 +116,35 @@ public class DefaultExpressionFunctions {
 	/** Returns the absolute value of a real number. */
 	public static BigDecimal abs(BigDecimal value) {
 		return value.abs();
+	}
+
+	/**
+	 * Round a real down to the nearest integer.
+	 *
+	 * @see RoundingMode#FLOOR
+	 */
+	public static BigDecimal floor(BigDecimal value) {
+		return value.setScale(0, RoundingMode.FLOOR);
+	}
+
+	/**
+	 * Round a real upward to its nearest integer.
+	 *
+	 * @see RoundingMode#CEILING
+	 */
+	public static BigDecimal ceil(BigDecimal value) {
+		return value.setScale(0, RoundingMode.CEILING);
+	}
+
+	/**
+	 * Returns the rounded value of a real number. Note that this is the rounding
+	 * mode commonly taught at school. This mode corresponds to the IEEE 754
+	 * rounding-direction attribute roundTiesToAway.
+	 *
+	 * @see RoundingMode#HALF_UP
+	 */
+	public static BigDecimal round(BigDecimal value, int scale) {
+		return value.setScale(scale, RoundingMode.HALF_UP);
 	}
 
 	/**
@@ -208,6 +243,11 @@ public class DefaultExpressionFunctions {
 	/** Converts an integer to its string representation. */
 	public static String toString(long value) {
 		return Long.toString(value);
+	}
+
+	/** Converts a real to its string representation. */
+	public static String toString(BigDecimal value) {
+		return value.toPlainString();
 	}
 
 	/**
