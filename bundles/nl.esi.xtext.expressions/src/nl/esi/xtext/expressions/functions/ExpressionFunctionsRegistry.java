@@ -21,6 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.URI;
@@ -137,7 +138,7 @@ public class ExpressionFunctionsRegistry {
 	 * Registers all public methods from a library class as expression functions.
 	 */
 	public void addLibraryFunctions(Class<?> libraryClass) {
-		for (Method method : libraryClass.getDeclaredMethods()) {
+		for (Method method : Stream.of(libraryClass.getDeclaredMethods()).sorted((m1, m2) -> m1.getName().compareTo(m2.getName())).toList()) {
 			if (isPublic(method)) {
 				try {
 					registerFunction(method.getName(), method);

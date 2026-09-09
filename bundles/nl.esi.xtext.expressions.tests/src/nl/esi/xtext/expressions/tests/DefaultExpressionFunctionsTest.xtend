@@ -63,6 +63,7 @@ class DefaultExpressionFunctionsTest extends ExpressionEvaluatorTestBase {
             [Assertions.assertTrue(content.contains("function <T> int size("), "size")],
             [Assertions.assertTrue(content.contains("function <T> bool contains("), "contains")],
             [Assertions.assertTrue(content.contains("function real asReal("), "asReal")],
+            [Assertions.assertTrue(content.contains("function int asInt("), "asInt")],
             [Assertions.assertTrue(content.contains("function <K, V> bool hasKey("), "hasKey")],
             [Assertions.assertTrue(content.contains("function string toString("), "toString")],
             [Assertions.assertTrue(content.contains("function <T> T[] set("), "set")],
@@ -204,6 +205,76 @@ class DefaultExpressionFunctionsTest extends ExpressionEvaluatorTestBase {
     }
 
     @Test
+    def void call_asInt_convertsRealToInt() {
+        assertEval('''
+            int result1 = 2
+            int result2 = 8
+            int result3 = -99
+        ''', '''
+            int result1 = asInt(2.77)
+            int result2 = asInt(8.32)
+            int result3 = asInt(-99.29)
+        ''')
+    }
+
+    @Test
+    def void call_floor_roundsReal() {
+        assertEval('''
+            real result1 = 0.0
+            real result2 = 1.0
+            real result3 = 5.0
+            real result4 = -6.0
+            real result5 = 22.0
+            real result6 = 10.0
+        ''', '''
+            real result1 = floor(0.6)
+            real result2 = floor(1.4)
+            real result3 = floor(5.3)
+            real result4 = floor(-5.3)
+            real result5 = floor(22.6)
+            real result6 = floor(10.0)
+        ''')
+    }
+
+    @Test
+    def void call_ceil_roundsReal() {
+        assertEval('''
+            real result1 = 1.0
+            real result2 = 2.0
+            real result3 = 6.0
+            real result4 = -5.0
+            real result5 = 23.0
+            real result6 = 10.0
+        ''', '''
+            real result1 = ceil(0.6)
+            real result2 = ceil(1.4)
+            real result3 = ceil(5.3)
+            real result4 = ceil(-5.3)
+            real result5 = ceil(22.6)
+            real result6 = ceil(10.0)
+        ''')
+    }
+
+    @Test
+    def void call_round_roundsReal() {
+        assertEval('''
+            real result1 = 1.0
+            real result2 = 1.0
+            real result3 = 5.33
+            real result4 = -5.0
+            real result5 = 23.0
+            real result6 = 10.0
+        ''', '''
+            real result1 = round(0.6, 0)
+            real result2 = round(1.4, 0)
+            real result3 = round(5.3333, 2)
+            real result4 = round(-5.3, 0)
+            real result5 = round(22.6, 0)
+            real result6 = round(10.0, 0)
+        ''')
+    }
+
+    @Test
     def void call_abs_onNegativeInt_returnsPositive() {
         assertEval('''
             «TYPES»
@@ -285,6 +356,15 @@ class DefaultExpressionFunctionsTest extends ExpressionEvaluatorTestBase {
         ''', '''
             «TYPES»
             string result = toString(123)
+        ''')
+    }
+
+    @Test
+    def void call_toString_convertsRealToString() {
+        assertEval('''
+            string result = "123.45"
+        ''', '''
+            string result = toString(123.45)
         ''')
     }
 

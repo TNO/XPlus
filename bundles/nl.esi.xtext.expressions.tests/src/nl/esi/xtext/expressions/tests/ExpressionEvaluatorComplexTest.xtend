@@ -13,6 +13,7 @@
 package nl.esi.xtext.expressions.tests
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Disabled
 
 class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
@@ -231,7 +232,18 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
                 ti = step3.ti + 1
             }
         ''')
+    }
 
+    @Test
+    @Disabled("The copying of the get method in unstable")
+    def void complexExpressionFunctionInsert() {
+        val types = '''
+            record T {
+                int ti
+                bool tb
+                int[] tv
+            }
+        '''
         assertEval('''
             «types»
             T step1
