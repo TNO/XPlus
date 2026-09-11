@@ -17,11 +17,17 @@
    <feature id="nl.esi.xplus.feature">
       <category name="XPlus"/>
    </feature>
+   <feature id="nl.esi.xplus.edit.feature">
+      <category name="XPlus Edit"/>
+   </feature>
    <feature id="nl.esi.xplus.ui.feature">
       <category name="XPlus UI"/>
    </feature>
    <feature id="nl.esi.xplus.feature.source">
       <category name="XPlus"/>
+   </feature>
+   <feature id="nl.esi.xplus.edit.feature.source">
+      <category name="XPlus Edit"/>
    </feature>
    <feature id="nl.esi.xplus.ui.feature.source">
       <category name="XPlus UI"/>
@@ -38,6 +44,9 @@
    <bundle id="Java-WebSocket.source">
       <category name="libs"/>
    </bundle>
+   <bundle id="nl.esi.xplus.tools">
+      <category name="XPlus Tooling"/>
+   </bundle>
    <category-def name="XPlus" label="XPlus">
       <description>
          XPlus Framework
@@ -53,5 +62,11 @@
          UI Project of XPlus
       </description>
    </category-def>
+   <category-def name="XPlus Edit" label="XPlus Edit">
+      <description>
+         Edit Project of XPlus
+      </description>
+   </category-def>
+   <category-def name="XPlus Tooling" label="XPlus Tools"/>
    <category-def name="libs" label="Libraries"/>
 </site>

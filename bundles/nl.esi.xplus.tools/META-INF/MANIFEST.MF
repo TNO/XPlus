@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: XPlus tooling
+Bundle-SymbolicName: nl.esi.xplus.tools
+Bundle-Vendor: TNO-ESI
+Bundle-Version: 0.5.0.qualifier
+Export-Package: nl.esi.xplus.tools.xtext.generator.model.project
+Require-Bundle: org.eclipse.xtext.xtext.generator
+Import-Package: org.slf4j;version="1.7.36"
+Automatic-Module-Name: nl.esi.xplus.tools
+Bundle-RequiredExecutionEnvironment: JavaSE-21

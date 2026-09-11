@@ -13,18 +13,21 @@ import org.eclipse.xtext.xtext.generator.*
 import org.eclipse.xtext.xtext.generator.model.project.*
 
 var rootPath = ".."
-
+var baseName = "nl.esi.xtext.common.lang"
 Workflow {
 
     component = XtextGenerator {
         configuration = {
-            project = StandardProjectConfig {
-                baseName = "nl.esi.xtext.common.lang"
+            project = nl.esi.xplus.tools.xtext.generator.model.project.XPlusProjectConfig {
+                baseName = baseName
                 rootPath = rootPath
                 runtimeTest = {
                     enabled = true
                 }
                 eclipsePlugin = {
+                    enabled = true
+                }
+                edit = {
                     enabled = true
                 }
                 createEclipseMetaData = true
@@ -56,6 +59,11 @@ Workflow {
             junitSupport = {
                 junitVersion = "5"
             }
+            emfGenerator = {
+                generateEdit = true
+                editDirectory = "${baseName}.edit/src-gen"
+            }
+            
         }
     }
 }
