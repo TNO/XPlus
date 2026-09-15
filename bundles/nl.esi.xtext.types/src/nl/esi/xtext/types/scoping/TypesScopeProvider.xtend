@@ -39,26 +39,29 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
      * * the others are handled via SIMPLE_TYPES_BASE below
      * */
     static val SIMPLE_TYPES_BASE = #{'int', 'real', 'string'}
+
     override getScope(EObject context, EReference reference) {
-        val contextType = context.getContextType(reference)
-        return switch (reference) {
+        switch (reference) {
             case TypesPackage.Literals.SIMPLE_TYPE_DECL__BASE: {
-                filterScope(context, reference)[SIMPLE_TYPES_BASE.contains(name.toString)]
+                logScope('''Filtering «SIMPLE_TYPES_BASE»''', context, reference)
+                return filterScope(context, reference)[SIMPLE_TYPES_BASE.contains(name.toString)]
             }
-            case contextType !== null && reference.isTypeDeclReference: {
-                filterScope(context, reference) [ desc |
-                    TypeUtilities.subTypeOf(desc.EObjectOrProxy as TypeObject, contextType)
-                ]
-            }
-            default: {
-                logScope('Default', context, reference)
-                super.getScope(context, reference)
+            case reference.isTypeDeclReference: {
+                val contextType = context.getContextType(reference)
+                if (contextType !== null) {
+                    logScope('''Filtering "«TypeUtilities.getTypeName(contextType)»"''', context, reference)
+                    return filterScope(context, reference) [ desc |
+                        TypeUtilities.subTypeOf(desc.EObjectOrProxy as TypeObject, contextType)
+                    ]
+                }
             }
         }
+
+        logScope('Default', context, reference)
+        return super.getScope(context, reference)
     }
 
     def protected IScope filterScope(EObject context, EReference reference, Predicate<IEObjectDescription> filter) {
-        logScope('Filtering', context, reference)
         return new FilteringScope(super.getScope(context, reference), filter)
     }
 
@@ -80,18 +83,13 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
     /**
      * TODO: Please uncomment the body of this method for debugging scoping
      */
-    protected def void logScope(String prefix, EObject context, EReference reference) {
-//        val contextType = getContextType(context, reference)
-//        var contextTypeStr = contextType?.eClass?.name ?: 'null'
-//        if (contextType instanceof NamedElement) {
-//            contextTypeStr += ';' + contextType.name
-//        }
-//        println('''«prefix»: «context.eClass.name»(«contextTypeStr») -> «reference.toPackageDeclaration»''')
+    protected def void logScope(String prefix, EObject context, EStructuralFeature reference) {
+//        println('''«prefix»: «context.eClass.name»«IF reference !== null» case reference == «reference.toPackageDeclaration»«ENDIF»''')
     }
 
-    protected def toPackageDeclaration(EReference reference) {
-        val eclassName = reference.EContainingClass.name.replaceAll('([^A-Z])([A-Z])', '$1_$2')
-        val referenceName = reference.name.replaceAll('([^A-Z])([A-Z])', '$1_$2')
-        return '''«reference.EContainingClass.EPackage.name.toFirstUpper»Package.Literals.«eclassName.toUpperCase»__«referenceName.toUpperCase»'''
+    protected def toPackageDeclaration(EStructuralFeature feature) {
+        val eclassName = feature.EContainingClass.name.replaceAll('([^A-Z])([A-Z])', '$1_$2')
+        val featureName = feature.name.replaceAll('([^A-Z])([A-Z])', '$1_$2')
+        return '''«feature.EContainingClass.EPackage.name.toFirstUpper»Package.Literals.«eclassName.toUpperCase»__«featureName.toUpperCase»'''
     }
 }

@@ -21,7 +21,6 @@ import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.Field
 import nl.esi.xtext.expressions.expression.FunctionDecl
-import nl.esi.xtext.types.types.EnumTypeDecl
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypesPackage
@@ -44,14 +43,11 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
  * on how and when to use it.
  */
 class ExpressionScopeProvider extends AbstractExpressionScopeProvider {
-    
+
     override getScope(EObject context, EReference reference) {
- 
-        val contextType = context.getContextType(reference)
-       
         switch (context) {
-            case contextType instanceof EnumTypeDecl  && reference == ExpressionPackage.Literals.EXPRESSION_ENUM_LITERAL__LITERAL: {
-                return scopeFor((contextType as EnumTypeDecl).literals)
+            ExpressionEnumLiteral case reference == ExpressionPackage.Literals.EXPRESSION_ENUM_LITERAL__LITERAL: {
+                return scopeFor(context.type.literals)
             }
             ExpressionRecord case reference == ExpressionPackage.Literals.FIELD__RECORD_FIELD: {
                 return scopeFor(context.type.allFields)
@@ -100,15 +96,6 @@ class ExpressionScopeProvider extends AbstractExpressionScopeProvider {
                 vct === null ? null : vct.elementType
             }
         }
-        return type
+        return type ?: super.getContextType(context, reference)
     }
-
-    protected def scope_forEnum(TypeObject type, EReference ref) {
-        return if (type instanceof EnumTypeDecl && ref == ExpressionPackage.Literals.EXPRESSION_ENUM_LITERAL__LITERAL) {
-            Scopes.scopeFor((type as EnumTypeDecl).literals)
-        } else  {
-            IScope.NULLSCOPE
-        }
-    }
-
 }
