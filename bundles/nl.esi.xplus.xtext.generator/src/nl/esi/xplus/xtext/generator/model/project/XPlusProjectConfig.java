@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package nl.esi.xplus.tools.xtext.generator.model.project;
+package nl.esi.xplus.xtext.generator.model.project;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,14 +20,18 @@ import org.eclipse.xtext.xtext.generator.model.project.SubProjectConfig;
 public class XPlusProjectConfig extends StandardProjectConfig {
 	
 	private BundleProjectConfig edit = new BundleProjectConfig();
+	private BundleProjectConfig editor = new BundleProjectConfig();
 	
 	public List<? extends SubProjectConfig> getAllProjects() {
-		return Stream.concat(super.getAllProjects().stream(), Stream.of(edit)).toList();
+		return Stream.concat(super.getAllProjects().stream(), Stream.of(edit, editor)).toList();
 	}
 	
 	protected String computeName(SubProjectConfig project) {
 		if (Objects.equals(project, edit)) {
 			return getBaseName() + ".edit";
+		}
+		if (Objects.equals(project, editor)) {
+			return getBaseName() + ".editor";
 		}
 		return super.computeName(project);
 	}
@@ -38,6 +42,14 @@ public class XPlusProjectConfig extends StandardProjectConfig {
 	
 	public void setEdit(BundleProjectConfig edit) {
 		this.edit = edit;
+	}
+
+	public BundleProjectConfig getEditor() {
+		return editor;
+	}
+
+	public void setEditor(BundleProjectConfig editor) {
+		this.editor = editor;
 	}
 
 }

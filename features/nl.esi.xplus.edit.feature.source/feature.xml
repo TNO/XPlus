@@ -12,7 +12,7 @@
 -->
 <feature
       id="nl.esi.xplus.edit.feature.source"
-      label="XPlus Core DSLs Source"
+      label="XPlus Edit DSLs Source"
       version="0.5.0.qualifier"
       provider-name="TNO-ESI"
       license-feature="nl.esi.xplus.license"

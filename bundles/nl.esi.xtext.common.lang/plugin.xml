@@ -18,17 +18,4 @@
 			class = "nl.esi.xtext.common.lang.base.BasePackage"
 			genModel = "model/generated/Base.genmodel" />
 	</extension>
-   <extension point="org.eclipse.emf.edit.itemProviderAdapterFactories">
-      <!-- @generated Base -->
-      <factory
-            uri="http://www.esi.nl/xtext/common/lang/Base"
-            class="nl.esi.xtext.common.lang.base.provider.BaseItemProviderAdapterFactory"
-            supportedTypes=
-              "org.eclipse.emf.edit.provider.IEditingDomainItemProvider
-               org.eclipse.emf.edit.provider.IStructuredItemContentProvider
-               org.eclipse.emf.edit.provider.ITreeItemContentProvider
-               org.eclipse.emf.edit.provider.IItemLabelProvider
-               org.eclipse.emf.edit.provider.IItemPropertySource"/>
-   </extension>
-
 </plugin>
