@@ -9,6 +9,8 @@
  */
 package nl.esi.xtext.expressions.scoping
 
+import java.util.List
+import java.util.Map
 import nl.esi.xtext.expressions.expression.ExpressionFunctionCall
 import nl.esi.xtext.expressions.expression.FunctionDecl
 import org.eclipse.emf.ecore.EObject
@@ -26,64 +28,62 @@ import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
  * 3. Name match: any overload (enables "wrong argument count" errors)
  * 
  * Fallback strategy provides specific error messages rather than generic "function not found".
+ *
+ * A cache is used for retrieval of parent IObjectDescriptions as they are eaten when iterating 
+ * and this scope provider potentially does multiple calls.
  */
 class FunctionOverloadScope implements IScope {
-    
+
     val IScope parent
     val ExpressionFunctionCall context
-    
+    var List<IEObjectDescription> allElements
+    var Map<Object,List<IEObjectDescription>> namedElements =  newLinkedHashMap
+
     new(IScope parent, ExpressionFunctionCall context) {
         this.parent = parent
         this.context = context
     }
-    
+
     override getAllElements() {
-        parent.allElements
+        if (allElements === null){
+           allElements = parent.allElements.toList
+        }
+        return allElements
     }
-    
+
     override getElements(QualifiedName name) {
-        val candidates = parent.getElements(name).toList
-        
+        var candidates = namedElements.get(name)
+        if (candidates ===null){
+            candidates = parent.getElements(name).toList
+            namedElements.put(name,candidates)
+        }
         if (candidates.empty) {
             return emptyList
         }
-        
-        // Phase 1: Exact match (name + arity + types)
-        val exactMatches = candidates.filter[matchesExactly(it)]
-        if (!exactMatches.empty) {
-            return exactMatches
-        }
-        
-        // Phase 2: Size match (name + arity) - enables type mismatch errors
-        val sizeMatches = candidates.filter[matchesSize(it)]
-        if (!sizeMatches.empty) {
-            return #[sizeMatches.head] // First match to avoid ambiguity
-        }
-        
-        // Phase 3: Name match - enables wrong argument count errors
-        return #[candidates.head]
+        return filterCandidates(candidates)
     }
-    
+
     override getElements(EObject object) {
-        parent.getElements(object)
+        // ignore the object we know what we are looking for
+        return filterCandidates(getAllElements().toList)
     }
-    
+
     override getSingleElement(QualifiedName name) {
         val elements = getElements(name)
         return elements.empty ? null : elements.head
     }
-    
+
     override getSingleElement(EObject object) {
         parent.getSingleElement(object)
     }
-    
+
     /** Checks if function matches by name, argument count, and all parameter types */
     private def boolean matchesExactly(IEObjectDescription desc) {
         val fd = desc.EObjectOrProxy as FunctionDecl
         if (fd.params.size != context.args.size) {
             return false
         }
-        
+
         for (var i = 0; i < fd.params.size; i++) {
             val param = fd.params.get(i)
             val arg = context.args.get(i)
@@ -93,13 +93,30 @@ class FunctionOverloadScope implements IScope {
                 return false
             }
         }
-        
+
         return true
     }
-    
+
     /** Checks if function matches by argument count only */
     private def boolean matchesSize(IEObjectDescription desc) {
         val fd = desc.EObjectOrProxy as FunctionDecl
         return fd.params.size == context.args.size
+    }
+
+    private def filterCandidates(List<IEObjectDescription> candidates) {
+            // Phase 1: Exact match (name + arity + types)
+        val exactMatches = candidates.filter[matchesExactly(it)]
+        if (!exactMatches.empty) {
+            return exactMatches
+        }
+
+        // Phase 2: Size match (name + arity) - enables type mismatch errors
+        val sizeMatches = candidates.filter[matchesSize(it)]
+        if (!sizeMatches.empty) {
+            return #[sizeMatches.head] // First match to avoid ambiguity
+        }
+
+        // Phase 3: Name match - enables wrong argument count errors
+        return #[candidates.head]
     }
 }

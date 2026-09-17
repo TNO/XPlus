@@ -235,7 +235,6 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     }
 
     @Test
-    @Disabled("The copying of the get method in unstable")
     def void complexExpressionFunctionInsert() {
         val types = '''
             record T {
