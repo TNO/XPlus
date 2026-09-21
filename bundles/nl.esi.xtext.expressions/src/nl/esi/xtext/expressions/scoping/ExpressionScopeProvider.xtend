@@ -65,15 +65,13 @@ class ExpressionScopeProvider extends AbstractExpressionScopeProvider {
                 // 1. Exact type match (arg count + types)
                 // 2. Size match (arg count only - for better error messages)
                 // 3. First function (any overload - for error reporting)
-                return new FunctionOverloadScope(delegateGetScope(context, reference), context)
+                return new FunctionOverloadScope(super.getScope(context, reference), context)
             }
             case reference == TypesPackage.Literals.TYPE__TYPE: {
                 val funcDecl = context.getContainerOfType(FunctionDecl)
-                val parent = delegateGetScope(context, reference)
-                if (funcDecl !==null && !funcDecl.typeParams.empty) {
-                    return Scopes.scopeFor(funcDecl.typeParams, parent)
+                if (funcDecl !== null && !funcDecl.typeParams.empty) {
+                    return Scopes.scopeFor(funcDecl.typeParams, super.getScope(context, reference))
                 }
-                return parent
             }
         }
 

@@ -9,11 +9,10 @@
  */
 package nl.esi.xtext.expressions.scoping
 
-import java.util.List
-import java.util.Map
 import nl.esi.xtext.expressions.expression.ExpressionFunctionCall
 import nl.esi.xtext.expressions.expression.FunctionDecl
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtext.naming.QualifiedName
 import org.eclipse.xtext.resource.IEObjectDescription
 import org.eclipse.xtext.scoping.IScope
@@ -32,91 +31,61 @@ import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
  * A cache is used for retrieval of parent IObjectDescriptions as they are eaten when iterating 
  * and this scope provider potentially does multiple calls.
  */
+@FinalFieldsConstructor
 class FunctionOverloadScope implements IScope {
 
     val IScope parent
     val ExpressionFunctionCall context
-    var List<IEObjectDescription> allElements
-    var Map<Object,List<IEObjectDescription>> namedElements =  newLinkedHashMap
-
-    new(IScope parent, ExpressionFunctionCall context) {
-        this.parent = parent
-        this.context = context
-    }
 
     override getAllElements() {
-        if (allElements === null){
-           allElements = parent.allElements.toList
-        }
-        return allElements
+        parent.getAllElements()
     }
 
     override getElements(QualifiedName name) {
-        var candidates = namedElements.get(name)
-        if (candidates ===null){
-            candidates = parent.getElements(name).toList
-            namedElements.put(name,candidates)
+        val elements = parent.getElements(name).toList
+
+        // Checks if function matches by argument count only
+        val sizeMatches = elements.filter[functionDecl.params.size == context.args.size].toList
+        if (sizeMatches.isEmpty) {
+            // Phase 3: Name match - enables wrong argument count errors
+            return elements
         }
-        if (candidates.empty) {
-            return emptyList
+
+        val exactMatches = sizeMatches.filter [
+            // Checks if function matches by name, argument count, and all parameter types
+            for (var i = 0; i < functionDecl.params.size; i++) {
+                val param = functionDecl.params.get(i)
+                val arg = context.args.get(i)
+                val actualType = param.type.inferActualType(arg)?.typeObject
+                val argType = typeOf(arg)
+                if (!argType.subTypeOf(actualType)) {
+                    return false
+                }
+            }
+            return true
+        ].toList
+        if (exactMatches.isEmpty) {
+            // Phase 2: Size match (name + arity) - enables type mismatch errors
+            return sizeMatches
         }
-        return filterCandidates(candidates)
+
+        // Phase 1: Exact match (name + arity + types)
+        return exactMatches
+    }
+
+    private def FunctionDecl getFunctionDecl(IEObjectDescription desc) {
+        return desc.EObjectOrProxy as FunctionDecl
     }
 
     override getElements(EObject object) {
-        // ignore the object we know what we are looking for
-        return filterCandidates(getAllElements().toList)
+        return getAllElements().filter[EObjectOrProxy == object]
     }
 
     override getSingleElement(QualifiedName name) {
-        val elements = getElements(name)
-        return elements.empty ? null : elements.head
+        return getElements(name).head
     }
 
     override getSingleElement(EObject object) {
-        parent.getSingleElement(object)
-    }
-
-    /** Checks if function matches by name, argument count, and all parameter types */
-    private def boolean matchesExactly(IEObjectDescription desc) {
-        val fd = desc.EObjectOrProxy as FunctionDecl
-        if (fd.params.size != context.args.size) {
-            return false
-        }
-
-        for (var i = 0; i < fd.params.size; i++) {
-            val param = fd.params.get(i)
-            val arg = context.args.get(i)
-            val actualType = param.type.inferActualType(arg)?.typeObject
-            val argType = typeOf(arg)
-            if (!argType.subTypeOf(actualType)) {
-                return false
-            }
-        }
-
-        return true
-    }
-
-    /** Checks if function matches by argument count only */
-    private def boolean matchesSize(IEObjectDescription desc) {
-        val fd = desc.EObjectOrProxy as FunctionDecl
-        return fd.params.size == context.args.size
-    }
-
-    private def filterCandidates(List<IEObjectDescription> candidates) {
-            // Phase 1: Exact match (name + arity + types)
-        val exactMatches = candidates.filter[matchesExactly(it)]
-        if (!exactMatches.empty) {
-            return exactMatches
-        }
-
-        // Phase 2: Size match (name + arity) - enables type mismatch errors
-        val sizeMatches = candidates.filter[matchesSize(it)]
-        if (!sizeMatches.empty) {
-            return #[sizeMatches.head] // First match to avoid ambiguity
-        }
-
-        // Phase 3: Name match - enables wrong argument count errors
-        return #[candidates.head]
+        return getElements(object).head
     }
 }
