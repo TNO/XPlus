@@ -64,8 +64,7 @@ class FunctionOverloadScope implements IScope {
     }
 
     override getElements(EObject object) {
-        // ignore the object we know what we are looking for
-        return filterCandidates(getAllElements().toList)
+        return getAllElements().filter[EObjectOrProxy == object].toList
     }
 
     override getSingleElement(QualifiedName name) {
