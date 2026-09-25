@@ -48,6 +48,28 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
         ''')
     }
 
+
+    @Test
+    def void basedOnTemplateTest() {
+        assertEval('''
+            type derived based on string
+            derived[] dArray = <derived[]>["d" ]
+            string[] sArray = <string[]>["s" ]
+            string xD = "d"
+            derived yD = "d"
+            string xS = "s"
+            derived yS = "s"
+        ''', '''
+            type derived based on string
+            derived[] dArray = <derived[]>["d" ]
+            string[] sArray = <string[]>["s" ]
+            string xD = get(dArray, 0)
+            derived yD = get(dArray, 0)
+            string xS = get(sArray, 0)
+            derived yS = get(sArray, 0)
+        ''')
+    }
+
     @Test
     def void size() {
         assertEval('''

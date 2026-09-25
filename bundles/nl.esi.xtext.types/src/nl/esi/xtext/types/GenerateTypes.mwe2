@@ -62,8 +62,9 @@ Workflow {
             junitSupport = {
                 junitVersion = "5"
             }
-            emfGenerator = {
+            emfGenerator = nl.esi.xplus.xtext.generator.ecore.EMFGeneratorFragment {
                 generateEdit = true
+                operationReflection = true
                 editDirectory = "${baseName}.edit/src-gen"
             }
         }
