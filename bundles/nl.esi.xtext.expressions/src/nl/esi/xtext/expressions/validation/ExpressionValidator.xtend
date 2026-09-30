@@ -209,7 +209,8 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				        var field = getAllFields(e.type).get(i)
 				        if (f.recordField.name.equals(field.name)){
 				            //type checking
-				            if (!f.exp.typeOf.subTypeOf(field.type.typeObject)){
+				            val expType = f.exp?.typeOf
+				            if (expType !== null && !expType.subTypeOf(field.type.typeObject)){
 				                error('Type mismatch', e, ExpressionPackage.Literals.EXPRESSION_RECORD__FIELDS, e.fields.indexOf(f))
 				            }
 				        }
@@ -311,10 +312,11 @@ class ExpressionValidator extends AbstractExpressionValidator {
                 val args = e.functionArgs
                 for (var i = 0; i < args.size; i++) {
                     val arg = args.get(i)
+                    
                     val param = e.function.params.get(i)
                     val paramType = param.type.inferActualType(arg)?.typeObject
                     val argType = arg.typeOf
-                    if (!argType.subTypeOf(paramType) ) {
+                    if (argType !== null && !argType.subTypeOf(paramType) ) {
                         error('''Function «e.function.name» expects argument «param.name» to be of type «paramType.typeName».''',
                             e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
                     }
