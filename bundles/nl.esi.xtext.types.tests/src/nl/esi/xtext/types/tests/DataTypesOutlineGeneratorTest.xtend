@@ -122,7 +122,9 @@ class DataTypesOutlineGeneratorTest {
 	def void loadTypesModel() {
 		val typesCode = '''
 			@id("aap")
-			enum Color { RED GREEN BLUE }        
+			@somethingElse( name="aName", i=3, b=True, d=1.0 ) 
+			@suppres(True) 
+			enum Color { RED=1 GREEN=2 BLUE=3 }        
 		'''
 		val expected = '''
 			[
@@ -292,52 +294,62 @@ class DataTypesOutlineGeneratorTest {
         val value = "«value»"
         val element = "«element»"
         val compare = '''
-			[
-			  {
-			    "nodeType": "Record",
-			    "name": "CorrectionsReport",
-			    "label": "CorrectionsReport : Record",
-			    "children": [
-			      {
-			        "nodeType": "record-field",
-			        "name": "correctionsMap",
-			        "label": "correctionsMap : Map<Int, List<CorrectionItem : Record>>",
-			        "kind": "mixed",
-			        "children": [
-			          {
-			            "nodeType": "map-value",
-			            "name": "value",
-			            "label": "«value» : List<CorrectionItem : Record>",
-			            "children": [
-			              {
-			                "nodeType": "collection-element",
-			                "name": "element",
-			                "label": "«element» : CorrectionItem : Record",
-			                "children": [
-			                  {
-			                    "nodeType": "record-field",
-			                    "name": "data",
-			                    "label": "data : String",
-			                    "kind": "concrete",
-			                    "children": []
-			                  }
-			                ]
-			              }
-			            ]
-			          }
-			        ]
-			      },
-			      {
-			        "nodeType": "record-field",
-			        "name": "id",
-			        "label": "id : Int",
-			        "kind": "concrete",
-			        "children": []
-			      }
-			    ]
-			  }
-			]
-		'''
+         [
+          {
+            "nodeType": "Record",
+            "name": "CorrectionsReport",
+            "type": "Record",
+            "label": "CorrectionsReport : Record",
+            "children": [
+              {
+                "nodeType": "record-field",
+                "name": "correctionsMap",
+                "type": "Map<Int, List<CorrectionItem : Record>>",
+                "label": "correctionsMap : Map<Int, List<CorrectionItem : Record>>",
+                "kind": "mixed",
+                "children": [
+                  {
+                    "nodeType": "map-key",
+                    "name": "value",
+                    "type": "Int",
+                    "label": "«value» : Int"
+                  },
+                  {
+                    "nodeType": "map-value",
+                    "name": "value",
+                    "type": "List<CorrectionItem : Record>",
+                    "label": "«value» : List<CorrectionItem : Record>",
+                    "children": [
+                      {
+                        "nodeType": "collection-element",
+                        "name": "element",
+                        "type": "CorrectionItem : Record",
+                        "label": "«element» : CorrectionItem : Record",
+                        "children": [
+                          {
+                            "nodeType": "record-field",
+                            "name": "data",
+                            "type": "String",
+                            "label": "data : String",
+                            "kind": "concrete"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "nodeType": "record-field",
+                "name": "id",
+                "type": "Int",
+                "label": "id : Int",
+                "kind": "concrete"
+              }
+            ]
+          }
+        ]		
+        '''
         transformPrinter("CorrectionsReport", compare)
     }
     

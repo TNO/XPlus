@@ -85,7 +85,7 @@ class DataTypesOutlineGenerator {
      * Base dispatch method - should not be called directly.
      */
     private def dispatch DataType doTransform(TypeDecl type) {
-        return new DataType(null, type.annotatedId, type.name, "?", "?", null, emptyList)
+        return new DataType(null, type.annotatedId, type.name, "?", "?", null, null, type.annotationsMap)
     }
 
     /**
@@ -97,7 +97,7 @@ class DataTypesOutlineGenerator {
             label += " based on "  + doTransform(type.base).label
         }
         val nodeType = type.typeOrAlias(DataType.PRIMITIVE_BASED_ON)
-        return new DataType(nodeType, type.annotatedId, type.name, type.translatedTypeName, label, null, emptyList)
+        return new DataType(nodeType, type.annotatedId, type.name, type.translatedTypeName, label, null, null, type.annotationsMap)
     }
 
     /**
@@ -111,10 +111,10 @@ class DataTypesOutlineGenerator {
             val literal = enums.get(index)
             val name  = literal.name
             val value = literal.value
-            literals.add(new DataType(literalNodeType, literal.annotatedId, name, null, name, null, value, null))
+            literals.add(new DataType(literalNodeType, literal.annotatedId, name, null, name, null, value, null, literal.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.ENUM)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.ENUM, type.name + " : " + nodeType, null, literals)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.ENUM, type.name + " : " + nodeType, null, literals, type.annotationsMap)
     }
 
     /**
@@ -131,10 +131,10 @@ class DataTypesOutlineGenerator {
             val fType = field.type
             val fieldStructure = fType.typeObject?.asTypeDecl?.doTransform()
             val children = fieldStructure === null ? null:  fieldStructure.children
-            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, fieldStructure?.label, fName +" : "+fieldStructure.label, kind, children))
+            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, fieldStructure?.label, fName +" : "+fieldStructure.label, kind, children, field.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.RECORD)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, null, fields)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, null, fields, type.annotationsMap)
     }
 
     /**
@@ -148,10 +148,10 @@ class DataTypesOutlineGenerator {
         if (elementType !== null) {
             val child = doTransform(elementType.asTypeDecl)
             childLabel = child.label
-            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", child.label, "«element» : " + child.label, null, child.children))
+            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", child.label, "«element» : " + child.label, null, child.children, elementType.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.LIST)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', null, children)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', null, children, type.annotationsMap)
     }
 
     /**
@@ -164,9 +164,8 @@ class DataTypesOutlineGenerator {
         val keyType = type.keyType
         if (keyType !== null) {
             val child = keyType.asTypeDecl?.doTransform()
-            // don't add key, only the label is needed
-            // val mapKeyNodeType = type.typeOrAlias(DataTypeOutlineEntry.MAP_KEY)
-            // result.add(new DataTypeOutlineEntry(mapKeyNodeType, keyId, "key", "«key» : " + child.label, child.children))
+            val mapKeyNodeType = type.typeOrAlias(DataType.MAP_KEY)
+            result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, keyType.annotationsMap))
             labels.add(child.label)
         }
         // Handle value type
@@ -175,17 +174,26 @@ class DataTypesOutlineGenerator {
         if (valueType !== null) {
             val child = valueType.asTypeDecl?.doTransform()
             labels.add(child.label)
-            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children))
+            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, valueType.annotationsMap))
         }
         
         val nodeType = type.typeOrAlias(DataType.MAP)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.MAP, '''Map<«labels.join(", ")»>''', null, result)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.MAP, '''Map<«labels.join(", ")»>''', null, result, type.annotationsMap)
     }
 
     private def String getAnnotatedId(EObject type) {
         if (type instanceof Annotatable){
             val annotated = AnnotationUtil.getAnnotationValue(type, "id").orElse(null)
             return annotated
+        }
+        return null
+    }
+
+    private def Map<String,Object> getAnnotationsMap(EObject type) {
+        if (type instanceof Annotatable){
+            val annotations = newLinkedHashMap
+            AnnotationUtil.getAnnotations(type).entrySet.filter[key!="id" &&  key!="typeAlias"].forEach[annotations.put(key,value)]
+            return !annotations.empty ? annotations : null
         }
         return null
     }

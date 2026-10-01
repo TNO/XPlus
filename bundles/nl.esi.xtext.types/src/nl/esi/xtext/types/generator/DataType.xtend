@@ -13,6 +13,7 @@ import java.io.Serializable
 import java.util.ArrayList
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
+import java.util.Map
 
 @Accessors
 class DataType implements Serializable {
@@ -36,12 +37,13 @@ class DataType implements Serializable {
   String kind
   Integer value
   List<DataType> children
+  Map<String,Object>annotations
 
-  new(String nodeType, String id, String name, String type, String label, String kind, List<DataType> children) {
-      this(nodeType, id, name, type, label, kind, null, children)
+  new(String nodeType, String id, String name, String type, String label, String kind, List<DataType> children,  Map<String,Object> annotations) {
+      this(nodeType, id, name, type, label, kind, null, children, annotations)
   }
 
-  new(String nodeType, String id, String name, String type, String label, String kind, Integer value, List<DataType> children) {
+  new(String nodeType, String id, String name, String type, String label, String kind, Integer value, List<DataType> children, Map<String,Object> annotations) {
     this.nodeType = nodeType ?: NODE
     this.id = id
     this.name = name
@@ -49,7 +51,8 @@ class DataType implements Serializable {
     this.label = label
     this.value = value
     this.kind = kind
-    this.children = children
+    this.children = (children !== null && !children.empty) ? children : null
+    this.annotations = ( annotations !== null && !annotations.empty) ? annotations : null
   }
 
 }
