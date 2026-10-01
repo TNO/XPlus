@@ -15,7 +15,7 @@ import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
 
 @Accessors
-class DataTypeOutlineEntry implements Serializable {
+class DataType implements Serializable {
   public static val String NODE = "node"
   public static val String COLLECTION_ELEMENT = "collection-element"
   public static val String MAP_KEY = "map-key"
@@ -31,20 +31,25 @@ class DataTypeOutlineEntry implements Serializable {
   String nodeType
   String id
   String name
+  String type
   String label
   String kind
-  List<DataTypeOutlineEntry> children
+  Integer value
+  List<DataType> children
 
-  new(String nodeType, String id, String name, String label, List<DataTypeOutlineEntry> children) {
-    this(nodeType, id, name, label, null, children)
+  new(String nodeType, String id, String name, String type, String label, String kind, List<DataType> children) {
+      this(nodeType, id, name, type, label, kind, null, children)
   }
 
-  new(String nodeType, String id, String name, String label, String kind, List<DataTypeOutlineEntry> children) {
+  new(String nodeType, String id, String name, String type, String label, String kind, Integer value, List<DataType> children) {
     this.nodeType = nodeType ?: NODE
     this.id = id
     this.name = name
+    this.type = type
     this.label = label
+    this.value = value
     this.kind = kind
-    this.children = if(children === null) newArrayList() else new ArrayList(children)
+    this.children = children
   }
+
 }

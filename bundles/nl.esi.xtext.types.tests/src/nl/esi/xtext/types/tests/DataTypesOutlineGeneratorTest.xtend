@@ -26,7 +26,7 @@ import org.junit.jupiter.api.^extension.ExtendWith
 
 import nl.esi.xtext.common.lang.utilities.EcoreUtil3
 import static extension nl.esi.xtext.types.generator.DataTypesOutlineGenerator.*
-import nl.esi.xtext.types.generator.DataTypeOutlineEntry
+import nl.esi.xtext.types.generator.DataType
 
 /**
  * Tests transformation from TypesModel to DataTypeListSchema.
@@ -361,34 +361,37 @@ class DataTypesOutlineGeneratorTest {
             compare(expected, actual)
         }
     }
-    private static def void sortRecursively(List<DataTypeOutlineEntry> list) {
-        if (!list.isEmpty) {
+    private static def void sortRecursively(List<DataType> list) {
+        if (list !== null && !list.isEmpty) {
             list.sort[a, b | a.label.compareTo(b.label)]
             list.forEach[children.sortRecursively]
         }
     }
     
-    private static def List<String> equal(DataTypeOutlineEntry a, DataTypeOutlineEntry b) {
+    private static def List<String> equal(DataType a, DataType b) {
         val mismatch = newArrayList
         if (a.nodeType != b.nodeType) mismatch += "NodeType"
         if (a.label != b.label) mismatch += "Label"
         if (a.name != b.name) mismatch += "Name"
         if (a.id != b.id) mismatch += "Id"
-        if (a.children.size != b.children.size) mismatch += "Size"
         
         if (!mismatch.empty) {
             return mismatch
         }
-        for (var i = 0; i < a.children.size; i++) {
-            val cMismatch = a.children.get(i).equal(b.children.get(i))
-            if (!cMismatch.empty){
-                return cMismatch
+
+        if(a.children !== null && b.children !== null) {
+            if (a.children.size != b.children.size) mismatch += "Size"
+            for (var i = 0; i < a.children.size; i++) {
+                val cMismatch = a.children.get(i).equal(b.children.get(i))
+                if (!cMismatch.empty){
+                    return cMismatch
+                }
             }
         }
         return mismatch
     }
     
-    private static def void compare(List<DataTypeOutlineEntry> expected, List<DataTypeOutlineEntry> actual){
+    private static def void compare(List<DataType> expected, List<DataType> actual){
         expected.sortRecursively
         actual.sortRecursively
         // Compare structure (ignoring id differences)

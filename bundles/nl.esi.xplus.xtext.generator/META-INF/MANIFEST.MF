@@ -4,7 +4,8 @@ Bundle-Name: XPlus Xtext Generator
 Bundle-SymbolicName: nl.esi.xplus.xtext.generator
 Bundle-Vendor: TNO-ESI
 Bundle-Version: 0.5.0.qualifier
-Export-Package: nl.esi.xplus.xtext.generator.ide.contentassist,
+Export-Package: nl.esi.xplus.xtext.generator.ecore,
+ nl.esi.xplus.xtext.generator.ide.contentassist,
  nl.esi.xplus.xtext.generator.lezer,
  nl.esi.xplus.xtext.generator.model.project,
  nl.esi.xplus.xtext.generator.serializer
