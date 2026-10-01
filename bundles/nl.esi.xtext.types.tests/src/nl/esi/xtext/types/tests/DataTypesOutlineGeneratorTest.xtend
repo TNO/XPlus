@@ -27,6 +27,7 @@ import org.junit.jupiter.api.^extension.ExtendWith
 import nl.esi.xtext.common.lang.utilities.EcoreUtil3
 import static extension nl.esi.xtext.types.generator.DataTypesOutlineGenerator.*
 import nl.esi.xtext.types.generator.DataType
+import nl.esi.xtext.types.generator.DataTypesOutlineGenerator
 
 /**
  * Tests transformation from TypesModel to DataTypeListSchema.
@@ -123,7 +124,7 @@ class DataTypesOutlineGeneratorTest {
 		val typesCode = '''
 			@id("aap")
 			@somethingElse( name="aName", i=3, b=True, d=1.0 ) 
-			@suppres(True) 
+			@suppresUpdate 
 			enum Color { RED=1 GREEN=2 BLUE=3 }        
 		'''
 		val expected = '''
@@ -161,10 +162,23 @@ class DataTypesOutlineGeneratorTest {
 		
 		val typesModel = resource.contents.filter(TypesModel).head
 		Assertions.assertNotNull(typesModel, "TypesModel should be parsed from types syntax")
+		
 		val errors = resource.errors
 		Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
 		compare("Color", typesModel, expected )
 	}
+
+    @Test
+    def void transformFromTypes() {
+        val typesCode = '''
+            @id("aap")
+            @somethingElse( name="aName", i=3, b=True, d=1.0 ) 
+            @suppresUpdate 
+            enum Color { RED=1 GREEN=2 BLUE=3 }        
+        '''
+        val typesOutline = DataTypesOutlineGenerator.fromTypes(typesCode)
+        Assertions.assertNotNull(typesOutline)
+    }
 	
 	@Test
 	def void transformEnumToDataType() {

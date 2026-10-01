@@ -14,6 +14,7 @@ package nl.esi.xtext.types.generator
 
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import java.io.ByteArrayInputStream
 import java.util.ArrayList
 import java.util.List
 import java.util.Map
@@ -27,7 +28,9 @@ import nl.esi.xtext.types.types.TypeDecl
 import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypesModel
 import nl.esi.xtext.types.types.VectorTypeDecl
+import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.resource.XtextResourceSet
 
 import static extension nl.esi.xtext.common.lang.utilities.AnnotationUtil.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
@@ -58,6 +61,21 @@ class DataTypesOutlineGenerator {
      */
     def static List<DataType> fromJson(String jsonString) {
         return GSON.fromJson(jsonString, new TypeToken<List<DataType>>(){}.getType())
+    }
+
+
+    /**
+     * Deserializes a JSON string into a List of DataTypeListEntry.
+     */
+    def static List<DataType> fromTypes(String rawTypes) {
+        var resourceSet = new XtextResourceSet();
+        var resource = resourceSet.createResource(URI.createURI("inmemory.types"));
+        resource.load(new ByteArrayInputStream(rawTypes.getBytes()), null);
+        var typesModel = resource.getContents().filter(TypesModel).head
+        if (typesModel === null){
+            return null
+        }
+        return getOutline(typesModel)
     }
 
     /**
@@ -131,7 +149,7 @@ class DataTypesOutlineGenerator {
             val fType = field.type
             val fieldStructure = fType.typeObject?.asTypeDecl?.doTransform()
             val children = fieldStructure === null ? null:  fieldStructure.children
-            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, fieldStructure?.label, fName +" : "+fieldStructure.label, kind, children, field.annotationsMap))
+            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, fType.typeObject.translatedTypeName, fName +" : "+fieldStructure.label, kind, children, field.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.RECORD)
         return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, null, fields, type.annotationsMap)
