@@ -34,6 +34,7 @@ import org.eclipse.xtext.resource.XtextResourceSet
 
 import static extension nl.esi.xtext.common.lang.utilities.AnnotationUtil.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
+import static extension nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
 /**
  * Transforms types model declarations into DataTypeListEntry objects.
@@ -68,9 +69,10 @@ class DataTypesOutlineGenerator {
      * Deserializes a JSON string into a List of DataTypeListEntry.
      */
     def static List<DataType> fromTypes(String rawTypes) {
-        var resourceSet = new XtextResourceSet();
-        var resource = resourceSet.createResource(URI.createURI("inmemory.types"));
-        resource.load(new ByteArrayInputStream(rawTypes.getBytes()), null);
+        var resourceSet = new XtextResourceSet()
+        var resource = resourceSet.createResource(URI.createURI("inmemory.types"))
+        resource.load(new ByteArrayInputStream(rawTypes.getBytes()), null)
+        resource.resolveAll
         var typesModel = resource.getContents().filter(TypesModel).head
         if (typesModel === null){
             return null
@@ -147,9 +149,12 @@ class DataTypesOutlineGenerator {
             val kind = field.kind?.literal
             val fName = field.name
             val fType = field.type
-            val fieldStructure = fType.typeObject?.asTypeDecl?.doTransform()
+            val typeObject = fType.typeObject
+            // make a copy because asTypeDecl adds the object to a Containment container
+            val fieldStructure = typeObject?.asTypeDeclCopy.doTransform
+            val fLabel = fieldStructure !== null ? fieldStructure.label : typeObject.translatedTypeName
             val children = fieldStructure === null ? null:  fieldStructure.children
-            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, fType.typeObject.translatedTypeName, fName +" : "+fieldStructure.label, kind, children, field.annotationsMap))
+            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, typeObject.translatedTypeName, fName +" : "+fLabel, kind, children, field.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.RECORD)
         return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, null, fields, type.annotationsMap)
@@ -181,7 +186,7 @@ class DataTypesOutlineGenerator {
         // Handle key type
         val keyType = type.keyType
         if (keyType !== null) {
-            val child = keyType.asTypeDecl?.doTransform()
+            val child = keyType.asTypeDeclCopy?.doTransform()
             val mapKeyNodeType = type.typeOrAlias(DataType.MAP_KEY)
             result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, keyType.annotationsMap))
             labels.add(child.label)
@@ -190,7 +195,7 @@ class DataTypesOutlineGenerator {
         val valueType = type.valueType
         val mapValueNodeType = type.typeOrAlias(DataType.MAP_VALUE)
         if (valueType !== null) {
-            val child = valueType.asTypeDecl?.doTransform()
+            val child = valueType.asTypeDeclCopy?.doTransform()
             labels.add(child.label)
             result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, valueType.annotationsMap))
         }
@@ -199,6 +204,12 @@ class DataTypesOutlineGenerator {
         return new DataType(nodeType, type.annotatedId, type.name, DataType.MAP, '''Map<«labels.join(", ")»>''', null, result, type.annotationsMap)
     }
 
+    private def asTypeDeclCopy(TypeObject t){
+        if (t !== null){
+            return t.copy.asTypeDecl
+        }
+        return null
+    }
     private def String getAnnotatedId(EObject type) {
         if (type instanceof Annotatable){
             val annotated = AnnotationUtil.getAnnotationValue(type, "id").orElse(null)
