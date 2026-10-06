@@ -169,9 +169,8 @@ class DataTypesOutlineGenerator {
         var childLabel = "?"
         val elementNodeType = type.typeOrAlias(DataType.COLLECTION_ELEMENT)
         if (elementType !== null) {
-            val child = doTransform(elementType.asTypeDecl)
-            childLabel = child.label
-            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", child.label, "«element» : " + child.label, null, child.children, elementType.annotationsMap))
+            val child = elementType.asTypeDeclCopy.doTransform
+            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", child?.label, "«element» : " + child?.label, null, child?.children, elementType.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.LIST)
         return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', null, children, type.annotationsMap)
@@ -188,16 +187,16 @@ class DataTypesOutlineGenerator {
         if (keyType !== null) {
             val child = keyType.asTypeDeclCopy?.doTransform()
             val mapKeyNodeType = type.typeOrAlias(DataType.MAP_KEY)
-            result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, keyType.annotationsMap))
-            labels.add(child.label)
+            result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "key", child?.label, "«key» : " + child?.label, null, child?.children, keyType.annotationsMap))
+            labels.add(child?.label)
         }
         // Handle value type
         val valueType = type.valueType
         val mapValueNodeType = type.typeOrAlias(DataType.MAP_VALUE)
         if (valueType !== null) {
             val child = valueType.asTypeDeclCopy?.doTransform()
-            labels.add(child.label)
-            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child.label, "«value» : " + child.label, null, child.children, valueType.annotationsMap))
+            labels.add(child?.label)
+            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child?.label, "«value» : " + child?.label, null, child?.children, valueType.annotationsMap))
         }
         
         val nodeType = type.typeOrAlias(DataType.MAP)

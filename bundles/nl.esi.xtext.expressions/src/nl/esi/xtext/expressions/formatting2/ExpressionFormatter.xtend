@@ -53,12 +53,12 @@ class ExpressionFormatter extends TypesFormatter {
 	@Inject extension ExpressionGrammarAccess
 	
     def dispatch void format(VariableDecl varDecl, extension IFormattableDocument document) {
-        varDecl.regionFor.keyword(variableDeclAccess.equalsSignKeyword_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
+        varDecl.regionFor.keyword(variableDeclAccess.equalsSignKeyword_2_0)?.prepend(oneSpace).append(oneSpaceWrap)
         varDecl.append(newLine);
     }
 
 	def dispatch void format(Variable variable, extension IFormattableDocument document) {		
-		variable.regionFor.assignment(variableAccess.typeAssignment_1).append(oneSpace)
+		variable.regionFor.assignment(variableAccess.typeAssignment_2).append(oneSpace)
 	}
 
 	//-----------------------------------   ExpressionLevel1
@@ -188,18 +188,18 @@ class ExpressionFormatter extends TypesFormatter {
 	//-----------------------------------   ExpressionLevel7
 	
 	def dispatch void format(ExpressionNot expr, extension IFormattableDocument document) {
-		expr.regionFor.keyword(expressionNotAccess.NOTKeyword_0_0)?.prepend(oneSpaceWrap).append(oneSpace)
-		expr.regionFor.keyword(expressionNotAccess.notKeyword_0_1)?.prepend(oneSpaceWrap).append(oneSpace)
+		expr.regionFor.keyword(expressionNotAccess.NOTKeyword_1_0)?.prepend(oneSpaceWrap).append(oneSpace)
+		expr.regionFor.keyword(expressionNotAccess.notKeyword_1_1)?.prepend(oneSpaceWrap).append(oneSpace)
 		expr.sub.format		
 	}
 	
 	def dispatch void format(ExpressionMinus expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionMinusAccess.hyphenMinusKeyword_0).append(noSpace)		
+		expr.regionFor.keyword(expressionMinusAccess.hyphenMinusKeyword_1).append(noSpace)		
 		expr.sub.format
 	}
 	
 	def dispatch void format(ExpressionPlus expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionPlusAccess.plusSignKeyword_0).append(noSpace)		
+		expr.regionFor.keyword(expressionPlusAccess.plusSignKeyword_1).append(noSpace)		
 		expr.sub.format
 	}
 	
@@ -212,8 +212,8 @@ class ExpressionFormatter extends TypesFormatter {
 	//-----------------------------------   ExpressionLevel9
 	def dispatch void format(ExpressionBracket expr, extension IFormattableDocument document) {	
 		val rFinder = expr.regionFor		
-		rFinder.keyword(expressionBracketAccess.leftParenthesisKeyword_0).append(noSpace)
-		rFinder.keyword(expressionBracketAccess.rightParenthesisKeyword_2).prepend(noSpace)		
+		rFinder.keyword(expressionBracketAccess.leftParenthesisKeyword_1).append(noSpace)
+		rFinder.keyword(expressionBracketAccess.rightParenthesisKeyword_3).prepend(noSpace)		
 		expr.sub.format
 	}
 	
@@ -224,17 +224,17 @@ class ExpressionFormatter extends TypesFormatter {
 		
 		expr.type.append(oneSpace)				
 		
-		rFinder.keyword(expressionRecordAccess.leftCurlyBracketKeyword_1).prepend(oneSpace).append(noSpace)
-		rFinder.keyword(expressionRecordAccess.rightCurlyBracketKeyword_4).prepend(noSpace).append(oneSpace)
+		rFinder.keyword(expressionRecordAccess.leftCurlyBracketKeyword_2).prepend(oneSpace).append(noSpace)
+		rFinder.keyword(expressionRecordAccess.rightCurlyBracketKeyword_5).prepend(noSpace).append(oneSpace)
 		
 		expr.fields.forEach[format]
 		
-		rFinder.keyword(expressionRecordAccess.commaKeyword_3_0)?.prepend(noSpace).append(oneSpace)
+		rFinder.keyword(expressionRecordAccess.commaKeyword_4_0)?.prepend(noSpace).append(oneSpace)
 		expr.fields.last.prepend(oneSpace)
 	}
 	
 	def dispatch void format(Field field, extension IFormattableDocument document) {		
-		field.regionFor.keyword(fieldAccess.equalsSignKeyword_1).surround(oneSpace)
+		field.regionFor.keyword(fieldAccess.equalsSignKeyword_2).surround(oneSpace)
 	}
 	
 	def dispatch void format(ExpressionVector expressionVector, extension IFormattableDocument document) {
@@ -265,7 +265,7 @@ class ExpressionFormatter extends TypesFormatter {
 		val rFinder = pair.regionFor
 		
 		//rFinder.assignment(pairAccess.keyAssignment_0).prepend(noSpace)
-		rFinder.keyword(pairAccess.hyphenMinusGreaterThanSignKeyword_1).surround(noSpace)
+		rFinder.keyword(pairAccess.hyphenMinusGreaterThanSignKeyword_2).surround(noSpace)
 		//rFinder.assignment(pairAccess.valueAssignment_2).prepend(noSpace)
 		pair.key.format
 		pair.value.format
@@ -273,7 +273,7 @@ class ExpressionFormatter extends TypesFormatter {
 	
 	def dispatch void format(ExpressionEnumLiteral expressionEnumLiteral, extension IFormattableDocument document) {
 		val regionFor = expressionEnumLiteral.regionFor
-		regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_1)?.surround(noSpace)
+		regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_2)?.surround(noSpace)
 //		regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_2).surround(noSpace)
 	}
 }

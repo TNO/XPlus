@@ -14,7 +14,7 @@
  */
 grammar nl.esi.xtext.types.Types with nl.esi.xtext.common.lang.Base
 
-generate types "http://www.esi.nl/xtext/types/Types"
+generate types "http://www.esi.nl/xtext/types/Types" as types
 
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
@@ -23,7 +23,7 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
  * Top level container element that holds type declarations.
  * In addition, it may transitively import zero or more existing type models.
  */
-TypesModel returns base::ModelContainer: {TypesModel}
+TypesModel returns base::ModelContainer: {types::TypesModel}
     imports += Import*
     types += TypeDecl+
 ;
@@ -36,19 +36,21 @@ NamedElement returns base::NamedElement:
 /*
  * The type declarations
  */
-TypeDecl:
+TypeDecl returns types::TypeDecl:
 	EnumTypeDecl | SimpleTypeDecl | RecordTypeDecl | VectorTypeDecl | MapTypeDecl
 ;
 
-NameSpace:
+NameSpace returns types::NameSpace: {types::NameSpace}
 	'using' importedNamespace=QualifiedNameWithWildcard
 ;
 
-QualifiedName:
+QualifiedName returns ecore::EString:
     ID ('.' ID )*
 ;
 
-QualifiedNameWithWildcard: QualifiedName '.*'? ;
+QualifiedNameWithWildcard returns ecore::EString: 
+    QualifiedName '.*'? 
+;
 
 
 
@@ -68,12 +70,12 @@ QualifiedNameWithWildcard: QualifiedName '.*'? ;
  * the type being defined can be treated as a synonym of the base type. Values of the base type
  * can be used as values of the type.
  */
-SimpleTypeDecl:
+SimpleTypeDecl returns types::SimpleTypeDecl: {types::SimpleTypeDecl}
     Annotations
-	'type' name = ID ('based' 'on' base = [SimpleTypeDecl])?
+	'type' name = ID ('based' 'on' base = [types::SimpleTypeDecl])?
 ;
 
-EnumTypeDecl:
+EnumTypeDecl returns types::EnumTypeDecl: {types::EnumTypeDecl}
     Annotations
 	'enum' name = ID '{' literals+=EnumElement* '}'
 ;
@@ -82,74 +84,75 @@ EnumTypeDecl:
  *  between 0 (explicit 0) and null (increment + 1 from the previous value)
  */
 EIntegerObject returns ecore::EIntegerObject: INT;
-EnumElement:
+
+EnumElement returns types::EnumElement: {types::EnumElement}
     Annotations
 	name = ID ('=' value = EIntegerObject)?
 ;
 
-RecordTypeDecl:
+RecordTypeDecl returns types::RecordTypeDecl: {types::RecordTypeDecl}
     Annotations
-	'record' name = ID ('extends' parent = [RecordTypeDecl])? 
+	'record' name = ID ('extends' parent = [types::RecordTypeDecl])? 
 	'{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
 ;	
 
-RecordField:
+RecordField returns types::RecordField: {types::RecordField}
     Annotations
 	(kind = RecordFieldKind)? type = Type name = ID
 ;
 
-enum RecordFieldKind:
+enum RecordFieldKind returns types::RecordFieldKind:
     CONCRETE = 'concrete' | SYMBOLIC = 'symbolic' | MIXED = 'mixed'
 ;
 
-VectorTypeDecl:
+VectorTypeDecl returns types::VectorTypeDecl: {types::VectorTypeDecl}
     Annotations
 	'vector' name = ID '=' constructor = VectorTypeConstructor 
 ;
 
-MapTypeDecl:
+MapTypeDecl returns types::MapTypeDecl: {types::MapTypeDecl}
     Annotations
 	name = ID '=' constructor = MapTypeConstructor
 ;
 
-GenericsTypeParamBase returns TypeDecl:
+GenericsTypeParamBase returns types::TypeDecl:
     GenericsTypeParam
 ;
 
-GenericsTypeParam:
+GenericsTypeParam returns types::GenericsTypeParam: {types::GenericsTypeParam}
     name = ID
 ;
 
 /*
  * Type denotes a syntactical construct (reference to a definition or an inline vector or map type)
  */
-Type:
+Type returns types::Type:
 	TypeReference | VectorTypeConstructor | MapTypeConstructor
 ;
 
-fragment TypeFR returns Type:
-type = [TypeDecl | ID]
+fragment TypeFR returns types::Type:
+	type = [types::TypeDecl | ID]
 ;
 
-MapTypeConstructor :
+MapTypeConstructor returns types::MapTypeConstructor: {types::MapTypeConstructor}
 	 'map' '<' TypeFR ',' valueType = Type '>'
 ;
 
-VectorTypeConstructor :
+VectorTypeConstructor returns types::VectorTypeConstructor: {types::VectorTypeConstructor}
 	TypeFR (dimensions += Dimension)+
 ;
 
-TypeReference :
+TypeReference returns types::TypeReference: {types::TypeReference}
 	TypeFR
 ;
 
-Dimension:
-	{Dimension}'['(size = INT)?']'
+Dimension returns types::Dimension:
+	{types::Dimension}'['(size = INT)?']'
 ;
 
 /*
  * TypeObject denotes semantic types. It is used in the type checker
  */
-TypeObject:
-	{TypeDecl} | {VectorTypeConstructor} | {MapTypeConstructor}
+TypeObject returns types::TypeObject:
+	{types::TypeDecl} | {types::VectorTypeConstructor} | {types::MapTypeConstructor}
 ;

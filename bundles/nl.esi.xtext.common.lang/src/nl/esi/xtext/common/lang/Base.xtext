@@ -9,16 +9,16 @@
  */
 grammar nl.esi.xtext.common.lang.Base with org.eclipse.xtext.common.Terminals
 
-generate base "http://www.esi.nl/xtext/common/lang/Base"
+generate base "http://www.esi.nl/xtext/common/lang/Base" as base
 
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
-BaseModel returns ModelContainer: {BaseModel}
+BaseModel returns base::ModelContainer: {base::BaseModel}
     imports += Import*
     table = BaseTable?
 ;
 
-BaseTable: {BaseTable}
+BaseTable returns base::BaseTable: {base::BaseTable}
     Annotations
     Table
 ;
@@ -28,50 +28,50 @@ BaseTable: {BaseTable}
  * Top level container element that may transitively import zero or more existing base models.
  * In this grammar, it is extended by the class BaseModel (see above)
  */
-ModelContainer: {ModelContainer}
+ModelContainer returns base::ModelContainer: {base::ModelContainer}
     imports += Import*
 ;
 
-Import:
+Import returns base::Import: {base::Import}
     'import' importURI = STRING
 ;
 
-fragment Annotations returns Annotatable:
+fragment Annotations returns base::Annotatable:
     annotations+=Annotation*
 ;
 
-Annotation: {Annotation}
+Annotation returns base::Annotation: {base::Annotation}
     '@' name=ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
 ;
 
-AnnotationParam: {AnnotationParam}
+AnnotationParam returns base::AnnotationParam: {base::AnnotationParam}
     name=ID '=' value = AnnotationValue
 ;
 
-DefaultAnnotationParam returns AnnotationParam:
+DefaultAnnotationParam returns base::AnnotationParam: {base::AnnotationParam}
     value = AnnotationValue
 ;
 
-AnnotationValue:
-      {AnnotationLongValue} => value=LONG
-    | {AnnotationBooleanValue} => value=BOOL
-    | {AnnotationStringValue} => value=STRING
-    | {AnnotationDoubleValue} => value=DOUBLE
+AnnotationValue returns base::AnnotationValue:
+      {base::AnnotationLongValue} => value=LONG
+    | {base::AnnotationBooleanValue} => value=BOOL
+    | {base::AnnotationStringValue} => value=STRING
+    | {base::AnnotationDoubleValue} => value=DOUBLE
 ;
 
-fragment Table returns Table:
+fragment Table returns base::Table:
     header = TableRow
     rows += TableRow*
 ;
 
-TableRow: {TableRow}
+TableRow returns base::TableRow: {base::TableRow}
     cells += TABLE_CELL+ '|'
 ;
 
 /*
  * Abstract class for all NamedElements
  */
-NamedElement:
+NamedElement returns base::NamedElement:
     Annotation | AnnotationParam
 ;
 
