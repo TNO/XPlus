@@ -100,15 +100,15 @@ ExpressionLevel7 returns expr::Expression:
 	ExpressionNot | ExpressionMinus | ExpressionPlus | ExpressionLevel8
 ;
 
-ExpressionNot returns expr::Expression: {expr::ExpressionNot}
+ExpressionNot returns expr::ExpressionNot: {expr::ExpressionNot}
 	("NOT" | "not") sub=ExpressionLevel8
 ;
 
-ExpressionMinus returns expr::Expression: {expr::ExpressionMinus}
+ExpressionMinus returns expr::ExpressionMinus: {expr::ExpressionMinus}
 	"-" sub=ExpressionLevel8
 ;
 
-ExpressionPlus returns expr::Expression: {expr::ExpressionPlus}
+ExpressionPlus returns expr::ExpressionPlus: {expr::ExpressionPlus}
 	"+" sub=ExpressionLevel8
 ;
 
@@ -132,7 +132,7 @@ ExpressionLevel9 returns expr::Expression:
 	ExpressionTypeAnnotated
 ;
 
-ExpressionFunctionCall returns expr::Expression: {expr::ExpressionFunctionCall}
+ExpressionFunctionCall returns expr::ExpressionFunctionCall: {expr::ExpressionFunctionCall}
     function = [expr::FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
 ;
 
@@ -140,40 +140,40 @@ NamedArgument returns expr::NamedArgument: {expr::NamedArgument}
     name = ID '=' arg=Expression
 ;
 
-ExpressionBracket returns expr::Expression: {expr::ExpressionBracket}
+ExpressionBracket returns expr::ExpressionBracket: {expr::ExpressionBracket}
 	"(" sub=Expression ")"
 ;
 
-ExpressionConstantBool returns expr::Expression: {expr::ExpressionConstantBool}
+ExpressionConstantBool returns expr::ExpressionConstantBool: {expr::ExpressionConstantBool}
 	value=BOOL
 ;
 
-ExpressionConstantInt returns expr::Expression: {expr::ExpressionConstantInt}
+ExpressionConstantInt returns expr::ExpressionConstantInt: {expr::ExpressionConstantInt}
 	value=LONG
 ;
 
-ExpressionConstantReal returns expr::Expression: {expr::ExpressionConstantReal}
+ExpressionConstantReal returns expr::ExpressionConstantReal: {expr::ExpressionConstantReal}
 	value=DOUBLE
 ;
 
-ExpressionConstantString returns expr::Expression: {expr::ExpressionConstantString}
+ExpressionConstantString returns expr::ExpressionConstantString: {expr::ExpressionConstantString}
 	value = STRING
 ;
 
-ExpressionEnumLiteral returns expr::Expression: {expr::ExpressionEnumLiteral}
+ExpressionEnumLiteral returns expr::ExpressionEnumLiteral: {expr::ExpressionEnumLiteral}
 	type = [types::EnumTypeDecl] "::" literal = [types::EnumElement] 
 ;
 
-ExpressionNullLiteral returns expr::Expression:
+ExpressionNullLiteral returns expr::ExpressionNullLiteral:
     {expr::ExpressionNullLiteral}
     'null'
 ;
 
-ExpressionVariable returns expr::Expression: {expr::ExpressionVariable}
+ExpressionVariable returns expr::ExpressionVariable: {expr::ExpressionVariable}
 	variable=[expr::Variable | ID]
 ;
 
-ExpressionRecord returns expr::Expression: {expr::ExpressionRecord}
+ExpressionRecord returns expr::ExpressionRecord: {expr::ExpressionRecord}
 	type = [types::RecordTypeDecl] '{' fields+=Field (',' fields+=Field)* '}'
 ;
 
@@ -181,7 +181,7 @@ Field returns expr::Field: {expr::Field}
 	recordField = [types::RecordField | ID] '=' exp = Expression
 ;
 
-ExpressionAny returns expr::Expression: {expr::ExpressionAny}
+ExpressionAny returns expr::ExpressionAny: {expr::ExpressionAny}
 	"*"
 ;
 
@@ -200,7 +200,7 @@ Pair returns expr::Pair: {expr::Pair}
 
 // --- add extra superclasses in metamodel -------
 
-ExpressionTernary returns expr::Expression:
+ExpressionTernary returns expr::ExpressionTernary:
     {expr::ExpressionTernary}
     left=Expression
     middle=Expression
@@ -211,8 +211,10 @@ ConcreteExpressionTernary returns expr::ExpressionTernary:
     {expr::ExpressionConditional}
 ;
 
-ExpressionBinary returns expr::Expression:
+ExpressionBinary returns expr::ExpressionBinary:
 	{expr::ExpressionBinary}
+    left=Expression
+    right=Expression
 ;
 
 ConcreteExpressionBinary returns expr::ExpressionBinary:
@@ -235,8 +237,9 @@ ConcreteExpressionBinary returns expr::ExpressionBinary:
 	| {expr::ExpressionNullCoalescing}
 ;
 
-ExpressionUnary returns expr::Expression:
+ExpressionUnary returns expr::ExpressionUnary:
 	{expr::ExpressionUnary}
+	sub=Expression
 ;
 
 ConcreteExpressionUnary returns expr::ExpressionUnary:

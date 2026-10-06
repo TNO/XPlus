@@ -43,28 +43,28 @@ Action returns act::Action:
 	FunctionCall 
 ;
 
-FunctionCall returns act::Action: {act::FunctionCall}
+FunctionCall returns act::FunctionCall: {act::FunctionCall}
     exp = ExpressionFunctionCall
 ;
 
-AssignmentAction returns act::Action: {act::AssignmentAction}
+AssignmentAction returns act::AssignmentAction: {act::AssignmentAction}
 	 assignment =[expr::Variable | ID] ':=' exp=Expression
 ;
 
-ForAction returns act::Action: {act::ForAction}
+ForAction returns act::ForAction: {act::ForAction}
 	'for' var=Variable 'in' exp=Expression
 		'do' doList=ActionList
 	'end-for'
 ;
 
-IfAction returns act::Action: {act::IfAction}
+IfAction returns act::IfAction: {act::IfAction}
 	'if' guard=Expression 
 	'then' thenList=ActionList
 	('else' elseList=ActionList)?
 	'fi'
 ;
 
-RecordFieldAssignmentAction returns act::Action: {act::RecordFieldAssignmentAction}
+RecordFieldAssignmentAction returns act::RecordFieldAssignmentAction: {act::RecordFieldAssignmentAction}
 	fieldAccess = FieldAccessExp ':=' exp=Expression
 ;
 
@@ -74,7 +74,7 @@ RecordFieldAssignmentAction returns act::Action: {act::RecordFieldAssignmentActi
  * valid l-values. Map element access (e.g., m[k] or m[k].a) is not supported
  * because collection elements cannot be assigned to in XPlus.
  */
-FieldAccessExp returns expr::Expression:
+FieldAccessExp returns expr::Expression: 
 	ExpressionVariable ({expr::ExpressionRecordAccess.record = current} '.' field = [types::RecordField | ID])+
 ;
 
