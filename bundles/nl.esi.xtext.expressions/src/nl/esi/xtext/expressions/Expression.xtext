@@ -200,7 +200,7 @@ Pair returns expr::Pair: {expr::Pair}
 
 // --- add extra superclasses in metamodel -------
 
-ExpressionTernary returns expr::ExpressionTernary:
+ExpressionTernary returns expr::Expression:
     {expr::ExpressionTernary}
     left=Expression
     middle=Expression
@@ -211,7 +211,7 @@ ConcreteExpressionTernary returns expr::ExpressionTernary:
     {expr::ExpressionConditional}
 ;
 
-ExpressionBinary returns expr::ExpressionBinary:
+ExpressionBinary returns expr::Expression:
 	{expr::ExpressionBinary}
     left=Expression
     right=Expression
@@ -237,7 +237,7 @@ ConcreteExpressionBinary returns expr::ExpressionBinary:
 	| {expr::ExpressionNullCoalescing}
 ;
 
-ExpressionUnary returns expr::ExpressionUnary:
+ExpressionUnary returns expr::Expression:
 	{expr::ExpressionUnary}
 	sub=Expression
 ;
