@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="types" nsURI="http://www.esi.nl/xtext/types/Types" nsPrefix="types">
+  <eClassifiers xsi:type="ecore:EClass" name="TypeDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement #//TypeObject"/>
+  <eClassifiers xsi:type="ecore:EClass" name="NameSpace">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="importedNamespace" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="SimpleTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="base" eType="#//SimpleTypeDecl"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EnumTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="literals" upperBound="-1"
+        eType="#//EnumElement" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EnumElement" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RecordTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parent" eType="#//RecordTypeDecl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fields" upperBound="-1"
+        eType="#//RecordField" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RecordField" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="#//RecordFieldKind"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//Type" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="RecordFieldKind">
+    <eLiterals name="CONCRETE" literal="concrete"/>
+    <eLiterals name="SYMBOLIC" value="1" literal="symbolic"/>
+    <eLiterals name="MIXED" value="2" literal="mixed"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VectorTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="constructor" eType="#//VectorTypeConstructor"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MapTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="constructor" eType="#//MapTypeConstructor"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GenericsTypeParam" eSuperTypes="#//TypeDecl"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Type">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//TypeDecl"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MapTypeConstructor" eSuperTypes="#//Type #//TypeObject">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="valueType" eType="#//Type"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VectorTypeConstructor" eSuperTypes="#//Type #//TypeObject">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dimensions" upperBound="-1"
+        eType="#//Dimension" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeReference" eSuperTypes="#//Type"/>
+  <eClassifiers xsi:type="ecore:EClass" name="Dimension">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="size" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeObject"/>
+  <eClassifiers xsi:type="ecore:EClass" name="TypesModel" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//ModelContainer">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
+        eType="#//TypeDecl" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

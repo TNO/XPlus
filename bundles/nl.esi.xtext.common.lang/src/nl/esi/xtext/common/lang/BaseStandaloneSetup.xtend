@@ -12,13 +12,24 @@
  */
 package nl.esi.xtext.common.lang
 
+import com.google.inject.Injector
+import nl.esi.xtext.common.lang.base.BasePackage
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */
 class BaseStandaloneSetup extends BaseStandaloneSetupGenerated {
+    
+    override register(Injector injector){
+        if (!EPackage.Registry.INSTANCE.containsKey("http://www.esi.nl/xtext/common/lang/Base")) {
+            EPackage.Registry.INSTANCE.put("http://www.esi.nl/xtext/common/lang/Base", BasePackage.eINSTANCE);
+        }
+        super.register(injector);
+    }
 
 	def static void doSetup() {
 		new BaseStandaloneSetup().createInjectorAndDoEMFRegistration()
 	}
+	
 }

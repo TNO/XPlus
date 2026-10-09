@@ -12,11 +12,21 @@
  */
 package nl.esi.xtext.types
 
+import com.google.inject.Injector
+import nl.esi.xtext.types.types.TypesPackage
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */
 class TypesStandaloneSetup extends TypesStandaloneSetupGenerated {
+
+    override register(Injector injector){
+        if (!EPackage.Registry.INSTANCE.containsKey("http://www.esi.nl/xtext/types/Types")) {
+            EPackage.Registry.INSTANCE.put("http://www.esi.nl/xtext/types/Types", TypesPackage.eINSTANCE);
+        }
+        super.register(injector);
+    }
 
 	def static void doSetup() {
 		new TypesStandaloneSetup().createInjectorAndDoEMFRegistration()

@@ -4,7 +4,8 @@ Bundle-Name: XPlus Xtext Generator
 Bundle-SymbolicName: nl.esi.xplus.xtext.generator
 Bundle-Vendor: TNO-ESI
 Bundle-Version: 0.5.0.qualifier
-Export-Package: nl.esi.xplus.xtext.generator.ecore,
+Export-Package: nl.esi.xplus.emf.mwe.utils,
+ nl.esi.xplus.xtext.generator.ecore,
  nl.esi.xplus.xtext.generator.ide.contentassist,
  nl.esi.xplus.xtext.generator.lezer,
  nl.esi.xplus.xtext.generator.model.project,
@@ -15,7 +16,8 @@ Require-Bundle: org.eclipse.xtext;bundle-version="[2.22.0,2.38.0)",
  com.google.guava,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.xtend.lib,
- org.eclipse.xtend.lib.macro
+ org.eclipse.xtend.lib.macro,
+ org.eclipse.emf.mwe.utils
 Import-Package: org.slf4j;version="1.7.36"
 Automatic-Module-Name: nl.esi.xplus.xtext.generator
 Bundle-RequiredExecutionEnvironment: JavaSE-21

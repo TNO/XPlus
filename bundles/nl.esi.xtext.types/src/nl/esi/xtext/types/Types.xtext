@@ -14,7 +14,21 @@
  */
 grammar nl.esi.xtext.types.Types with nl.esi.xtext.common.lang.Base
 
-generate types "http://www.esi.nl/xtext/types/Types" as types
+/**
+ * GRAMMAR AND MODEL STRUCTURE
+ * 
+ * By default, this grammar generates code from an external Ecore model (Types.ecore) which defines
+ * the abstract syntax tree (AST) structure. The grammar rules define the concrete syntax.
+ * 
+ * If you modify this xtext grammar:
+ *   1. Switch to the "generate types" line (uncomment it, comment out the "import" line for Types)
+ *   2. Right-click: Run As > Generate Xtext Artifacts (generates new Types.ecore and Types.genmodel)
+ *   3. Review the generated files in models/generated/
+ *   4. Switch back to the "import" line (comment out "generate", uncomment "import")
+ *   5. Right-click: Run As > Generate Xtext Artifacts again (uses new Types.ecore and Types.genmodel in an ecore-first manner)
+ */
+//generate types "http://www.esi.nl/xtext/types/Types"
+import "http://www.esi.nl/xtext/types/Types"
 
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
@@ -23,34 +37,32 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
  * Top level container element that holds type declarations.
  * In addition, it may transitively import zero or more existing type models.
  */
-TypesModel returns base::ModelContainer: {types::TypesModel}
+TypesModel returns base::ModelContainer: {TypesModel}
     imports += Import*
     types += TypeDecl+
 ;
 
 @Override
 NamedElement returns base::NamedElement:
-	EnumElement | RecordField | TypeDecl
+    EnumElement | RecordField | TypeDecl
 ;
 
 /*
  * The type declarations
  */
-TypeDecl returns types::TypeDecl:
-	EnumTypeDecl | SimpleTypeDecl | RecordTypeDecl | VectorTypeDecl | MapTypeDecl
+TypeDecl:
+    EnumTypeDecl | SimpleTypeDecl | RecordTypeDecl | VectorTypeDecl | MapTypeDecl
 ;
 
-NameSpace returns types::NameSpace: {types::NameSpace}
-	'using' importedNamespace=QualifiedNameWithWildcard
+NameSpace:
+    'using' importedNamespace=QualifiedNameWithWildcard
 ;
 
-QualifiedName returns ecore::EString:
+QualifiedName:
     ID ('.' ID )*
 ;
 
-QualifiedNameWithWildcard returns ecore::EString: 
-    QualifiedName '.*'? 
-;
+QualifiedNameWithWildcard: QualifiedName '.*'? ;
 
 
 
@@ -70,89 +82,88 @@ QualifiedNameWithWildcard returns ecore::EString:
  * the type being defined can be treated as a synonym of the base type. Values of the base type
  * can be used as values of the type.
  */
-SimpleTypeDecl returns types::SimpleTypeDecl: {types::SimpleTypeDecl}
+SimpleTypeDecl:
     Annotations
-	'type' name = ID ('based' 'on' base = [types::SimpleTypeDecl])?
+    'type' name = ID ('based' 'on' base = [SimpleTypeDecl])?
 ;
 
-EnumTypeDecl returns types::EnumTypeDecl: {types::EnumTypeDecl}
+EnumTypeDecl:
     Annotations
-	'enum' name = ID '{' literals+=EnumElement* '}'
+    'enum' name = ID '{' literals+=EnumElement* '}'
 ;
 
 /** using integer object because it is important to see the difference
  *  between 0 (explicit 0) and null (increment + 1 from the previous value)
  */
 EIntegerObject returns ecore::EIntegerObject: INT;
-
-EnumElement returns types::EnumElement: {types::EnumElement}
+EnumElement:
     Annotations
-	name = ID ('=' value = EIntegerObject)?
+    name = ID ('=' value = EIntegerObject)?
 ;
 
-RecordTypeDecl returns types::RecordTypeDecl: {types::RecordTypeDecl}
+RecordTypeDecl:
     Annotations
-	'record' name = ID ('extends' parent = [types::RecordTypeDecl])? 
-	'{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
-;	
+    'record' name = ID ('extends' parent = [RecordTypeDecl])? 
+    '{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
+;   
 
-RecordField returns types::RecordField: {types::RecordField}
+RecordField:
     Annotations
-	(kind = RecordFieldKind)? type = Type name = ID
+    (kind = RecordFieldKind)? type = Type name = ID
 ;
 
-enum RecordFieldKind returns types::RecordFieldKind:
+enum RecordFieldKind:
     CONCRETE = 'concrete' | SYMBOLIC = 'symbolic' | MIXED = 'mixed'
 ;
 
-VectorTypeDecl returns types::VectorTypeDecl: {types::VectorTypeDecl}
+VectorTypeDecl:
     Annotations
-	'vector' name = ID '=' constructor = VectorTypeConstructor 
+    'vector' name = ID '=' constructor = VectorTypeConstructor 
 ;
 
-MapTypeDecl returns types::MapTypeDecl: {types::MapTypeDecl}
+MapTypeDecl:
     Annotations
-	name = ID '=' constructor = MapTypeConstructor
+    name = ID '=' constructor = MapTypeConstructor
 ;
 
-GenericsTypeParamBase returns types::TypeDecl:
+GenericsTypeParamBase returns TypeDecl:
     GenericsTypeParam
 ;
 
-GenericsTypeParam returns types::GenericsTypeParam: {types::GenericsTypeParam}
+GenericsTypeParam:
     name = ID
 ;
 
 /*
  * Type denotes a syntactical construct (reference to a definition or an inline vector or map type)
  */
-Type returns types::Type:
-	TypeReference | VectorTypeConstructor | MapTypeConstructor
+Type:
+    TypeReference | VectorTypeConstructor | MapTypeConstructor
 ;
 
-fragment TypeFR returns types::Type:
-	type = [types::TypeDecl | ID]
+fragment TypeFR returns Type:
+type = [TypeDecl | ID]
 ;
 
-MapTypeConstructor returns types::MapTypeConstructor: {types::MapTypeConstructor}
-	 'map' '<' TypeFR ',' valueType = Type '>'
+MapTypeConstructor :
+     'map' '<' TypeFR ',' valueType = Type '>'
 ;
 
-VectorTypeConstructor returns types::VectorTypeConstructor: {types::VectorTypeConstructor}
-	TypeFR (dimensions += Dimension)+
+VectorTypeConstructor :
+    TypeFR (dimensions += Dimension)+
 ;
 
-TypeReference returns types::TypeReference: {types::TypeReference}
-	TypeFR
+TypeReference :
+    TypeFR
 ;
 
-Dimension returns types::Dimension:
-	{types::Dimension}'['(size = INT)?']'
+Dimension:
+    {Dimension}'['(size = INT)?']'
 ;
 
 /*
  * TypeObject denotes semantic types. It is used in the type checker
  */
-TypeObject returns types::TypeObject:
-	{types::TypeDecl} | {types::VectorTypeConstructor} | {types::MapTypeConstructor}
+TypeObject:
+    {TypeDecl} | {VectorTypeConstructor} | {MapTypeConstructor}
 ;

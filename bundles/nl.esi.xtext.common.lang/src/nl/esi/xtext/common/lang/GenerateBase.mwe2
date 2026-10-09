@@ -13,13 +13,28 @@ import org.eclipse.xtext.xtext.generator.*
 import org.eclipse.xtext.xtext.generator.model.project.*
 
 var rootPath = ".."
-var baseName = "nl.esi.xtext.common.lang"
+var projectName = "nl.esi.xtext.common.lang"
+var fileName = "Base"
+var runtimeProject = "../${projectName}"
+
 Workflow {
 
+    bean = nl.esi.xplus.emf.mwe.utils.XPlusStandAloneSetup {
+            scanClassPath = true
+            platformUri = "${runtimeProject}/.."
+            tryRegisterGenModelFile = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
+            tryRegisterEcoreFile = "platform:/resource/${projectName}/model/generated/${fileName}.ecore"
+    }
+
     component = XtextGenerator {
+        cleaner = {
+            // do not clean generated
+            exclude ="${fileName}.ecore"
+            exclude = "${fileName}.genmodel"
+        }
         configuration = {
             project = nl.esi.xplus.xtext.generator.model.project.XPlusProjectConfig {
-                baseName = baseName
+                baseName = projectName
                 rootPath = rootPath
                 runtimeTest = {
                     enabled = true
@@ -38,8 +53,10 @@ Workflow {
             }
         }
         language = StandardLanguage {
-            name = "nl.esi.xtext.common.lang.Base"
+            name = "${projectName}.${fileName}"
             fileExtensions = "base_lang"
+
+            referencedResource = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
 
             serializer = {
                 generateStub = false
@@ -62,7 +79,8 @@ Workflow {
             emfGenerator = nl.esi.xplus.xtext.generator.ecore.EMFGeneratorFragment {
                 generateEdit = true
                 operationReflection = true
-                editDirectory = "${baseName}.edit/src-gen"
+                editDirectory = "${projectName}.edit/src-gen"
+                externalGenModelPath = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
             }
         }
     }

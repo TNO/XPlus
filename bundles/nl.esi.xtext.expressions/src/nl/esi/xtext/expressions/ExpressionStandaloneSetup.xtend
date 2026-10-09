@@ -12,11 +12,21 @@
  */
 package nl.esi.xtext.expressions
 
+import com.google.inject.Injector
+import nl.esi.xtext.expressions.expression.ExpressionPackage
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */
 class ExpressionStandaloneSetup extends ExpressionStandaloneSetupGenerated {
+
+    override register(Injector injector){
+        if (!EPackage.Registry.INSTANCE.containsKey("http://www.esi.nl/xtext/expressions/Expression")) {
+            EPackage.Registry.INSTANCE.put("http://www.esi.nl/xtext/expressions/Expression", ExpressionPackage.eINSTANCE);
+        }
+        super.register(injector);
+    }
 
 	def static void doSetup() {
 		new ExpressionStandaloneSetup().createInjectorAndDoEMFRegistration()

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="expression" nsURI="http://www.esi.nl/xtext/expressions/Expression"
+    nsPrefix="expression">
+  <eClassifiers xsi:type="ecore:EClass" name="Variable" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VariableDecl">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variable" eType="#//Variable"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeParams" upperBound="-1"
+        eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//GenericsTypeParam"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="returnType" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
+        eType="#//FunctionParam" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionParam" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Expression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionNot" eSuperTypes="#//Expression #//ExpressionUnary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMinus" eSuperTypes="#//Expression #//ExpressionUnary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionPlus" eSuperTypes="#//Expression #//ExpressionUnary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionFunctionCall" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="function" eType="#//FunctionDecl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="args" upperBound="-1" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="namedArgs" upperBound="-1"
+        eType="#//NamedArgument" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="NamedArgument">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="arg" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionBracket" eSuperTypes="#//Expression #//ExpressionUnary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionConstantBool" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionConstantInt" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionConstantReal" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDouble"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionConstantString" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionEnumLiteral" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//EnumTypeDecl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="literal" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//EnumElement"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionNullLiteral" eSuperTypes="#//Expression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionVariable" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variable" eType="#//Variable"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionRecord" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//RecordTypeDecl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fields" upperBound="-1"
+        eType="#//Field" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Field">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="recordField" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//RecordField"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionAny" eSuperTypes="#//Expression"/>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeAnnotation" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Pair">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionTernary" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="middle" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionBinary" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionUnary" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="sub" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionModel" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//ModelContainer">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
+        eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//TypeDecl"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="variables" upperBound="-1"
+        eType="#//VariableDecl" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="functions" upperBound="-1"
+        eType="#//FunctionDecl" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionAnd" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionOr" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionEqual" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionNEqual" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionGeq" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionGreater" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionLeq" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionLess" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionAddition" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionSubtraction" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMultiply" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionDivision" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMaximum" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMinimum" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionModulo" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionPower" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionNullCoalescing" eSuperTypes="#//Expression #//ExpressionBinary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionConditional" eSuperTypes="#//Expression #//ExpressionTernary"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionRecordAccess" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="record" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nullSafe" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="field" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//RecordField"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMapRW" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="map" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="key" eType="#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionVector" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeAnnotation" eType="#//TypeAnnotation"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="elements" upperBound="-1"
+        eType="#//Expression" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionMap" eSuperTypes="#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="typeAnnotation" eType="#//TypeAnnotation"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pairs" upperBound="-1"
+        eType="#//Pair" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

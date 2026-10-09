@@ -36,160 +36,160 @@ import org.eclipse.xtext.formatting2.regionaccess.ISemanticRegionsFinder
 
 class TypesFormatter extends BaseFormatter {
 
-	@Inject extension TypesGrammarAccess	
-	
+    @Inject extension TypesGrammarAccess    
+    
      //------------------------------------ Types
      
-	def dispatch void format(TypesModel container, extension IFormattableDocument document) {
-		for (typeDecl : container.types) {
-			typeDecl.format;
-		}
-	}
-	
-	def dispatch void format(TypeDecl typeDecl, extension IFormattableDocument document) {
-		val rFinder = typeDecl.regionFor		
-		rFinder.keyword(simpleTypeDeclAccess.typeKeyword_2).prepend(newLine).append(oneSpace)		
-	}
+    def dispatch void format(TypesModel container, extension IFormattableDocument document) {
+        for (typeDecl : container.types) {
+            typeDecl.format;
+        }
+    }
+    
+    def dispatch void format(TypeDecl typeDecl, extension IFormattableDocument document) {
+        val rFinder = typeDecl.regionFor        
+        rFinder.keyword(simpleTypeDeclAccess.typeKeyword_1).prepend(newLine).append(oneSpace)       
+    }
 
-	def dispatch void format(EnumTypeDecl enumTypeDecl, extension IFormattableDocument document) {		
-		val rFinder = enumTypeDecl.regionFor
-		
-		val kwEnum = rFinder.keyword(enumTypeDeclAccess.enumKeyword_2)
-		kwEnum.prepend(newLine)
-		kwEnum.append(oneSpace)
-		
-		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_2) 
-		kwRecord.prepend[]
-		
-		val brackets = rFinder.keywordPairs(enumTypeDeclAccess.leftCurlyBracketKeyword_4, enumTypeDeclAccess.rightCurlyBracketKeyword_6)?.get(0)
-		if(brackets !== null) {
-			brackets.interior(indent)			
-			brackets.key.prepend(oneSpace)
-			brackets.key.append(newLine)		
-			brackets.value.prepend(newLine)
-		}		
-		
-		enumTypeDecl.literals.forEach[format]
-	}
-	
-	def dispatch void format(EnumElement enumElement, extension IFormattableDocument document) {
-		enumElement.prepend(newLine)
-		val regionFor = enumElement.regionFor
-		regionFor.keyword(enumElementAccess.equalsSignKeyword_3_0)?.surround(oneSpace)
-	}
-	
-	
-	def dispatch void format(RecordTypeDecl recordTypeDecl, extension IFormattableDocument document) {
-		val rFinder = recordTypeDecl.regionFor
-		
-		val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_2) 
-		kwRecord.prepend(newLine)
-		kwRecord.append(oneSpace)
-		
-		val allBrackets = rFinder.keywordPairs(recordTypeDeclAccess.leftCurlyBracketKeyword_5,
-			recordTypeDeclAccess.rightCurlyBracketKeyword_7)		
-		if (!allBrackets.empty) {
-			val brackets = allBrackets.get(0)
-			brackets.interior(indent)
-			brackets.key.prepend(oneSpace)
-			brackets.key.append(newLine)
-			brackets.value.prepend(newLine)
-		}		
-		
-		for(ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_6_1_0)) {
-			region.prepend(noSpace)
-		}
-		
-		for (RecordField recField : recordTypeDecl.fields) {
-			recField.format;
-		}
-	}
-	
-	def dispatch void format(RecordField recField, extension IFormattableDocument document) {
-		recField.prepend(newLine)
-	}
-	
-	/**
-	 * The format result of the VectorTypeDecl is everything appears in one line.
-	 * For instance 'vector MyV = int[][5]
-	 */
-	def dispatch void format(VectorTypeDecl vectorTypeDecl, extension IFormattableDocument document) {
-		var regionFor = vectorTypeDecl.regionFor
-		
-		regionFor.keyword(vectorTypeDeclAccess.vectorKeyword_2).append(oneSpace)
-		regionFor.assignment(vectorTypeDeclAccess.nameAssignment_3).append(oneSpace)	
-		regionFor.keyword(vectorTypeDeclAccess.equalsSignKeyword_4).append(oneSpace)
-		
-		vectorTypeDecl.constructor.format
-		vectorTypeDecl.append(newLine)
-	}
+    def dispatch void format(EnumTypeDecl enumTypeDecl, extension IFormattableDocument document) {      
+        val rFinder = enumTypeDecl.regionFor
+        
+        val kwEnum = rFinder.keyword(enumTypeDeclAccess.enumKeyword_1)
+        kwEnum.prepend(newLine)
+        kwEnum.append(oneSpace)
+        
+        val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_1) 
+        kwRecord.prepend[]
+        
+        val brackets = rFinder.keywordPairs(enumTypeDeclAccess.leftCurlyBracketKeyword_3, enumTypeDeclAccess.rightCurlyBracketKeyword_5)?.get(0)
+        if(brackets !== null) {
+            brackets.interior(indent)           
+            brackets.key.prepend(oneSpace)
+            brackets.key.append(newLine)        
+            brackets.value.prepend(newLine)
+        }       
+        
+        enumTypeDecl.literals.forEach[format]
+    }
+    
+    def dispatch void format(EnumElement enumElement, extension IFormattableDocument document) {
+        enumElement.prepend(newLine)
+        val regionFor = enumElement.regionFor
+        regionFor.keyword(enumElementAccess.equalsSignKeyword_2_0)?.surround(oneSpace)
+    }
+    
+    
+    def dispatch void format(RecordTypeDecl recordTypeDecl, extension IFormattableDocument document) {
+        val rFinder = recordTypeDecl.regionFor
+        
+        val kwRecord = rFinder.keyword(recordTypeDeclAccess.recordKeyword_1) 
+        kwRecord.prepend(newLine)
+        kwRecord.append(oneSpace)
+        
+        val allBrackets = rFinder.keywordPairs(recordTypeDeclAccess.leftCurlyBracketKeyword_4,
+            recordTypeDeclAccess.rightCurlyBracketKeyword_6)        
+        if (!allBrackets.empty) {
+            val brackets = allBrackets.get(0)
+            brackets.interior(indent)
+            brackets.key.prepend(oneSpace)
+            brackets.key.append(newLine)
+            brackets.value.prepend(newLine)
+        }       
+        
+        for(ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_5_1_0)) {
+            region.prepend(noSpace)
+        }
+        
+        for (RecordField recField : recordTypeDecl.fields) {
+            recField.format;
+        }
+    }
+    
+    def dispatch void format(RecordField recField, extension IFormattableDocument document) {
+        recField.prepend(newLine)
+    }
+    
+    /**
+     * The format result of the VectorTypeDecl is everything appears in one line.
+     * For instance 'vector MyV = int[][5]
+     */
+    def dispatch void format(VectorTypeDecl vectorTypeDecl, extension IFormattableDocument document) {
+        var regionFor = vectorTypeDecl.regionFor
+        
+        regionFor.keyword(vectorTypeDeclAccess.vectorKeyword_1).append(oneSpace)
+        regionFor.assignment(vectorTypeDeclAccess.nameAssignment_2).append(oneSpace)    
+        regionFor.keyword(vectorTypeDeclAccess.equalsSignKeyword_3).append(oneSpace)
+        
+        vectorTypeDecl.constructor.format
+        vectorTypeDecl.append(newLine)
+    }
 
-	/**
-	 * The format result of the VectorTypeConstructor is everything appears in one line
-	 * and no spaces between the tokens.
-	 * For instance  'int[45][3]' is valid formatted outpout. 
-	 */	
-	def dispatch void format(VectorTypeConstructor vectorTypeConstructor, extension IFormattableDocument document) {
-		vectorTypeConstructor.append(oneSpace)		
-		vectorTypeConstructor.type.append(noSpace)
-		vectorTypeConstructor.dimensions.forEach[format]
-	}
-	
-	def dispatch void format(Dimension dimension, extension IFormattableDocument document) {
-		val regionFor = dimension.regionFor
-		
-		regionFor.keyword(dimensionAccess.leftSquareBracketKeyword_1).prepend(noSpace)
-		regionFor.assignment(dimensionAccess.sizeAssignment_2).prepend(noSpace)
-		regionFor.keyword(dimensionAccess.rightSquareBracketKeyword_3).prepend(noSpace)
-	}
-	
-	
-	
-	//Allow extra line before multinecomments
-	override createCommentReplacer(IComment comment) {
-		
-		val grammarElement = comment.getGrammarElement();
-		if (grammarElement instanceof AbstractRule) {
-			val ruleName = grammarElement.name
-			if (ruleName.startsWith("ML"))
-				return new MultiLineFormatter(comment, '*');				
-			
-		}
-		super.createCommentReplacer(comment)
-	}
+    /**
+     * The format result of the VectorTypeConstructor is everything appears in one line
+     * and no spaces between the tokens.
+     * For instance  'int[45][3]' is valid formatted outpout. 
+     */ 
+    def dispatch void format(VectorTypeConstructor vectorTypeConstructor, extension IFormattableDocument document) {
+        vectorTypeConstructor.append(oneSpace)      
+        vectorTypeConstructor.type.append(noSpace)
+        vectorTypeConstructor.dimensions.forEach[format]
+    }
+    
+    def dispatch void format(Dimension dimension, extension IFormattableDocument document) {
+        val regionFor = dimension.regionFor
+        
+        regionFor.keyword(dimensionAccess.leftSquareBracketKeyword_1).prepend(noSpace)
+        regionFor.assignment(dimensionAccess.sizeAssignment_2).prepend(noSpace)
+        regionFor.keyword(dimensionAccess.rightSquareBracketKeyword_3).prepend(noSpace)
+    }
+    
+    
+    
+    //Allow extra line before multinecomments
+    override createCommentReplacer(IComment comment) {
+        
+        val grammarElement = comment.getGrammarElement();
+        if (grammarElement instanceof AbstractRule) {
+            val ruleName = grammarElement.name
+            if (ruleName.startsWith("ML"))
+                return new MultiLineFormatter(comment, '*');                
+            
+        }
+        super.createCommentReplacer(comment)
+    }
 
-		
-	def void formatSimpleBrackets(ISemanticRegionsFinder rFinder, Keyword open, Keyword close, extension IFormattableDocument document) {
-		val pairs = rFinder.keywordPairs(open, close)
-		if(!pairs.empty) {
-			val brackets = pairs.get(0)
-			brackets.key.prepend(oneSpace) 
-			brackets.value.prepend(newLine)
-			brackets.interior(indent)
-		} 
-	}
-	
-	def void formatSimpleCommas(List<ISemanticRegion> commas, extension IFormattableDocument document) {
-		for(ISemanticRegion comma : commas) {
-			comma.prepend(noSpace).append(oneSpaceWrap)		
-		}
-	}
-	
-	def void formatTopElement(EObject obj, extension IFormattableDocument document) {
-		if (obj.regionForEObject.previousSemanticRegion === null) {
-			if (!this.textRegionExtensions.regionForEObject(obj).previousHiddenRegion.containsComment) {
-				obj.prepend(noSpace)
-			}
-		} else {
-			obj.append(emptyLine)
-		}
-	}
-	
-	def void indentList(EList<? extends EObject> objects, extension IFormattableDocument document) {		
-		if (objects.size() != 0) {
-			val first = objects.get(0);
-			val last = objects.get(objects.size() - 1);
-			document.set(first.previousHiddenRegion, last.nextHiddenRegion, (indent))
-		}	
-	}
+        
+    def void formatSimpleBrackets(ISemanticRegionsFinder rFinder, Keyword open, Keyword close, extension IFormattableDocument document) {
+        val pairs = rFinder.keywordPairs(open, close)
+        if(!pairs.empty) {
+            val brackets = pairs.get(0)
+            brackets.key.prepend(oneSpace) 
+            brackets.value.prepend(newLine)
+            brackets.interior(indent)
+        } 
+    }
+    
+    def void formatSimpleCommas(List<ISemanticRegion> commas, extension IFormattableDocument document) {
+        for(ISemanticRegion comma : commas) {
+            comma.prepend(noSpace).append(oneSpaceWrap)     
+        }
+    }
+    
+    def void formatTopElement(EObject obj, extension IFormattableDocument document) {
+        if (obj.regionForEObject.previousSemanticRegion === null) {
+            if (!this.textRegionExtensions.regionForEObject(obj).previousHiddenRegion.containsComment) {
+                obj.prepend(noSpace)
+            }
+        } else {
+            obj.append(emptyLine)
+        }
+    }
+    
+    def void indentList(EList<? extends EObject> objects, extension IFormattableDocument document) {        
+        if (objects.size() != 0) {
+            val first = objects.get(0);
+            val last = objects.get(objects.size() - 1);
+            document.set(first.previousHiddenRegion, last.nextHiddenRegion, (indent))
+        }   
+    }
 }

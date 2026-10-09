@@ -9,7 +9,21 @@
  */
 grammar nl.esi.xtext.actions.Actions with nl.esi.xtext.expressions.Expression
 
-generate actions "http://www.esi.nl/xtext/actions/Actions" as act
+/**
+ * GRAMMAR AND MODEL STRUCTURE
+ * 
+ * By default, this grammar generates code from an external Ecore model (Actions.ecore) which defines
+ * the abstract syntax tree (AST) structure. The grammar rules define the concrete syntax.
+ * 
+ * If you modify this xtext grammar:
+ *   1. Switch to the "generate actions" line (uncomment it, comment out the "import" line for Actions)
+ *   2. Right-click: Run As > Generate Xtext Artifacts (generates new Actions.ecore and Actions.genmodel)
+ *   3. Review the generated files in models/generated/
+ *   4. Switch back to the "import" line (comment out "generate", uncomment "import")
+ *   5. Right-click: Run As > Generate Xtext Artifacts again (uses new Actions.ecore and Actions.genmodel in an ecore-first manner)
+ */
+//generate actions "http://www.esi.nl/xtext/actions/Actions" 
+import "http://www.esi.nl/xtext/actions/Actions"
 
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.esi.nl/xtext/types/Types" as types
@@ -18,7 +32,7 @@ import "http://www.esi.nl/xtext/expressions/Expression" as expr
 /**
  * Root container solely used for testing.
  */
-ActionModel returns expr::ExpressionModel: {act::ActionModel}
+ActionModel returns expr::ExpressionModel: {ActionModel}
 	imports += Import*
 	( types += TypeDecl
 	| variables += VariableDecl
@@ -35,7 +49,7 @@ ActionModel returns expr::ExpressionModel: {act::ActionModel}
  *  -zero or more notifications
  *  -parallel composition of replies and notifications
  */
-Action returns act::Action:
+Action:
 	AssignmentAction |
 	ForAction |
 	IfAction |
@@ -43,28 +57,28 @@ Action returns act::Action:
 	FunctionCall 
 ;
 
-FunctionCall returns act::FunctionCall: {act::FunctionCall}
+FunctionCall:
     exp = ExpressionFunctionCall
 ;
 
-AssignmentAction returns act::AssignmentAction: {act::AssignmentAction}
+AssignmentAction:
 	 assignment =[expr::Variable | ID] ':=' exp=Expression
 ;
 
-ForAction returns act::ForAction: {act::ForAction}
+ForAction:
 	'for' var=Variable 'in' exp=Expression
 		'do' doList=ActionList
 	'end-for'
 ;
 
-IfAction returns act::IfAction: {act::IfAction}
+IfAction:
 	'if' guard=Expression 
 	'then' thenList=ActionList
 	('else' elseList=ActionList)?
 	'fi'
 ;
 
-RecordFieldAssignmentAction returns act::RecordFieldAssignmentAction: {act::RecordFieldAssignmentAction}
+RecordFieldAssignmentAction:
 	fieldAccess = FieldAccessExp ':=' exp=Expression
 ;
 
@@ -82,18 +96,18 @@ FieldAccessExp returns expr::Expression:
  * The following fragments are reused in several grammar rules.
  * They also result in metaclasses in the Actions metamodel.
  */
-fragment ParameterizedEvent returns act::ParameterizedEvent:
+fragment ParameterizedEvent:
 	('(' parameters+=Expression (',' parameters+=Expression)* ')')?
 ;
 
-Multiplicity returns act::Multiplicity: {act::Multiplicity}
+Multiplicity:
 	'[' lower = LONG '-' ((upper = LONG) | (upperInf = '*')) ']'
 ;
 
 /*
  * Reusable construct used in 'any order' action and in fragment definition
  */
-fragment PCFragment returns act::PCFragment:
+fragment PCFragment:
 	components += PCElement  (',' components += PCElement )*
 ;
 
@@ -101,28 +115,28 @@ fragment PCFragment returns act::PCFragment:
  * A named PCFragment. Fragment definitions can appear in interface definitions
  * and possibly in component definitions
  */
-PCFragmentDefinition returns act::PCFragmentDefinition: {act::PCFragmentDefinition}
+PCFragmentDefinition:
 	name = ID '=' PCFragment
 ;
 
 @Override 
 NamedElement returns base::NamedElement:
-	PCFragmentDefinition
+	{PCFragmentDefinition}
 ;
 
-PCFragmentReference returns act::PCFragmentReference: {act::PCFragmentReference}
-	'fragment'  ^fragment = [act::PCFragmentDefinition | ID]
+PCFragmentReference:
+	'fragment'  ^fragment = [PCFragmentDefinition | ID]
 ;
 
 /*
  * This grammar rule does not cause creation of a metaclass.
  * It is used to restrict the possible components in a parallel composition
  */
-PCElement returns act::PCElement:
+PCElement:
 	(PCFragmentReference)
 ;
 
-ActionList returns act::ActionList: {act::ActionList}
+ActionList: {ActionList}
 	actions+=Action*
 ;
 
@@ -130,7 +144,7 @@ ActionList returns act::ActionList: {act::ActionList}
  * Construct reused in several XPlus languages.
  * It groups a set of variable declarations and an initialization section
  */
-VariableDeclBlock returns act::VariableDeclBlock: {act::VariableDeclBlock}
+VariableDeclBlock: {VariableDeclBlock}
 	('variables' vars+=Variable+)? 
 	('init' initActions+=(AssignmentAction | RecordFieldAssignmentAction)+)?
 ;

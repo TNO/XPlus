@@ -8,13 +8,28 @@
  * SPDX-License-Identifier: EPL-2.0
  */
 grammar nl.esi.xtext.expressions.Expression with nl.esi.xtext.types.Types
+/**
+ * GRAMMAR AND MODEL STRUCTURE
+ * 
+ * By default, this grammar generates code from an external Ecore model (Expression.ecore) which defines
+ * the abstract syntax tree (AST) structure. The grammar rules define the concrete syntax.
+ * 
+ * If you modify this xtext grammar:
+ *   1. Switch to the "generate expression" line (uncomment it, comment out the "import" line for Expression)
+ *   2. Right-click: Run As > Generate Xtext Artifacts (generates new Expression.ecore and Expression.genmodel)
+ *   3. Review the generated files in models/generated/
+ *   4. Switch back to the "import" line (comment out "generate", uncomment "import")
+ *   5. Right-click: Run As > Generate Xtext Artifacts again (uses new Expression.ecore and Expression.genmodel in an ecore-first manner)
+ */
 
-generate expression "http://www.esi.nl/xtext/expressions/Expression" as expr
+//generate expression "http://www.esi.nl/xtext/expressions/Expression" 
+import "http://www.esi.nl/xtext/expressions/Expression" 
+
 
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.esi.nl/xtext/types/Types" as types
 
-ExpressionModel returns base::ModelContainer: {expr::ExpressionModel}
+ExpressionModel returns base::ModelContainer: {ExpressionModel}
     imports += Import*
     ( types += TypeDecl
     | variables += VariableDecl
@@ -22,229 +37,226 @@ ExpressionModel returns base::ModelContainer: {expr::ExpressionModel}
     )*
 ;
 
-Variable returns expr::Variable: {expr::Variable}
+Variable:
     Annotations
     type = Type name = ID
 ;
 
-VariableDecl returns expr::VariableDecl: {expr::VariableDecl}
+VariableDecl:
     variable=Variable ('=' expression=Expression)?
 ;
 
-FunctionDecl returns expr::FunctionDecl: {expr::FunctionDecl}
+FunctionDecl:
     Annotations
     'function' ('<' typeParams += GenericsTypeParam  (',' typeParams += GenericsTypeParam)* '>')? returnType = Type name = ID '(' (params += FunctionParam (',' params += FunctionParam)*)? ')'
 ;
 
-FunctionParam returns expr::FunctionParam: {expr::FunctionParam}
+FunctionParam:
     Annotations
     type = Type name = ID
 ;
 
 @Override
 NamedElement returns base::NamedElement:
-	 Variable | FunctionDecl | FunctionParam
+    super::NamedElement | Variable | FunctionDecl | FunctionParam
 ;
 
-Expression returns expr::Expression: ExpressionLevel1;
+Expression: ExpressionLevel1;
 
-ExpressionLevel1 returns expr::Expression:		// Left associativity
-	ExpressionLevel2
-	( ({expr::ExpressionAnd.left=current}			("AND" | "and")	right=ExpressionLevel2)  
-	| ({expr::ExpressionOr.left=current}			("OR" | "or")	right=ExpressionLevel2)	
-	)*
+ExpressionLevel1 returns Expression:        // Left associativity
+    ExpressionLevel2
+    ( ({ExpressionAnd.left=current}         ("AND" | "and") right=ExpressionLevel2)  
+    | ({ExpressionOr.left=current}          ("OR" | "or")   right=ExpressionLevel2) 
+    )*
 ;
 
-ExpressionLevel2 returns expr::Expression:		// Left associativity
-	ExpressionLevel3
-	( ({expr::ExpressionEqual.left=current}		"=="	right=ExpressionLevel3) 
-	| ({expr::ExpressionNEqual.left=current}		"!="	right=ExpressionLevel3)	
-	)*
+ExpressionLevel2 returns Expression:        // Left associativity
+    ExpressionLevel3
+    ( ({ExpressionEqual.left=current}       "=="    right=ExpressionLevel3) 
+    | ({ExpressionNEqual.left=current}      "!="    right=ExpressionLevel3) 
+    )*
 ;
 
-ExpressionLevel3 returns expr::Expression:		// Left associativity
-	ExpressionLevel4
-	( ({expr::ExpressionGeq.left    =current}		">="	right=ExpressionLevel4) 
-	| ({expr::ExpressionGreater.left=current}		">"		right=ExpressionLevel4) 
-	| ({expr::ExpressionLeq.left    =current}		"<="	right=ExpressionLevel4) 
-	| ({expr::ExpressionLess.left   =current}		"<"		right=ExpressionLevel4)
-	)*
+ExpressionLevel3 returns Expression:        // Left associativity
+    ExpressionLevel4
+    ( ({ExpressionGeq.left    =current}     ">="    right=ExpressionLevel4) 
+    | ({ExpressionGreater.left=current}     ">"     right=ExpressionLevel4) 
+    | ({ExpressionLeq.left    =current}     "<="    right=ExpressionLevel4) 
+    | ({ExpressionLess.left   =current}     "<"     right=ExpressionLevel4)
+    )*
 ;
 
-ExpressionLevel4 returns expr::Expression:		// Left associativity
-	ExpressionLevel5
-	( ({expr::ExpressionAddition.left   =current}	"+"		right=ExpressionLevel5) 
-	| ({expr::ExpressionSubtraction.left=current}	"-"		right=ExpressionLevel5) 
-	)*
+ExpressionLevel4 returns Expression:        // Left associativity
+    ExpressionLevel5
+    ( ({ExpressionAddition.left   =current} "+"     right=ExpressionLevel5) 
+    | ({ExpressionSubtraction.left=current} "-"     right=ExpressionLevel5) 
+    )*
 ;
 
-ExpressionLevel5 returns expr::Expression:		// Left associativity
-	ExpressionLevel6
-	( ({expr::ExpressionMultiply.left=current}	"*"		right=ExpressionLevel6) 
-	| ({expr::ExpressionDivision.left=current}	"/"		right=ExpressionLevel6)
-	| ({expr::ExpressionMaximum.left =current}	"max"	right=ExpressionLevel6)
-	| ({expr::ExpressionMinimum.left =current}	"min"	right=ExpressionLevel6)
-	| ({expr::ExpressionModulo.left  =current}	"mod"	right=ExpressionLevel6)
-	)*
+ExpressionLevel5 returns Expression:        // Left associativity
+    ExpressionLevel6
+    ( ({ExpressionMultiply.left=current}    "*"     right=ExpressionLevel6) 
+    | ({ExpressionDivision.left=current}    "/"     right=ExpressionLevel6)
+    | ({ExpressionMaximum.left =current}    "max"   right=ExpressionLevel6)
+    | ({ExpressionMinimum.left =current}    "min"   right=ExpressionLevel6)
+    | ({ExpressionModulo.left  =current}    "mod"   right=ExpressionLevel6)
+    )*
 ;
 
-ExpressionLevel6 returns expr::Expression:		// Right associativity
-	ExpressionLevel7
-	( ({expr::ExpressionPower.left=current}          "^"    right=ExpressionLevel6)
-    | ({expr::ExpressionNullCoalescing.left=current} "??"   right=ExpressionLevel6)
-    | ({expr::ExpressionConditional.left=current}    "?"    middle=ExpressionLevel6   ":"   right=ExpressionLevel6)
-	)?
+ExpressionLevel6 returns Expression:        // Right associativity
+    ExpressionLevel7
+    ( ({ExpressionPower.left=current}          "^"    right=ExpressionLevel6)
+    | ({ExpressionNullCoalescing.left=current} "??"   right=ExpressionLevel6)
+    | ({ExpressionConditional.left=current}    "?"    middle=ExpressionLevel6   ":"   right=ExpressionLevel6)
+    )?
 ;
 
-ExpressionLevel7 returns expr::Expression:
-	ExpressionNot | ExpressionMinus | ExpressionPlus | ExpressionLevel8
+ExpressionLevel7 returns Expression:
+    ExpressionNot | ExpressionMinus | ExpressionPlus | ExpressionLevel8
 ;
 
-ExpressionNot returns expr::ExpressionNot: {expr::ExpressionNot}
-	("NOT" | "not") sub=ExpressionLevel8
+ExpressionNot: 
+    ("NOT" | "not") sub=ExpressionLevel8
 ;
 
-ExpressionMinus returns expr::ExpressionMinus: {expr::ExpressionMinus}
-	"-" sub=ExpressionLevel8
+ExpressionMinus: 
+    "-" sub=ExpressionLevel8
 ;
 
-ExpressionPlus returns expr::ExpressionPlus: {expr::ExpressionPlus}
-	"+" sub=ExpressionLevel8
+ExpressionPlus: 
+    "+" sub=ExpressionLevel8
 ;
 
-ExpressionLevel8 returns expr::Expression:
-	ExpressionLevel9 (({expr::ExpressionRecordAccess.record = current} (nullSafe?='?.' | '.') field = [types::RecordField | ID]) |
-					  ({expr::ExpressionMapRW.map = current} '[' key = Expression ('->' value = Expression)? ']'))*
+ExpressionLevel8 returns Expression:
+    ExpressionLevel9 (({ExpressionRecordAccess.record = current} (nullSafe?='?.' | '.') field = [types::RecordField | ID]) |
+                      ({ExpressionMapRW.map = current} '[' key = Expression ('->' value = Expression)? ']'))*
 ;
 
-ExpressionLevel9 returns expr::Expression:
-	ExpressionBracket |
-	ExpressionConstantBool |
-	ExpressionConstantInt |
-	ExpressionConstantReal |
-	ExpressionConstantString |
-	ExpressionEnumLiteral |
+ExpressionLevel9 returns Expression:
+    ExpressionBracket |
+    ExpressionConstantBool |
+    ExpressionConstantInt |
+    ExpressionConstantReal |
+    ExpressionConstantString |
+    ExpressionEnumLiteral |
     ExpressionNullLiteral |
-	ExpressionVariable |
-	ExpressionRecord |
-	ExpressionAny |
+    ExpressionVariable |
+    ExpressionRecord |
+    ExpressionAny |
     ExpressionFunctionCall |
-	ExpressionTypeAnnotated
+    ExpressionTypeAnnotated
 ;
 
-ExpressionFunctionCall returns expr::ExpressionFunctionCall: {expr::ExpressionFunctionCall}
-    function = [expr::FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
+ExpressionFunctionCall: 
+    function = [FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
 ;
 
-NamedArgument returns expr::NamedArgument: {expr::NamedArgument}
+NamedArgument:
     name = ID '=' arg=Expression
 ;
 
-ExpressionBracket returns expr::ExpressionBracket: {expr::ExpressionBracket}
-	"(" sub=Expression ")"
+ExpressionBracket:
+    "(" sub=Expression ")"
 ;
 
-ExpressionConstantBool returns expr::ExpressionConstantBool: {expr::ExpressionConstantBool}
-	value=BOOL
+ExpressionConstantBool:
+    value=BOOL
 ;
 
-ExpressionConstantInt returns expr::ExpressionConstantInt: {expr::ExpressionConstantInt}
-	value=LONG
+ExpressionConstantInt:
+    value=LONG
 ;
 
-ExpressionConstantReal returns expr::ExpressionConstantReal: {expr::ExpressionConstantReal}
-	value=DOUBLE
+ExpressionConstantReal:
+    value=DOUBLE
 ;
 
-ExpressionConstantString returns expr::ExpressionConstantString: {expr::ExpressionConstantString}
-	value = STRING
+ExpressionConstantString:
+    value = STRING
 ;
 
-ExpressionEnumLiteral returns expr::ExpressionEnumLiteral: {expr::ExpressionEnumLiteral}
-	type = [types::EnumTypeDecl] "::" literal = [types::EnumElement] 
+ExpressionEnumLiteral: 
+    type = [types::EnumTypeDecl] "::" literal = [types::EnumElement] 
 ;
 
-ExpressionNullLiteral returns expr::ExpressionNullLiteral:
-    {expr::ExpressionNullLiteral}
+ExpressionNullLiteral:
+    {ExpressionNullLiteral}
     'null'
 ;
 
-ExpressionVariable returns expr::ExpressionVariable: {expr::ExpressionVariable}
-	variable=[expr::Variable | ID]
+ExpressionVariable: 
+    variable=[Variable | ID]
 ;
 
-ExpressionRecord returns expr::ExpressionRecord: {expr::ExpressionRecord}
-	type = [types::RecordTypeDecl] '{' fields+=Field (',' fields+=Field)* '}'
+ExpressionRecord: 
+    type = [types::RecordTypeDecl] '{' fields+=Field (',' fields+=Field)* '}'
 ;
 
-Field returns expr::Field: {expr::Field}
-	recordField = [types::RecordField | ID] '=' exp = Expression
+Field:
+    recordField = [types::RecordField | ID] '=' exp = Expression
 ;
 
-ExpressionAny returns expr::ExpressionAny: {expr::ExpressionAny}
-	"*"
+ExpressionAny :
+    {ExpressionAny} "*"
 ;
 
-ExpressionTypeAnnotated returns expr::Expression:
-	TypeAnnotation( ({expr::ExpressionVector.typeAnnotation = current} '[' (elements += Expression (',' elements += Expression)*)? ']') |
-		            ({expr::ExpressionMap.typeAnnotation = current} '{' (pairs += Pair (',' pairs += Pair)*)? '}'))
+ExpressionTypeAnnotated returns Expression:
+    TypeAnnotation( ({ExpressionVector.typeAnnotation = current} '[' (elements += Expression (',' elements += Expression)*)? ']') |
+                    ({ExpressionMap.typeAnnotation = current} '{' (pairs += Pair (',' pairs += Pair)*)? '}'))
 ;
 
-TypeAnnotation returns expr::TypeAnnotation: {expr::TypeAnnotation}
-	'<'type = Type '>'
+TypeAnnotation :
+    '<'type = Type '>'
 ;
 
-Pair returns expr::Pair: {expr::Pair}
-	key = Expression '->' value = Expression
+Pair:
+    key = Expression '->' value = Expression
 ;
 
 // --- add extra superclasses in metamodel -------
 
-ExpressionTernary returns expr::Expression:
-    {expr::ExpressionTernary}
+ExpressionTernary returns Expression:
+    {ExpressionTernary}
     left=Expression
     middle=Expression
     right=Expression
 ;
 
-ConcreteExpressionTernary returns expr::ExpressionTernary:
-    {expr::ExpressionConditional}
+ConcreteExpressionTernary returns ExpressionTernary:
+    {ExpressionConditional}
 ;
 
-ExpressionBinary returns expr::Expression:
-	{expr::ExpressionBinary}
-    left=Expression
-    right=Expression
+ExpressionBinary returns Expression:
+    {ExpressionBinary}
 ;
 
-ConcreteExpressionBinary returns expr::ExpressionBinary:
-	  {expr::ExpressionAnd}
-	| {expr::ExpressionOr}
-	| {expr::ExpressionEqual}
-	| {expr::ExpressionNEqual}
-	| {expr::ExpressionGeq}
-	| {expr::ExpressionGreater}
-	| {expr::ExpressionLeq}
-	| {expr::ExpressionLess}
-	| {expr::ExpressionAddition}
-	| {expr::ExpressionSubtraction}
-	| {expr::ExpressionMultiply}
-	| {expr::ExpressionDivision}
-	| {expr::ExpressionMaximum}
-	| {expr::ExpressionMinimum}
-	| {expr::ExpressionModulo}
-	| {expr::ExpressionPower}
-	| {expr::ExpressionNullCoalescing}
+ConcreteExpressionBinary returns ExpressionBinary:
+      {ExpressionAnd}
+    | {ExpressionOr}
+    | {ExpressionEqual}
+    | {ExpressionNEqual}
+    | {ExpressionGeq}
+    | {ExpressionGreater}
+    | {ExpressionLeq}
+    | {ExpressionLess}
+    | {ExpressionAddition}
+    | {ExpressionSubtraction}
+    | {ExpressionMultiply}
+    | {ExpressionDivision}
+    | {ExpressionMaximum}
+    | {ExpressionMinimum}
+    | {ExpressionModulo}
+    | {ExpressionPower}
+    | {ExpressionNullCoalescing}
 ;
 
-ExpressionUnary returns expr::Expression:
-	{expr::ExpressionUnary}
-	sub=Expression
+ExpressionUnary returns Expression:
+    {ExpressionUnary}
 ;
 
-ConcreteExpressionUnary returns expr::ExpressionUnary:
-	  {expr::ExpressionNot}
-	| {expr::ExpressionMinus}
-	| {expr::ExpressionPlus}
-	| {expr::ExpressionBracket}	
+ConcreteExpressionUnary returns ExpressionUnary:
+      {ExpressionNot}
+    | {ExpressionMinus}
+    | {ExpressionPlus}
+    | {ExpressionBracket}   
 ;

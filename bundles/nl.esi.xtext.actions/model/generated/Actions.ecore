@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="actions" nsURI="http://www.esi.nl/xtext/actions/Actions" nsPrefix="actions">
+  <eClassifiers xsi:type="ecore:EClass" name="Action"/>
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionCall" eSuperTypes="#//Action">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//ExpressionFunctionCall"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AssignmentAction" eSuperTypes="#//Action">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="assignment" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Variable"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ForAction" eSuperTypes="#//Action">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="var" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Variable"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="doList" eType="#//ActionList"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IfAction" eSuperTypes="#//Action">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="guard" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="thenList" eType="#//ActionList"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="elseList" eType="#//ActionList"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="RecordFieldAssignmentAction" eSuperTypes="#//Action">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fieldAccess" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParameterizedEvent">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parameters" upperBound="-1"
+        eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Multiplicity">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="lower" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="upper" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//ELong"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="upperInf" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PCFragment">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="components" upperBound="-1"
+        eType="#//PCElement" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PCFragmentDefinition" eSuperTypes="#//PCFragment platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement"/>
+  <eClassifiers xsi:type="ecore:EClass" name="PCFragmentReference" eSuperTypes="#//PCElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="fragment" eType="#//PCFragmentDefinition"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PCElement"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ActionList">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="actions" upperBound="-1"
+        eType="#//Action" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="VariableDeclBlock">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="vars" upperBound="-1" eType="ecore:EClass platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//Variable"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="initActions" upperBound="-1"
+        eType="#//Action" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ActionModel" eSuperTypes="platform:/resource/nl.esi.xtext.expressions/model/generated/Expression.ecore#//ExpressionModel">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="actions" upperBound="-1"
+        eType="#//Action" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>

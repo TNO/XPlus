@@ -12,11 +12,21 @@
  */
 package nl.esi.xtext.actions
 
+import com.google.inject.Injector
+import nl.esi.xtext.actions.actions.ActionsPackage
+import org.eclipse.emf.ecore.EPackage
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
  */
 class ActionsStandaloneSetup extends ActionsStandaloneSetupGenerated {
+
+    override register(Injector injector){
+        if (!EPackage.Registry.INSTANCE.containsKey("http://www.esi.nl/xtext/actions/Actions")) {
+            EPackage.Registry.INSTANCE.put("http://www.esi.nl/xtext/actions/Actions", ActionsPackage.eINSTANCE);
+        }
+        super.register(injector);
+    }
 
 	def static void doSetup() {
 		new ActionsStandaloneSetup().createInjectorAndDoEMFRegistration()

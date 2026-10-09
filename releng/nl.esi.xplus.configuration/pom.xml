@@ -503,7 +503,7 @@
             <id>xtext</id>
             <activation>
                 <file>
-                    <exists>${project.basedir}/model/.gitignore</exists>
+                    <exists>${project.basedir}/model/generated</exists>
                 </file>
             </activation>
             <build>

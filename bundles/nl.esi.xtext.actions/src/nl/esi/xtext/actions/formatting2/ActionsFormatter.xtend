@@ -31,7 +31,7 @@ class ActionsFormatter extends ExpressionFormatter {
 	@Inject extension ActionsGrammarAccess
 
 	def dispatch void format(AssignmentAction assignmentAction, extension IFormattableDocument document) {
-		assignmentAction.regionFor.keyword(assignmentActionAccess.colonEqualsSignKeyword_2).surround(oneSpace)
+		assignmentAction.regionFor.keyword(assignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
 
 		assignmentAction.getExp.format;
 	}
@@ -39,10 +39,10 @@ class ActionsFormatter extends ExpressionFormatter {
 	def dispatch void format(IfAction ifAction, extension IFormattableDocument document) {
 		val rFinder = ifAction.regionFor
 
-		rFinder.keyword(ifActionAccess.ifKeyword_1).append(oneSpace)
-		rFinder.keyword(ifActionAccess.thenKeyword_3).prepend(oneSpace)
-		rFinder.keyword(ifActionAccess.elseKeyword_5_0).prepend(newLine)
-		rFinder.keyword(ifActionAccess.fiKeyword_6).prepend(newLine)
+		rFinder.keyword(ifActionAccess.ifKeyword_0).append(oneSpace)
+		rFinder.keyword(ifActionAccess.thenKeyword_2).prepend(oneSpace)
+		rFinder.keyword(ifActionAccess.elseKeyword_4_0).prepend(newLine)
+		rFinder.keyword(ifActionAccess.fiKeyword_5).prepend(newLine)
 
 		ifAction.getThenList.prepend(newLine)
 		ifAction.elseList.prepend(newLine)
@@ -55,7 +55,7 @@ class ActionsFormatter extends ExpressionFormatter {
 	}
 
 	def dispatch void format(RecordFieldAssignmentAction assignAction, extension IFormattableDocument document) {
-		assignAction.regionFor.keyword(recordFieldAssignmentActionAccess.colonEqualsSignKeyword_2).surround(oneSpace)
+		assignAction.regionFor.keyword(recordFieldAssignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
 
 		assignAction.exp.format
 		formatFieldAccessExp(assignAction.fieldAccess, document)
@@ -75,9 +75,9 @@ class ActionsFormatter extends ExpressionFormatter {
 	def dispatch void format(Multiplicity multiplicity, extension IFormattableDocument document){
 		val regionFor = multiplicity.regionFor
 		
-		regionFor.keyword(multiplicityAccess.leftSquareBracketKeyword_1)?.surround(noSpace)
-		regionFor.keyword(multiplicityAccess.hyphenMinusKeyword_3)?.surround(noSpace)
-		regionFor.keyword(multiplicityAccess.rightSquareBracketKeyword_5)?.surround(noSpace)
+		regionFor.keyword(multiplicityAccess.leftSquareBracketKeyword_0)?.surround(noSpace)
+		regionFor.keyword(multiplicityAccess.hyphenMinusKeyword_2)?.surround(noSpace)
+		regionFor.keyword(multiplicityAccess.rightSquareBracketKeyword_4)?.surround(noSpace)
 	}
 
 	def void formatParameterizedEvent(ParameterizedEvent parameterizedEvent, extension IFormattableDocument document) {

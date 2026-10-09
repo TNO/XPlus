@@ -49,128 +49,128 @@ import nl.esi.xtext.expressions.expression.ExpressionConditional
 import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 
 class ExpressionFormatter extends TypesFormatter {
-	
-	@Inject extension ExpressionGrammarAccess
-	
+    
+    @Inject extension ExpressionGrammarAccess
+    
     def dispatch void format(VariableDecl varDecl, extension IFormattableDocument document) {
-        varDecl.regionFor.keyword(variableDeclAccess.equalsSignKeyword_2_0)?.prepend(oneSpace).append(oneSpaceWrap)
+        varDecl.regionFor.keyword(variableDeclAccess.equalsSignKeyword_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
         varDecl.append(newLine);
     }
 
-	def dispatch void format(Variable variable, extension IFormattableDocument document) {		
-		variable.regionFor.assignment(variableAccess.typeAssignment_2).append(oneSpace)
-	}
+    def dispatch void format(Variable variable, extension IFormattableDocument document) {      
+        variable.regionFor.assignment(variableAccess.typeAssignment_1).append(oneSpace)
+    }
 
-	//-----------------------------------   ExpressionLevel1
+    //-----------------------------------   ExpressionLevel1
 
-	def dispatch void format(ExpressionAnd expressionAnd, extension IFormattableDocument document) {
-		expressionAnd.regionFor.keyword(expressionLevel1Access.ANDKeyword_1_0_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
-		expressionAnd.regionFor.keyword(expressionLevel1Access.andKeyword_1_0_1_1)?.prepend(oneSpace).append(oneSpaceWrap)
-		expressionAnd.getRight.format;
-		expressionAnd.getLeft.format;
-	}
-	
-	def dispatch void format(ExpressionOr expressionOr, extension IFormattableDocument document) {		
-		expressionOr.regionFor.keyword(expressionLevel1Access.ORKeyword_1_1_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
-		expressionOr.regionFor.keyword(expressionLevel1Access.orKeyword_1_1_1_1)?.prepend(oneSpace).append(oneSpaceWrap)
-		expressionOr.right.format;
-		expressionOr.left.format;
-	}
-	
-	//-----------------------------------   ExpressionLevel2
-	
-	def dispatch void format(ExpressionEqual expressionEqual, extension IFormattableDocument document) {		
-		expressionEqual.regionFor.keyword(expressionLevel2Access.equalsSignEqualsSignKeyword_1_0_1).surround(oneSpace)		
-		expressionEqual.right.format;
-		expressionEqual.left.format;
-	}
-	
-	def dispatch void format(ExpressionNEqual expressionNEqual, extension IFormattableDocument document) {		
-		expressionNEqual.regionFor.keyword(expressionLevel2Access.exclamationMarkEqualsSignKeyword_1_1_1).surround(oneSpace)		
-		expressionNEqual.right.format;
-		expressionNEqual.left.format;
-	}
-	
-	//-----------------------------------   ExpressionLevel3
-	
-	def dispatch void format(ExpressionGeq expressionGeq, extension IFormattableDocument document) {		
-		expressionGeq.regionFor.keyword(expressionLevel3Access.greaterThanSignEqualsSignKeyword_1_0_1).surround(oneSpace)		
-		expressionGeq.right.format;
-		expressionGeq.left.format;
-	}
-	
-	def dispatch void format(ExpressionGreater expressionGreater, extension IFormattableDocument document) {		
-		expressionGreater.regionFor.keyword(expressionLevel3Access.greaterThanSignKeyword_1_1_1).surround(oneSpace)		
-		expressionGreater.right.format;
-		expressionGreater.left.format;
-	}
-	
-	def dispatch void format(ExpressionLeq expressionLeq, extension IFormattableDocument document) {		
-		expressionLeq.regionFor.keyword(expressionLevel3Access.lessThanSignEqualsSignKeyword_1_2_1).surround(oneSpace)		
-		expressionLeq.right.format;
-		expressionLeq.left.format;
-	}
-	
-	def dispatch void format(ExpressionLess expressionLess, extension IFormattableDocument document) {		
-		expressionLess.regionFor.keyword(expressionLevel3Access.lessThanSignKeyword_1_3_1).surround(oneSpace)		
-		expressionLess.right.format;
-		expressionLess.left.format;
-	}
-	
-	//-----------------------------------   ExpressionLevel4
-	
-	def dispatch void format(ExpressionAddition expressionAddition, extension IFormattableDocument document) {		
-		expressionAddition.regionFor.keyword(expressionLevel4Access.plusSignKeyword_1_0_1).surround(oneSpace)		
-		expressionAddition.right.format;
-		expressionAddition.left.format;
-	}
-	
-	def dispatch void format(ExpressionSubtraction expressionSubtraction, extension IFormattableDocument document) {		
-		expressionSubtraction.regionFor.keyword(expressionLevel4Access.hyphenMinusKeyword_1_1_1).surround(oneSpace)		
-		expressionSubtraction.right.format;
-		expressionSubtraction.left.format;
-	}
-	
-	//-----------------------------------   ExpressionLevel5
-	
-	def dispatch void format(ExpressionMultiply expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel5Access.asteriskKeyword_1_0_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
-	def dispatch void format(ExpressionDivision expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel5Access.solidusKeyword_1_1_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
-	def dispatch void format(ExpressionMaximum expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel5Access.maxKeyword_1_2_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
-	def dispatch void format(ExpressionMinimum expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel5Access.minKeyword_1_3_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
-	def dispatch void format(ExpressionModulo expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel5Access.modKeyword_1_4_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
-	//-----------------------------------   ExpressionLevel6
-	
-	def dispatch void format(ExpressionPower expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel6Access.circumflexAccentKeyword_1_0_1).surround(oneSpace)		
-		expr.right.format;
-		expr.left.format;
-	}
-	
+    def dispatch void format(ExpressionAnd expressionAnd, extension IFormattableDocument document) {
+        expressionAnd.regionFor.keyword(expressionLevel1Access.ANDKeyword_1_0_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
+        expressionAnd.regionFor.keyword(expressionLevel1Access.andKeyword_1_0_1_1)?.prepend(oneSpace).append(oneSpaceWrap)
+        expressionAnd.getRight.format;
+        expressionAnd.getLeft.format;
+    }
+    
+    def dispatch void format(ExpressionOr expressionOr, extension IFormattableDocument document) {      
+        expressionOr.regionFor.keyword(expressionLevel1Access.ORKeyword_1_1_1_0)?.prepend(oneSpace).append(oneSpaceWrap)
+        expressionOr.regionFor.keyword(expressionLevel1Access.orKeyword_1_1_1_1)?.prepend(oneSpace).append(oneSpaceWrap)
+        expressionOr.right.format;
+        expressionOr.left.format;
+    }
+    
+    //-----------------------------------   ExpressionLevel2
+    
+    def dispatch void format(ExpressionEqual expressionEqual, extension IFormattableDocument document) {        
+        expressionEqual.regionFor.keyword(expressionLevel2Access.equalsSignEqualsSignKeyword_1_0_1).surround(oneSpace)      
+        expressionEqual.right.format;
+        expressionEqual.left.format;
+    }
+    
+    def dispatch void format(ExpressionNEqual expressionNEqual, extension IFormattableDocument document) {      
+        expressionNEqual.regionFor.keyword(expressionLevel2Access.exclamationMarkEqualsSignKeyword_1_1_1).surround(oneSpace)        
+        expressionNEqual.right.format;
+        expressionNEqual.left.format;
+    }
+    
+    //-----------------------------------   ExpressionLevel3
+    
+    def dispatch void format(ExpressionGeq expressionGeq, extension IFormattableDocument document) {        
+        expressionGeq.regionFor.keyword(expressionLevel3Access.greaterThanSignEqualsSignKeyword_1_0_1).surround(oneSpace)       
+        expressionGeq.right.format;
+        expressionGeq.left.format;
+    }
+    
+    def dispatch void format(ExpressionGreater expressionGreater, extension IFormattableDocument document) {        
+        expressionGreater.regionFor.keyword(expressionLevel3Access.greaterThanSignKeyword_1_1_1).surround(oneSpace)     
+        expressionGreater.right.format;
+        expressionGreater.left.format;
+    }
+    
+    def dispatch void format(ExpressionLeq expressionLeq, extension IFormattableDocument document) {        
+        expressionLeq.regionFor.keyword(expressionLevel3Access.lessThanSignEqualsSignKeyword_1_2_1).surround(oneSpace)      
+        expressionLeq.right.format;
+        expressionLeq.left.format;
+    }
+    
+    def dispatch void format(ExpressionLess expressionLess, extension IFormattableDocument document) {      
+        expressionLess.regionFor.keyword(expressionLevel3Access.lessThanSignKeyword_1_3_1).surround(oneSpace)       
+        expressionLess.right.format;
+        expressionLess.left.format;
+    }
+    
+    //-----------------------------------   ExpressionLevel4
+    
+    def dispatch void format(ExpressionAddition expressionAddition, extension IFormattableDocument document) {      
+        expressionAddition.regionFor.keyword(expressionLevel4Access.plusSignKeyword_1_0_1).surround(oneSpace)       
+        expressionAddition.right.format;
+        expressionAddition.left.format;
+    }
+    
+    def dispatch void format(ExpressionSubtraction expressionSubtraction, extension IFormattableDocument document) {        
+        expressionSubtraction.regionFor.keyword(expressionLevel4Access.hyphenMinusKeyword_1_1_1).surround(oneSpace)     
+        expressionSubtraction.right.format;
+        expressionSubtraction.left.format;
+    }
+    
+    //-----------------------------------   ExpressionLevel5
+    
+    def dispatch void format(ExpressionMultiply expr, extension IFormattableDocument document) {        
+        expr.regionFor.keyword(expressionLevel5Access.asteriskKeyword_1_0_1).surround(oneSpace)     
+        expr.right.format;
+        expr.left.format;
+    }
+    
+    def dispatch void format(ExpressionDivision expr, extension IFormattableDocument document) {        
+        expr.regionFor.keyword(expressionLevel5Access.solidusKeyword_1_1_1).surround(oneSpace)      
+        expr.right.format;
+        expr.left.format;
+    }
+    
+    def dispatch void format(ExpressionMaximum expr, extension IFormattableDocument document) {     
+        expr.regionFor.keyword(expressionLevel5Access.maxKeyword_1_2_1).surround(oneSpace)      
+        expr.right.format;
+        expr.left.format;
+    }
+    
+    def dispatch void format(ExpressionMinimum expr, extension IFormattableDocument document) {     
+        expr.regionFor.keyword(expressionLevel5Access.minKeyword_1_3_1).surround(oneSpace)      
+        expr.right.format;
+        expr.left.format;
+    }
+    
+    def dispatch void format(ExpressionModulo expr, extension IFormattableDocument document) {      
+        expr.regionFor.keyword(expressionLevel5Access.modKeyword_1_4_1).surround(oneSpace)      
+        expr.right.format;
+        expr.left.format;
+    }
+    
+    //-----------------------------------   ExpressionLevel6
+    
+    def dispatch void format(ExpressionPower expr, extension IFormattableDocument document) {       
+        expr.regionFor.keyword(expressionLevel6Access.circumflexAccentKeyword_1_0_1).surround(oneSpace)     
+        expr.right.format;
+        expr.left.format;
+    }
+    
     def dispatch void format(ExpressionNullCoalescing expr, extension IFormattableDocument document) {
         expr.regionFor.keyword(expressionLevel6Access.questionMarkQuestionMarkKeyword_1_1_1).surround(oneSpace)
         expr.right.format;
@@ -185,95 +185,95 @@ class ExpressionFormatter extends TypesFormatter {
         expr.left.format;
     }
 
-	//-----------------------------------   ExpressionLevel7
-	
-	def dispatch void format(ExpressionNot expr, extension IFormattableDocument document) {
-		expr.regionFor.keyword(expressionNotAccess.NOTKeyword_1_0)?.prepend(oneSpaceWrap).append(oneSpace)
-		expr.regionFor.keyword(expressionNotAccess.notKeyword_1_1)?.prepend(oneSpaceWrap).append(oneSpace)
-		expr.sub.format		
-	}
-	
-	def dispatch void format(ExpressionMinus expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionMinusAccess.hyphenMinusKeyword_1).append(noSpace)		
-		expr.sub.format
-	}
-	
-	def dispatch void format(ExpressionPlus expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionPlusAccess.plusSignKeyword_1).append(noSpace)		
-		expr.sub.format
-	}
-	
-	//-----------------------------------   ExpressionLevel8
-	
-	def dispatch void format(ExpressionRecordAccess expr, extension IFormattableDocument document) {		
-		expr.regionFor.keyword(expressionLevel8Access.fullStopKeyword_1_0_1_1).surround(noSpace)		
-	}
-	
-	//-----------------------------------   ExpressionLevel9
-	def dispatch void format(ExpressionBracket expr, extension IFormattableDocument document) {	
-		val rFinder = expr.regionFor		
-		rFinder.keyword(expressionBracketAccess.leftParenthesisKeyword_1).append(noSpace)
-		rFinder.keyword(expressionBracketAccess.rightParenthesisKeyword_3).prepend(noSpace)		
-		expr.sub.format
-	}
-	
-	def dispatch void format(ExpressionRecord expr, extension IFormattableDocument document) {	
-		val rFinder = expr.regionFor	
-		
-//		rFinder.keyword(expressionRecordAccess.colonColonKeyword_0_1)?.surround(noSpace)
-		
-		expr.type.append(oneSpace)				
-		
-		rFinder.keyword(expressionRecordAccess.leftCurlyBracketKeyword_2).prepend(oneSpace).append(noSpace)
-		rFinder.keyword(expressionRecordAccess.rightCurlyBracketKeyword_5).prepend(noSpace).append(oneSpace)
-		
-		expr.fields.forEach[format]
-		
-		rFinder.keyword(expressionRecordAccess.commaKeyword_4_0)?.prepend(noSpace).append(oneSpace)
-		expr.fields.last.prepend(oneSpace)
-	}
-	
-	def dispatch void format(Field field, extension IFormattableDocument document) {		
-		field.regionFor.keyword(fieldAccess.equalsSignKeyword_2).surround(oneSpace)
-	}
-	
-	def dispatch void format(ExpressionVector expressionVector, extension IFormattableDocument document) {
-		val rFinder = expressionVector.regionFor
-		
-		rFinder.keyword(expressionTypeAnnotatedAccess.leftSquareBracketKeyword_1_0_1).surround(noSpace)
-		rFinder.keyword(expressionTypeAnnotatedAccess.rightSquareBracketKeyword_1_0_3).prepend(noSpace)			
-		
-		expressionVector.elements.forEach[format]
-		
-		rFinder.keyword(expressionTypeAnnotatedAccess.commaKeyword_1_0_2_1_0).prepend(noSpace).append(oneSpace)		
-		expressionVector.elements.last.prepend(oneSpace)					
-	}
+    //-----------------------------------   ExpressionLevel7
+    
+    def dispatch void format(ExpressionNot expr, extension IFormattableDocument document) {
+        expr.regionFor.keyword(expressionNotAccess.NOTKeyword_0_0)?.prepend(oneSpaceWrap).append(oneSpace)
+        expr.regionFor.keyword(expressionNotAccess.notKeyword_0_1)?.prepend(oneSpaceWrap).append(oneSpace)
+        expr.sub.format     
+    }
+    
+    def dispatch void format(ExpressionMinus expr, extension IFormattableDocument document) {       
+        expr.regionFor.keyword(expressionMinusAccess.hyphenMinusKeyword_0).append(noSpace)      
+        expr.sub.format
+    }
+    
+    def dispatch void format(ExpressionPlus expr, extension IFormattableDocument document) {        
+        expr.regionFor.keyword(expressionPlusAccess.plusSignKeyword_0).append(noSpace)      
+        expr.sub.format
+    }
+    
+    //-----------------------------------   ExpressionLevel8
+    
+    def dispatch void format(ExpressionRecordAccess expr, extension IFormattableDocument document) {        
+        expr.regionFor.keyword(expressionLevel8Access.fullStopKeyword_1_0_1_1).surround(noSpace)        
+    }
+    
+    //-----------------------------------   ExpressionLevel9
+    def dispatch void format(ExpressionBracket expr, extension IFormattableDocument document) { 
+        val rFinder = expr.regionFor        
+        rFinder.keyword(expressionBracketAccess.leftParenthesisKeyword_0).append(noSpace)
+        rFinder.keyword(expressionBracketAccess.rightParenthesisKeyword_2).prepend(noSpace)     
+        expr.sub.format
+    }
+    
+    def dispatch void format(ExpressionRecord expr, extension IFormattableDocument document) {  
+        val rFinder = expr.regionFor    
+        
+//      rFinder.keyword(expressionRecordAccess.colonColonKeyword_0_1)?.surround(noSpace)
+        
+        expr.type.append(oneSpace)              
+        
+        rFinder.keyword(expressionRecordAccess.leftCurlyBracketKeyword_1).prepend(oneSpace).append(noSpace)
+        rFinder.keyword(expressionRecordAccess.rightCurlyBracketKeyword_4).prepend(noSpace).append(oneSpace)
+        
+        expr.fields.forEach[format]
+        
+        rFinder.keyword(expressionRecordAccess.commaKeyword_3_0)?.prepend(noSpace).append(oneSpace)
+        expr.fields.last.prepend(oneSpace)
+    }
+    
+    def dispatch void format(Field field, extension IFormattableDocument document) {        
+        field.regionFor.keyword(fieldAccess.equalsSignKeyword_1).surround(oneSpace)
+    }
+    
+    def dispatch void format(ExpressionVector expressionVector, extension IFormattableDocument document) {
+        val rFinder = expressionVector.regionFor
+        
+        rFinder.keyword(expressionTypeAnnotatedAccess.leftSquareBracketKeyword_1_0_1).surround(noSpace)
+        rFinder.keyword(expressionTypeAnnotatedAccess.rightSquareBracketKeyword_1_0_3).prepend(noSpace)         
+        
+        expressionVector.elements.forEach[format]
+        
+        rFinder.keyword(expressionTypeAnnotatedAccess.commaKeyword_1_0_2_1_0).prepend(noSpace).append(oneSpace)     
+        expressionVector.elements.last.prepend(oneSpace)                    
+    }
 
-	def dispatch void format(ExpressionMap expressionMap, extension IFormattableDocument document) {
-		val rFinder = expressionMap.regionFor
-		
-		rFinder.keyword(expressionTypeAnnotatedAccess.leftCurlyBracketKeyword_1_1_1).surround(noSpace)
-		rFinder.keyword(expressionTypeAnnotatedAccess.rightCurlyBracketKeyword_1_1_3).prepend(noSpace)			
-		
-		expressionMap.pairs.forEach[format]		
+    def dispatch void format(ExpressionMap expressionMap, extension IFormattableDocument document) {
+        val rFinder = expressionMap.regionFor
+        
+        rFinder.keyword(expressionTypeAnnotatedAccess.leftCurlyBracketKeyword_1_1_1).surround(noSpace)
+        rFinder.keyword(expressionTypeAnnotatedAccess.rightCurlyBracketKeyword_1_1_3).prepend(noSpace)          
+        
+        expressionMap.pairs.forEach[format]     
 
-		rFinder.keyword(expressionTypeAnnotatedAccess.commaKeyword_1_1_2_1_0).prepend(noSpace).append(oneSpace)		
-		expressionMap.pairs.last.prepend(oneSpace)					
-	}
-	
-	def dispatch void format(Pair pair, extension IFormattableDocument document) {
-		val rFinder = pair.regionFor
-		
-		//rFinder.assignment(pairAccess.keyAssignment_0).prepend(noSpace)
-		rFinder.keyword(pairAccess.hyphenMinusGreaterThanSignKeyword_2).surround(noSpace)
-		//rFinder.assignment(pairAccess.valueAssignment_2).prepend(noSpace)
-		pair.key.format
-		pair.value.format
-	}
-	
-	def dispatch void format(ExpressionEnumLiteral expressionEnumLiteral, extension IFormattableDocument document) {
-		val regionFor = expressionEnumLiteral.regionFor
-		regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_2)?.surround(noSpace)
-//		regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_2).surround(noSpace)
-	}
+        rFinder.keyword(expressionTypeAnnotatedAccess.commaKeyword_1_1_2_1_0).prepend(noSpace).append(oneSpace)     
+        expressionMap.pairs.last.prepend(oneSpace)                  
+    }
+    
+    def dispatch void format(Pair pair, extension IFormattableDocument document) {
+        val rFinder = pair.regionFor
+        
+        //rFinder.assignment(pairAccess.keyAssignment_0).prepend(noSpace)
+        rFinder.keyword(pairAccess.hyphenMinusGreaterThanSignKeyword_1).surround(noSpace)
+        //rFinder.assignment(pairAccess.valueAssignment_2).prepend(noSpace)
+        pair.key.format
+        pair.value.format
+    }
+    
+    def dispatch void format(ExpressionEnumLiteral expressionEnumLiteral, extension IFormattableDocument document) {
+        val regionFor = expressionEnumLiteral.regionFor
+        regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_1)?.surround(noSpace)
+//      regionFor.keyword(expressionEnumLiteralAccess.colonColonKeyword_2).surround(noSpace)
+    }
 }

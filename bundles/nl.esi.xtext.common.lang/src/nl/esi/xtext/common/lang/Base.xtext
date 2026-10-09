@@ -7,18 +7,32 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
+ 
+/**
+ * GRAMMAR AND MODEL STRUCTURE
+ * 
+ * By default, this grammar imports an external Ecore model (Base.ecore) which defines
+ * the abstract syntax tree (AST) structure. The grammar rules define the concrete syntax.
+ * 
+ * If you modify this xtext grammar:
+ *   1. Switch to the "generate base" line (uncomment it, comment out the "import" line for Base)
+ *   2. Right-click: Run As > Generate Xtext Artifacts (generates new Base.ecore and Base.genmodel)
+ *   3. Review the generated files in models/generated/
+ *   5. Switch back to the "import" line (comment out "generate", uncomment "import")
+ *   2. Right-click: Run As > Generate Xtext Artifacts again  (uses new Base.ecore and Base.genmodel in an ecore first manner)
+ */
 grammar nl.esi.xtext.common.lang.Base with org.eclipse.xtext.common.Terminals
 
-generate base "http://www.esi.nl/xtext/common/lang/Base" as base
-
+//generate base "http://www.esi.nl/xtext/common/lang/Base"
+import "http://www.esi.nl/xtext/common/lang/Base"
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
-BaseModel returns base::ModelContainer: {base::BaseModel}
+BaseModel returns ModelContainer: {BaseModel}
     imports += Import*
     table = BaseTable?
 ;
 
-BaseTable returns base::BaseTable: {base::BaseTable}
+BaseTable: {BaseTable}
     Annotations
     Table
 ;
@@ -28,50 +42,50 @@ BaseTable returns base::BaseTable: {base::BaseTable}
  * Top level container element that may transitively import zero or more existing base models.
  * In this grammar, it is extended by the class BaseModel (see above)
  */
-ModelContainer returns base::ModelContainer: {base::ModelContainer}
+ModelContainer: {ModelContainer}
     imports += Import*
 ;
 
-Import returns base::Import: {base::Import}
+Import:
     'import' importURI = STRING
 ;
 
-fragment Annotations returns base::Annotatable:
+fragment Annotations returns Annotatable:
     annotations+=Annotation*
 ;
 
-Annotation returns base::Annotation: {base::Annotation}
+Annotation: {Annotation}
     '@' name=ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
 ;
 
-AnnotationParam returns base::AnnotationParam: {base::AnnotationParam}
+AnnotationParam: {AnnotationParam}
     name=ID '=' value = AnnotationValue
 ;
 
-DefaultAnnotationParam returns base::AnnotationParam: {base::AnnotationParam}
+DefaultAnnotationParam returns AnnotationParam:
     value = AnnotationValue
 ;
 
-AnnotationValue returns base::AnnotationValue:
-      {base::AnnotationLongValue} => value=LONG
-    | {base::AnnotationBooleanValue} => value=BOOL
-    | {base::AnnotationStringValue} => value=STRING
-    | {base::AnnotationDoubleValue} => value=DOUBLE
+AnnotationValue:
+      {AnnotationLongValue} => value=LONG
+    | {AnnotationBooleanValue} => value=BOOL
+    | {AnnotationStringValue} => value=STRING
+    | {AnnotationDoubleValue} => value=DOUBLE
 ;
 
-fragment Table returns base::Table:
+fragment Table returns Table:
     header = TableRow
     rows += TableRow*
 ;
 
-TableRow returns base::TableRow: {base::TableRow}
+TableRow: {TableRow}
     cells += TABLE_CELL+ '|'
 ;
 
 /*
  * Abstract class for all NamedElements
  */
-NamedElement returns base::NamedElement:
+NamedElement:
     Annotation | AnnotationParam
 ;
 

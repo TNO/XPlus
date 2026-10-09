@@ -68,7 +68,7 @@ class BaseFormatter extends AbstractFormatter2 {
     }
 
     def dispatch void format(Import _import, extension IFormattableDocument document) {
-        _import.regionFor.keyword(importAccess.importKeyword_1).append(oneSpace)
+        _import.regionFor.keyword(importAccess.importKeyword_0).append(oneSpace)
         _import.append(newLine)
     }
 }
