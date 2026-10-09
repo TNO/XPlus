@@ -143,7 +143,7 @@ class DataTypesOutlineGenerator {
     private def dispatch DataType doTransform(RecordTypeDecl type) {
         val fields = new ArrayList<DataType>
         val recordFields = type.fields
-        val fieldNodeType = type.typeOrAlias(DataType.RECORD_FIELD)
+        val fieldNodeType = DataType.RECORD_FIELD
         for (var int index = 0; index < recordFields.size; index++) {
             val field = recordFields.get(index)
             val kind = field.kind?.literal

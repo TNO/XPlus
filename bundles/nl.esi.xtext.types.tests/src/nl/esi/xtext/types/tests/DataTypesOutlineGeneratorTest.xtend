@@ -90,23 +90,24 @@ class DataTypesOutlineGeneratorTest {
 			}  
 		'''
         val expected = '''
-			[
-			  {
-			    "nodeType": "Context",
-			    "id": "DataType_17t5tar",
-			    "name": "FriesContext",
-			    "label": "FriesContext : Context",
-			    "children": [
-			      {
-			        "nodeType": "Context",
-			        "name": "client_id",
-			        "label": "client_id : String",
-			        "kind": "concrete",
-			        "children": []
-			      }
-			    ]
-			  }
-			]
+         [
+          {
+            "nodeType": "Context",
+            "id": "DataType_17t5tar",
+            "name": "FriesContext",
+            "type": "Record",
+            "label": "FriesContext : Context",
+            "children": [
+              {
+                "nodeType": "record-field",
+                "name": "client_id",
+                "type": "String",
+                "label": "client_id : String",
+                "kind": "concrete"
+              }
+            ]
+          }
+        ]
 		'''
         val resource = resourceSet.createResource(URI.createURI("test.types"))
         resource.load(new ByteArrayInputStream(typesCode.bytes), null)
