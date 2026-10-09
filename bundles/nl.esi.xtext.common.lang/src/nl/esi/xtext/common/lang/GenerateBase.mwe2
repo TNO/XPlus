@@ -15,13 +15,13 @@ import org.eclipse.xtext.xtext.generator.model.project.*
 var rootPath = ".."
 var projectName = "nl.esi.xtext.common.lang"
 var fileName = "Base"
-var runtimeProject = "../${projectName}"
+var runtimeProject = "${rootPath}/${projectName}"
 
 Workflow {
 
     bean = nl.esi.xplus.emf.mwe.utils.XPlusStandAloneSetup {
             scanClassPath = true
-            platformUri = "${runtimeProject}/.."
+            platformUri = "${rootPath}"
             tryRegisterGenModelFile = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
             tryRegisterEcoreFile = "platform:/resource/${projectName}/model/generated/${fileName}.ecore"
     }
