@@ -170,7 +170,8 @@ class DataTypesOutlineGenerator {
         val elementNodeType = type.typeOrAlias(DataType.COLLECTION_ELEMENT)
         if (elementType !== null) {
             val child = elementType.asTypeDeclCopy.doTransform
-            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", child?.label, "«element» : " + child?.label, null, child?.children, elementType.annotationsMap))
+            childLabel = child?.label
+            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", childLabel, "«element» : " + childLabel, null, child?.children, elementType.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.LIST)
         return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', null, children, type.annotationsMap)

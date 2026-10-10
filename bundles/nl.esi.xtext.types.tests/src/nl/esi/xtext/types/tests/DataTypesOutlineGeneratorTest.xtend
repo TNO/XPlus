@@ -310,7 +310,7 @@ class DataTypesOutlineGeneratorTest {
         val key = "«key»"
         val element = "«element»"
         val compare = '''
-        [
+         [
           {
             "nodeType": "Record",
             "name": "CorrectionsReport",
@@ -321,7 +321,7 @@ class DataTypesOutlineGeneratorTest {
                 "nodeType": "record-field",
                 "name": "correctionsMap",
                 "type": "map<int,CorrectionItem[]>",
-                "label": "correctionsMap : Map<Int, List<?>>",
+                "label": "correctionsMap : Map<Int, List<CorrectionItem : Record>>",
                 "kind": "mixed",
                 "children": [
                   {
@@ -333,8 +333,8 @@ class DataTypesOutlineGeneratorTest {
                   {
                     "nodeType": "map-value",
                     "name": "value",
-                    "type": "List<?>",
-                    "label": "«value» : List<?>",
+                    "type": "List<CorrectionItem : Record>",
+                    "label": "«value» : List<CorrectionItem : Record>",
                     "children": [
                       {
                         "nodeType": "collection-element",
@@ -364,7 +364,7 @@ class DataTypesOutlineGeneratorTest {
               }
             ]
           }
-        ]
+         ]
         '''
         transformPrinter("CorrectionsReport", compare)
     }
