@@ -34,7 +34,7 @@ import org.eclipse.xtext.resource.XtextResourceSet
 
 import static extension nl.esi.xtext.common.lang.utilities.AnnotationUtil.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
-import static extension nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
+import static extension org.eclipse.emf.ecore.util.EcoreUtil.*
 
 /**
  * Transforms types model declarations into DataTypeListEntry objects.
@@ -105,7 +105,7 @@ class DataTypesOutlineGenerator {
      * Base dispatch method - should not be called directly.
      */
     private def dispatch DataType doTransform(TypeDecl type) {
-        return new DataType(null, type.annotatedId, type.name, "?", "?", null, null, type.annotationsMap)
+        return new DataType(null, type.annotatedId, type.name, "?", "?", null, type.annotationsMap)
     }
 
     /**
@@ -117,7 +117,7 @@ class DataTypesOutlineGenerator {
             label += " based on "  + doTransform(type.base).label
         }
         val nodeType = type.typeOrAlias(DataType.PRIMITIVE_BASED_ON)
-        return new DataType(nodeType, type.annotatedId, type.name, type.translatedTypeName, label, null, null, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, type.translatedTypeName, label, null, type.annotationsMap)
     }
 
     /**
@@ -131,10 +131,10 @@ class DataTypesOutlineGenerator {
             val literal = enums.get(index)
             val name  = literal.name
             val value = literal.value
-            literals.add(new DataType(literalNodeType, literal.annotatedId, name, null, name, null, value, null, literal.annotationsMap))
+            literals.add(new DataType(literalNodeType, literal.annotatedId, name, null, name, value, null, literal.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.ENUM)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.ENUM, type.name + " : " + nodeType, null, literals, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.ENUM, type.name + " : " + nodeType, literals, type.annotationsMap)
     }
 
     /**
@@ -154,10 +154,15 @@ class DataTypesOutlineGenerator {
             val fieldStructure = typeObject?.asTypeDeclCopy.doTransform
             val fLabel = fieldStructure !== null ? fieldStructure.label : typeObject.translatedTypeName
             val children = fieldStructure === null ? null:  fieldStructure.children
-            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, typeObject.translatedTypeName, fName +" : "+fLabel, kind, children, field.annotationsMap))
+            val annotations = field.annotationsMap
+            if (!"concrete".equalsIgnoreCase(kind)) {
+                // backwards compatibility add kind as annotations
+                annotations.put(kind, true);
+            }
+            fields.add(new DataType(fieldNodeType, field.annotatedId, fName, typeObject.translatedTypeName, fName +" : "+fLabel, children, annotations))
         }
         val nodeType = type.typeOrAlias(DataType.RECORD)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, null, fields, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, fields, type.annotationsMap)
     }
 
     /**
@@ -171,10 +176,10 @@ class DataTypesOutlineGenerator {
         if (elementType !== null) {
             val child = elementType.asTypeDeclCopy.doTransform
             childLabel = child?.label
-            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", childLabel, "«element» : " + childLabel, null, child?.children, elementType.annotationsMap))
+            children.add(new DataType(elementNodeType, elementType.annotatedId, "element", childLabel, "«element» : " + childLabel, child?.children, elementType.annotationsMap))
         }
         val nodeType = type.typeOrAlias(DataType.LIST)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', null, children, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.LIST, '''List<«childLabel»>''', children, type.annotationsMap)
     }
 
     /**
@@ -188,7 +193,7 @@ class DataTypesOutlineGenerator {
         if (keyType !== null) {
             val child = keyType.asTypeDeclCopy?.doTransform()
             val mapKeyNodeType = type.typeOrAlias(DataType.MAP_KEY)
-            result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "key", child?.label, "«key» : " + child?.label, null, child?.children, keyType.annotationsMap))
+            result.add(new DataType(mapKeyNodeType, keyType.annotatedId, "key", child?.label, "«key» : " + child?.label, child?.children, keyType.annotationsMap))
             labels.add(child?.label)
         }
         // Handle value type
@@ -197,11 +202,11 @@ class DataTypesOutlineGenerator {
         if (valueType !== null) {
             val child = valueType.asTypeDeclCopy?.doTransform()
             labels.add(child?.label)
-            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child?.label, "«value» : " + child?.label, null, child?.children, valueType.annotationsMap))
+            result.add(new DataType(mapValueNodeType, valueType.annotatedId, "value", child?.label, "«value» : " + child?.label, child?.children, valueType.annotationsMap))
         }
         
         val nodeType = type.typeOrAlias(DataType.MAP)
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.MAP, '''Map<«labels.join(", ")»>''', null, result, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.MAP, '''Map<«labels.join(", ")»>''', result, type.annotationsMap)
     }
 
     private def asTypeDeclCopy(TypeObject t){
@@ -219,12 +224,11 @@ class DataTypesOutlineGenerator {
     }
 
     private def Map<String,Object> getAnnotationsMap(EObject type) {
+        val annotations = newLinkedHashMap
         if (type instanceof Annotatable){
-            val annotations = newLinkedHashMap
             AnnotationUtil.getAnnotations(type).entrySet.filter[key!="id" &&  key!="typeAlias"].forEach[annotations.put(key,value)]
-            return !annotations.empty ? annotations : null
         }
-        return null
+        return annotations
     }
 
     private def String typeOrAlias(TypeDecl type, String standard) {
