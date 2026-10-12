@@ -14,6 +14,7 @@ import java.util.Collection
 import java.util.List
 import java.util.Map
 import java.util.Set
+import nl.esi.xtext.common.lang.utilities.AnnotationUtil
 import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
@@ -58,7 +59,6 @@ import nl.esi.xtext.types.types.EnumTypeDecl
 import nl.esi.xtext.types.types.GenericsTypeParam
 import nl.esi.xtext.types.types.MapTypeConstructor
 import nl.esi.xtext.types.types.MapTypeDecl
-import nl.esi.xtext.types.types.RecordFieldKind
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.SimpleTypeDecl
 import nl.esi.xtext.types.types.Type
@@ -110,7 +110,7 @@ class ExpressionsUtilities {
 
             RecordTypeDecl: createExpressionRecord => [
                 type = typeObj
-                for(field: typeObj.allFields.reject[kind == RecordFieldKind::SYMBOLIC]) {
+                for(field: typeObj.allFields.reject[AnnotationUtil.hasAnnotation(it, "symbolic")]) {
                     fields += createField => [
                         recordField = field
                         exp = field.type.typeObject.createDefaultValue
@@ -381,7 +381,7 @@ class ExpressionsUtilities {
                 ""
             }
             EnumTypeDecl: serialize(t) + "::" + t.literals.get(0).name
-            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).reject[kind == RecordFieldKind::SYMBOLIC] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type)»«ENDFOR»}'''
+            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).reject[AnnotationUtil.hasAnnotation(it, "symbolic")] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type)»«ENDFOR»}'''
             VectorTypeDecl: '''<«serialize(t)»>[]'''
             VectorTypeConstructor: '''<«serialize(t)»>[]'''
             MapTypeDecl: '''<«serialize(t)»>{}'''

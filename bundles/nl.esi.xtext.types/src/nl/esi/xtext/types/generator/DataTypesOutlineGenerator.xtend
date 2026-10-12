@@ -146,7 +146,6 @@ class DataTypesOutlineGenerator {
         val fieldNodeType = DataType.RECORD_FIELD
         for (var int index = 0; index < recordFields.size; index++) {
             val field = recordFields.get(index)
-            val kind = field.kind?.literal
             val fName = field.name
             val fType = field.type
             val typeObject = fType.typeObject
@@ -155,10 +154,6 @@ class DataTypesOutlineGenerator {
             val fLabel = fieldStructure !== null ? fieldStructure.label : typeObject.translatedTypeName
             val children = fieldStructure === null ? null:  fieldStructure.children
             val annotations = field.annotationsMap
-            if (!"concrete".equalsIgnoreCase(kind)) {
-                // backwards compatibility add kind as annotations
-                annotations.put(kind, true);
-            }
             fields.add(new DataType(fieldNodeType, field.annotatedId, fName, typeObject.translatedTypeName, fName +" : "+fLabel, children, annotations))
         }
         val nodeType = type.typeOrAlias(DataType.RECORD)

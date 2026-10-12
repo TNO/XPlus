@@ -109,11 +109,7 @@ RecordTypeDecl:
 
 RecordField:
     Annotations
-    (kind = RecordFieldKind)? type = Type name = ID
-;
-
-enum RecordFieldKind:
-    CONCRETE = 'concrete' | SYMBOLIC = 'symbolic' | MIXED = 'mixed'
+    type = Type name = ID
 ;
 
 VectorTypeDecl:

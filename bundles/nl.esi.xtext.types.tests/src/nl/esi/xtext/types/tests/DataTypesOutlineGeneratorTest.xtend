@@ -49,11 +49,11 @@ class DataTypesOutlineGeneratorTest {
     def void loadRecordList() {
         val typesCode = '''
 			record CorrectionItem {
-			  concrete string data
+			  string data
 			}
 			record CorrectionsReport {
-			  mixed map<int, CorrectionItem[]> correctionsMap
-			  concrete int id
+			  @mixed map<int, CorrectionItem[]> correctionsMap
+			  int id
 			}
 		'''
         val resource = resourceSet.createResource(URI.createURI("test.types"))
@@ -70,13 +70,13 @@ class DataTypesOutlineGeneratorTest {
         val typesCode = '''
 			@id("DataType_02hh0t9")
 			record Fries {
-			  concrete Topping dressing
-			  concrete string client_id
+			  Topping dressing
+			  string client_id
 			}
 			@id("DataType_17t5tar")
 			@typeAlias("Context")
 			record FriesContext {
-			  concrete string client_id
+			  string client_id
 			}
 			@id("DataType_1jk4lpg")
 			enum Sauce {
@@ -85,8 +85,8 @@ class DataTypesOutlineGeneratorTest {
 			}
 			@id("DataType_2v8mfd7")
 			record Topping {
-			  concrete FriesContext ctx
-			  concrete Sauce sauce
+			  FriesContext ctx
+			  Sauce sauce
 			}  
 		'''
         val expected = '''

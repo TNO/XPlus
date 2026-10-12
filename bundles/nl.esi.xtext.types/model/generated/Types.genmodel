@@ -31,8 +31,8 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Types.ecore#//RecordTypeDecl/fields"/>
     </genClasses>
     <genClasses ecoreClass="Types.ecore#//RecordField">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Types.ecore#//RecordField/kind"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Types.ecore#//RecordField/type"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute Types.ecore#//RecordField/kind"/>
     </genClasses>
     <genClasses ecoreClass="Types.ecore#//VectorTypeDecl">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Types.ecore#//VectorTypeDecl/constructor"/>

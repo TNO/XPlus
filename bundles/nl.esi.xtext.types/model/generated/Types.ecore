@@ -21,13 +21,7 @@
         eType="#//RecordField" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="RecordField" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="#//RecordFieldKind"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="#//Type" containment="true"/>
-  </eClassifiers>
-  <eClassifiers xsi:type="ecore:EEnum" name="RecordFieldKind">
-    <eLiterals name="CONCRETE" literal="concrete"/>
-    <eLiterals name="SYMBOLIC" value="1" literal="symbolic"/>
-    <eLiterals name="MIXED" value="2" literal="mixed"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="VectorTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="constructor" eType="#//VectorTypeConstructor"
