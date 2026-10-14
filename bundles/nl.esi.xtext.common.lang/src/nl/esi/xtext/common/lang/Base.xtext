@@ -54,12 +54,19 @@ fragment Annotations returns Annotatable:
     annotations+=Annotation*
 ;
 
+// Datatype rule that allows keywords as annotation names - no keyword restrictions
+// This ensures annotation names and parameters can use reserved keywords from this language
+// and inherited languages
+AnnotationIdentifier returns ecore::EString:
+    ID
+;
+
 Annotation: {Annotation}
-    '@' name=ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
+    '@' name=AnnotationIdentifier ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
 ;
 
 AnnotationParam: {AnnotationParam}
-    name=ID '=' value = AnnotationValue
+    name=AnnotationIdentifier '=' value = AnnotationValue
 ;
 
 DefaultAnnotationParam returns AnnotationParam:
