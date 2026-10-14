@@ -14,7 +14,7 @@ import java.util.Collection
 import java.util.List
 import java.util.Map
 import java.util.Set
-import nl.esi.xtext.common.lang.utilities.AnnotationUtil
+import nl.esi.xtext.common.lang.base.Annotatable
 import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
@@ -97,6 +97,10 @@ class ExpressionsUtilities {
     }
 
     def static Expression createDefaultValue(TypeObject typeObj) {
+        typeObj.createDefaultValue(a | true)
+    }
+
+    def static Expression createDefaultValue(TypeObject typeObj, (Annotatable)=>Boolean filter) {
         return switch (typeObj) {
             SimpleTypeDecl case typeObj.name == 'int': createExpressionConstantInt
             SimpleTypeDecl case typeObj.name == 'real': createExpressionConstantReal
@@ -110,20 +114,20 @@ class ExpressionsUtilities {
 
             RecordTypeDecl: createExpressionRecord => [
                 type = typeObj
-                for(field: typeObj.allFields.reject[AnnotationUtil.hasAnnotation(it, "symbolic")]) {
+                for(field: typeObj.allFields.filter[filter.apply(it)]) {
                     fields += createField => [
                         recordField = field
-                        exp = field.type.typeObject.createDefaultValue
+                        exp = field.type.typeObject.createDefaultValue(filter)
                     ]
                 }
             ]
 
-            VectorTypeDecl: typeObj.constructor.createDefaultValue
+            VectorTypeDecl: typeObj.constructor.createDefaultValue(filter)
             VectorTypeConstructor: createExpressionVector => [
                 typeAnnotation = createTypeAnnotation => [ type = typeObj.asExprType ]
             ]
 
-            MapTypeDecl: typeObj.constructor.createDefaultValue
+            MapTypeDecl: typeObj.constructor.createDefaultValue(filter)
             MapTypeConstructor: createExpressionMap => [
                 typeAnnotation = createTypeAnnotation => [ type = typeObj.asExprType ]
             ]
@@ -370,9 +374,13 @@ class ExpressionsUtilities {
     }
 
     def static CharSequence generateDefaultValue(EObject t) {
+        t.generateDefaultValue(a | true)
+    }
+
+    def static CharSequence generateDefaultValue(EObject t, (Annotatable)=>Boolean filter) {
         switch (t) {
             TypeReference:
-                generateDefaultValue(t.type)
+                generateDefaultValue(t.type, filter)
             SimpleTypeDecl: {
                 if(t.name.equals("int")) return '''0'''
                 if(t.name.equals("real")) return '''0.0'''
@@ -381,7 +389,7 @@ class ExpressionsUtilities {
                 ""
             }
             EnumTypeDecl: serialize(t) + "::" + t.literals.get(0).name
-            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).reject[AnnotationUtil.hasAnnotation(it, "symbolic")] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type)»«ENDFOR»}'''
+            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type, filter)»«ENDFOR»}'''
             VectorTypeDecl: '''<«serialize(t)»>[]'''
             VectorTypeConstructor: '''<«serialize(t)»>[]'''
             MapTypeDecl: '''<«serialize(t)»>{}'''
