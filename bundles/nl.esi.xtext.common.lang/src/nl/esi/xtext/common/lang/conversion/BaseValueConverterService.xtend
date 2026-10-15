@@ -18,4 +18,9 @@ class BaseValueConverterService extends DefaultTerminalConverters {
     def IValueConverter<String> getIDStringConverter() {
         return new TableCellValueConverter();
     }
+
+    @ValueConverter(rule = "ANNOTATION_ID")
+    def IValueConverter<String> getAnnotationIdConverter() {
+        return new AnnotationIdValueConverter();
+    }
 }

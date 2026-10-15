@@ -12,7 +12,9 @@
  */
 package nl.esi.xtext.types
 
+import nl.esi.xtext.common.lang.conversion.BaseValueConverterService
 import nl.esi.xtext.types.scoping.TypesImportUriGlobalScopeProvider
+import org.eclipse.xtext.conversion.IValueConverterService
 import org.eclipse.xtext.scoping.IGlobalScopeProvider
 
 /**
@@ -23,4 +25,9 @@ class TypesRuntimeModule extends AbstractTypesRuntimeModule {
 	override Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
 		return TypesImportUriGlobalScopeProvider
 	}
+	
+	override Class<? extends IValueConverterService> bindIValueConverterService() {
+        return BaseValueConverterService
+    }
+	
 }

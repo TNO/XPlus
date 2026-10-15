@@ -55,7 +55,7 @@ fragment Annotations returns Annotatable:
 ;
 
 Annotation: {Annotation}
-    '@' name=ANNOTATION_ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
+    name=ANNOTATION_ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
 ;
 
 AnnotationParam: {AnnotationParam}
@@ -102,9 +102,15 @@ LONG returns ecore::ELong:
     INT
 ;
 
-ANNOTATION_ID returns ecore::EString:
-    // solution to workaround inherited keywords
-    ID | 'suppress' | 'mixed' | 'context' | 'symbolic'
+/*
+ * The '@' prefix is part of the terminal, so the lexer always produces a single
+ * ANNOTATION_ID token (longest match). This makes annotation names agnostic of any
+ * keywords defined in this or inheriting languages (e.g. @suppress, @context).
+ * An optional '^' escape is supported for consistency with ID.
+ * The '@' (and '^') are stripped by AnnotationIdValueConverter.
+ */
+terminal ANNOTATION_ID returns ecore::EString:
+    '@' '^'? ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*
 ;
 terminal TABLE_CELL returns ecore::EString:
     '|' ('\\' !('\n'|'\r') | !('\\'|'|'|'\n'|'\r') )+
