@@ -54,19 +54,12 @@ fragment Annotations returns Annotatable:
     annotations+=Annotation*
 ;
 
-// Datatype rule that allows keywords as annotation names - no keyword restrictions
-// This ensures annotation names and parameters can use reserved keywords from this language
-// and inherited languages
-AnnotationIdentifier returns ecore::EString:
-    ID
-;
-
 Annotation: {Annotation}
-    '@' name=AnnotationIdentifier ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
+    '@' name=ANNOTATION_ID ( '(' ((params+=DefaultAnnotationParam) | (params+=AnnotationParam (',' params+=AnnotationParam)* ))? ')' )?
 ;
 
 AnnotationParam: {AnnotationParam}
-    name=AnnotationIdentifier '=' value = AnnotationValue
+    name=ID '=' value = AnnotationValue
 ;
 
 DefaultAnnotationParam returns AnnotationParam:
@@ -109,6 +102,10 @@ LONG returns ecore::ELong:
     INT
 ;
 
+ANNOTATION_ID returns ecore::EString:
+    // solution to workaround inherited keywords
+    ID | 'suppress' | 'mixed' | 'context' | 'symbolic'
+;
 terminal TABLE_CELL returns ecore::EString:
     '|' ('\\' !('\n'|'\r') | !('\\'|'|'|'\n'|'\r') )+
 ;

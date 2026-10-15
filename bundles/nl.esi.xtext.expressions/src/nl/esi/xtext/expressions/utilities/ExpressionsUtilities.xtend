@@ -14,7 +14,6 @@ import java.util.Collection
 import java.util.List
 import java.util.Map
 import java.util.Set
-import nl.esi.xtext.common.lang.base.Annotatable
 import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
@@ -59,6 +58,7 @@ import nl.esi.xtext.types.types.EnumTypeDecl
 import nl.esi.xtext.types.types.GenericsTypeParam
 import nl.esi.xtext.types.types.MapTypeConstructor
 import nl.esi.xtext.types.types.MapTypeDecl
+import nl.esi.xtext.types.types.RecordField
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.SimpleTypeDecl
 import nl.esi.xtext.types.types.Type
@@ -96,11 +96,7 @@ class ExpressionsUtilities {
         }
     }
 
-    def static Expression createDefaultValue(TypeObject typeObj) {
-        typeObj.createDefaultValue(a | true)
-    }
-
-    def static Expression createDefaultValue(TypeObject typeObj, (Annotatable)=>Boolean filter) {
+    def static Expression createDefaultValue(TypeObject typeObj, (RecordField)=>Boolean filter) {
         return switch (typeObj) {
             SimpleTypeDecl case typeObj.name == 'int': createExpressionConstantInt
             SimpleTypeDecl case typeObj.name == 'real': createExpressionConstantReal
@@ -373,14 +369,8 @@ class ExpressionsUtilities {
         }
     }
 
-    def static CharSequence generateDefaultValue(EObject t) {
-        t.generateDefaultValue(a | true)
-    }
-
-    def static CharSequence generateDefaultValue(EObject t, (Annotatable)=>Boolean filter) {
+    def static CharSequence generateDefaultValue(TypeObject t, (RecordField)=>Boolean filter) {
         switch (t) {
-            TypeReference:
-                generateDefaultValue(t.type, filter)
             SimpleTypeDecl: {
                 if(t.name.equals("int")) return '''0'''
                 if(t.name.equals("real")) return '''0.0'''
@@ -389,7 +379,7 @@ class ExpressionsUtilities {
                 ""
             }
             EnumTypeDecl: serialize(t) + "::" + t.literals.get(0).name
-            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type, filter)»«ENDFOR»}'''
+            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type.typeObject, filter)»«ENDFOR»}'''
             VectorTypeDecl: '''<«serialize(t)»>[]'''
             VectorTypeConstructor: '''<«serialize(t)»>[]'''
             MapTypeDecl: '''<«serialize(t)»>{}'''

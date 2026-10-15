@@ -74,8 +74,9 @@ class DataTypesOutlineGeneratorTest {
 			  string client_id
 			}
 			@id("DataType_17t5tar")
-			@typeAlias("Context")
+			@context
 			record FriesContext {
+			  @suppress
 			  string client_id
 			}
 			@id("DataType_1jk4lpg")
@@ -90,22 +91,27 @@ class DataTypesOutlineGeneratorTest {
 			}  
 		'''
         val expected = '''
-         [
+        [
           {
-            "nodeType": "Context",
+            "nodeType": "Record",
             "id": "DataType_17t5tar",
             "name": "FriesContext",
             "type": "Record",
-            "label": "FriesContext : Context",
+            "label": "FriesContext : Record",
             "children": [
               {
                 "nodeType": "record-field",
                 "name": "client_id",
                 "type": "String",
                 "label": "client_id : String",
-                "kind": "concrete"
+                "annotations": {
+                  "suppress": {}
+                }
               }
-            ]
+            ],
+            "annotations": {
+              "context": {}
+            }
           }
         ]
 		'''
