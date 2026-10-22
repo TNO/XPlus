@@ -1,10 +1,10 @@
 /**
  * Copyright (c) 2024, 2026 TNO-ESI
- *
+ * 
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
  * which is available at https://www.eclipse.org/legal/epl-2.0/
- *
+ * 
  * SPDX-License-Identifier: EPL-2.0
  */
 /*
@@ -22,79 +22,83 @@ import nl.esi.xtext.actions.actions.PCFragment
 import nl.esi.xtext.actions.actions.ParameterizedEvent
 import nl.esi.xtext.actions.actions.RecordFieldAssignmentAction
 import nl.esi.xtext.actions.services.ActionsGrammarAccess
-import nl.esi.xtext.expressions.expression.Expression
+import nl.esi.xtext.common.lang.base.ModelContainer
 import nl.esi.xtext.expressions.formatting2.ExpressionFormatter
 import org.eclipse.xtext.formatting2.IFormattableDocument
 
 class ActionsFormatter extends ExpressionFormatter {
 
-	@Inject extension ActionsGrammarAccess
+    @Inject extension ActionsGrammarAccess
 
-	def dispatch void format(AssignmentAction assignmentAction, extension IFormattableDocument document) {
-		assignmentAction.regionFor.keyword(assignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
+    // !!! REMOVING THIS METHOD WILL CAUSE FORMATTING NOT TO WORK !!!
+    override dispatch void format(ModelContainer modelContainer, IFormattableDocument document) {
+        modelContainer.formatContents(document)
+    }
 
-		assignmentAction.getExp.format;
-	}
+    def dispatch void format(AssignmentAction assignmentAction, extension IFormattableDocument document) {
+        assignmentAction.regionFor.keyword(assignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
 
-	def dispatch void format(IfAction ifAction, extension IFormattableDocument document) {
-		val rFinder = ifAction.regionFor
+        assignmentAction.assignment.format
+        assignmentAction.exp.format;
+    }
 
-		rFinder.keyword(ifActionAccess.ifKeyword_0).append(oneSpace)
-		rFinder.keyword(ifActionAccess.thenKeyword_2).prepend(oneSpace)
-		rFinder.keyword(ifActionAccess.elseKeyword_4_0).prepend(newLine)
-		rFinder.keyword(ifActionAccess.fiKeyword_5).prepend(newLine)
+    def dispatch void format(IfAction ifAction, extension IFormattableDocument document) {
+        val rFinder = ifAction.regionFor
 
-		ifAction.getThenList.prepend(newLine)
-		ifAction.elseList.prepend(newLine)
-		document.set(ifAction.getThenList.previousHiddenRegion, ifAction.getThenList.nextHiddenRegion, (indent))
-		document.set(ifAction.getElseList.previousHiddenRegion, ifAction.getElseList.nextHiddenRegion, (indent))
+        rFinder.keyword(ifActionAccess.ifKeyword_0).append(oneSpace)
+        rFinder.keyword(ifActionAccess.thenKeyword_2).prepend(oneSpace)
+        rFinder.keyword(ifActionAccess.elseKeyword_4_0).prepend(newLine)
+        rFinder.keyword(ifActionAccess.fiKeyword_5).prepend(newLine)
 
-		ifAction.getGuard.format;
-		ifAction.getThenList.format;
-		ifAction.getElseList.format;
-	}
+        ifAction.getThenList.prepend(newLine)
+        ifAction.elseList.prepend(newLine)
+        document.set(ifAction.getThenList.previousHiddenRegion, ifAction.getThenList.nextHiddenRegion, (indent))
+        document.set(ifAction.getElseList.previousHiddenRegion, ifAction.getElseList.nextHiddenRegion, (indent))
 
-	def dispatch void format(RecordFieldAssignmentAction assignAction, extension IFormattableDocument document) {
-		assignAction.regionFor.keyword(recordFieldAssignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
+        ifAction.getGuard.format;
+        ifAction.getThenList.format;
+        ifAction.getElseList.format;
+    }
 
-		assignAction.exp.format
-		formatFieldAccessExp(assignAction.fieldAccess, document)
-	}
-	
-	def void formatFieldAccessExp(Expression fieldAccessExp, extension IFormattableDocument document) {
-		fieldAccessExp.regionFor.keyword('.').surround(noSpace)
-	}
+    def dispatch void format(RecordFieldAssignmentAction assignAction, extension IFormattableDocument document) {
+        assignAction.regionFor.keyword(recordFieldAssignmentActionAccess.colonEqualsSignKeyword_1).surround(oneSpace)
 
-	def dispatch void format(ActionList actionList, extension IFormattableDocument document) {
-		for (Action action : actionList.actions) {
-			action.prepend(newLine)
-			action.format
-		}
-	}
+        assignAction.fieldAccess.format
+        assignAction.exp.format
+    }
 
-	def dispatch void format(Multiplicity multiplicity, extension IFormattableDocument document){
-		val regionFor = multiplicity.regionFor
-		
-		regionFor.keyword(multiplicityAccess.leftSquareBracketKeyword_0)?.surround(noSpace)
-		regionFor.keyword(multiplicityAccess.hyphenMinusKeyword_2)?.surround(noSpace)
-		regionFor.keyword(multiplicityAccess.rightSquareBracketKeyword_4)?.surround(noSpace)
-	}
+    def dispatch void format(ActionList actionList, extension IFormattableDocument document) {
+        for (Action action : actionList.actions) {
+            action.prepend(newLine)
+            action.format
+        }
+    }
 
-	def void formatParameterizedEvent(ParameterizedEvent parameterizedEvent, extension IFormattableDocument document) {
-		val rFinder = parameterizedEvent.regionFor
-		rFinder.keyword(parameterizedEventAccess.leftParenthesisKeyword_0).surround(noSpace)
-		rFinder.keyword(parameterizedEventAccess.rightParenthesisKeyword_3).prepend(noSpace)
+    def dispatch void format(Multiplicity multiplicity, extension IFormattableDocument document) {
+        val rFinder = multiplicity.regionFor
 
-		for (Expression expr : parameterizedEvent.parameters) {
-			expr.format
-		}
-	}
-	
-	def void formatPCFragment(PCFragment pcFragment, extension IFormattableDocument document) {
-		val regionFor = pcFragment.regionFor
-		regionFor.keyword(PCFragmentAccess.commaKeyword_1_0)?.prepend(noSpace).append(oneSpace)
-		pcFragment.components.last.prepend(oneSpace)
+        rFinder.keyword(multiplicityAccess.leftSquareBracketKeyword_0).surround(noSpace)
+        rFinder.keyword(multiplicityAccess.hyphenMinusKeyword_2).surround(noSpace)
+        rFinder.keyword(multiplicityAccess.rightSquareBracketKeyword_4).surround(noSpace)
+    }
 
-		pcFragment.components.forEach[format]
-	}
+    def dispatch void format(ParameterizedEvent parameterizedEvent, extension IFormattableDocument document) {
+        val rFinder = parameterizedEvent.regionFor
+
+        rFinder.keyword(parameterizedEventAccess.leftParenthesisKeyword_0).surround(noSpace)
+        rFinder.keyword(parameterizedEventAccess.rightParenthesisKeyword_3).prepend(noSpace)
+
+        parameterizedEvent.parameters.forEach[format]
+    }
+
+    def dispatch void format(PCFragment pcFragment, extension IFormattableDocument document) {
+        val rFinder = pcFragment.regionFor
+
+        rFinder.keyword(PCFragmentAccess.commaKeyword_1_0).prepend(noSpace).append(oneSpace)
+
+        if (!pcFragment.components.isEmpty) {
+            pcFragment.components.last.prepend(oneSpace)
+        }
+        pcFragment.components.forEach[format]
+    }
 }

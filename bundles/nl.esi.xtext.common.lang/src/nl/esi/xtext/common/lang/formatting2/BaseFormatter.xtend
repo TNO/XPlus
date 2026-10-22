@@ -12,18 +12,13 @@
  */
 package nl.esi.xtext.common.lang.formatting2
 
-import com.google.inject.Inject
-import nl.esi.xtext.common.lang.base.BaseModel
-import nl.esi.xtext.common.lang.base.Import
 import nl.esi.xtext.common.lang.base.ModelContainer
-import nl.esi.xtext.common.lang.services.BaseGrammarAccess
+import org.eclipse.emf.ecore.EObject
 import org.eclipse.xtext.formatting2.AbstractFormatter2
 import org.eclipse.xtext.formatting2.IFormattableDocument
 import org.eclipse.xtext.formatting2.IHiddenRegionFormatter
 
 class BaseFormatter extends AbstractFormatter2 {
-
-    @Inject extension BaseGrammarAccess
 
     protected static val (IHiddenRegionFormatter)=>void oneSpaceWrap = [ p |
         p.oneSpace
@@ -55,20 +50,13 @@ class BaseFormatter extends AbstractFormatter2 {
         p.indent
     ]
 
-    def dispatch void format(BaseModel baseModel, extension IFormattableDocument document) {
-        for (_import : baseModel.imports) {
-            _import.format
+    protected def void formatContents(EObject obj, IFormattableDocument document) {
+        for (EObject child : obj.eContents()) {
+            document.format(child);
         }
     }
 
-    def dispatch void format(ModelContainer modelContainer, extension IFormattableDocument document) {
-        for (_import : modelContainer.imports) {
-            _import.format
-        }
-    }
-
-    def dispatch void format(Import _import, extension IFormattableDocument document) {
-        _import.regionFor.keyword(importAccess.importKeyword_0).append(oneSpace)
-        _import.append(newLine)
+    def dispatch void format(ModelContainer modelContainer, IFormattableDocument document) {
+        modelContainer.formatContents(document)
     }
 }
