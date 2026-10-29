@@ -101,10 +101,7 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="sub" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ExpressionModel" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//ModelContainer">
-    <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
-        eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//TypeDecl"
-        containment="true"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionModel" eSuperTypes="platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//TypesModel">
     <eStructuralFeatures xsi:type="ecore:EReference" name="variables" upperBound="-1"
         eType="#//VariableDecl" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="functions" upperBound="-1"
