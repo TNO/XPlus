@@ -173,6 +173,9 @@ class ExpressionEvaluator {
         try {
             return functionsRegistry.invokeFunction(expression, context);
         }
+        catch(IndexOutOfBoundsException e) {
+            return null;
+        }
         catch(NoMatchingFunctionFoundException e) {
             return null;
         }

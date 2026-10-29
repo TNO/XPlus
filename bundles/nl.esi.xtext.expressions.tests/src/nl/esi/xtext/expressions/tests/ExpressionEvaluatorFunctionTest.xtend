@@ -12,7 +12,6 @@
  */
 package nl.esi.xtext.expressions.tests
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
@@ -222,13 +221,19 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
 
     @Test
     def void getOutOfBounds() {
-        Assertions.assertThrows(IndexOutOfBoundsException)[eval('''
+        assertEval('''
+            «TYPES»
+            T t = T {
+                tss = <string[]> [ "0" ]
+            }
+            string s = get(<string[]> [ "0" ], 1)
+        ''', '''
             «TYPES»
             T t = T {
                 tss = <string[]> [ "0" ]
             }
             string s = get(t.tss, 1)
-        ''')]
+        ''')
     }
 
     @Test
@@ -258,7 +263,16 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
 
     @Test
     def void atOutOfBounds() {
-        Assertions.assertThrows(IndexOutOfBoundsException)[eval('''
+        assertEval('''
+            «TYPES»
+            T t1 = T {
+                tis = <int[]>[ 1, 2 ]
+            }
+            T t2 = T {
+                tis = at(< int [] > [ 1, 2 ], 2, 3)
+            }
+        ''', 
+        '''
             «TYPES»
             T t1 = T {
                 tis = <int[]>[ 1, 2 ]
@@ -266,7 +280,7 @@ class ExpressionEvaluatorFunctionTest extends ExpressionEvaluatorTestBase {
             T t2 = T {
                 tis = at(t1.tis, 2, 3)
             }
-        ''')]
+        ''')
     }
 
     @Test
