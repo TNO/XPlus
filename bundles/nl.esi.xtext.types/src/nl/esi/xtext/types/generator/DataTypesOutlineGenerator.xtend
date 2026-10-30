@@ -142,6 +142,12 @@ class DataTypesOutlineGenerator {
      */
     private def dispatch DataType doTransform(RecordTypeDecl type) {
         val fields = new ArrayList<DataType>
+        var label = type.name
+        if (type.parent !== null) {
+            val dt = type.parent.doTransform
+            fields += dt.children
+            label += " extends " + type.parent.name
+        }
         val recordFields = type.fields
         val fieldNodeType = DataType.RECORD_FIELD
         for (var int index = 0; index < recordFields.size; index++) {
@@ -157,7 +163,7 @@ class DataTypesOutlineGenerator {
             fields.add(new DataType(fieldNodeType, field.annotatedId, fName, typeObject.translatedTypeName, fName +" : "+fLabel, children, annotations))
         }
         val nodeType = DataType.RECORD
-        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, type.name + " : " + nodeType, fields, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, DataType.RECORD, label + " : " + nodeType, fields, type.annotationsMap)
     }
 
     /**

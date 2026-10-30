@@ -45,7 +45,7 @@ class DataTypesOutlineGeneratorTest {
 	}
 	
 
-@Test
+    @Test
     def void loadRecordList() {
         val typesCode = '''
 			record CorrectionItem {
@@ -63,6 +63,59 @@ class DataTypesOutlineGeneratorTest {
         Assertions.assertNotNull(typesModel, "TypesModel should be parsed from types syntax")
         val errors = resource.errors
         Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+    }
+
+    @Test
+    def void testExtends() {
+        val typesCode = '''
+            record A {
+              int a
+            }
+            record B extends A{
+              int b
+            }
+            record C extends B {
+              int c
+            }
+        '''
+        val expected = '''
+        [
+          {
+            "nodeType": "Record",
+            "name": "C",
+            "type": "Record",
+            "label": "C extends B : Record",
+            "children": [
+              {
+                "nodeType": "record-field",
+                "name": "a",
+                "type": "Int",
+                "label": "a : Int"
+              },
+              {
+                "nodeType": "record-field",
+                "name": "b",
+                "type": "Int",
+                "label": "b : Int"
+              },
+              {
+                "nodeType": "record-field",
+                "name": "c",
+                "type": "Int",
+                "label": "c : Int"
+              }
+            ]
+          }
+        ]
+        '''
+        val resource = resourceSet.createResource(URI.createURI("test.types"))
+        resource.load(new ByteArrayInputStream(typesCode.bytes), null)
+        
+        val typesModel = resource.contents.filter(TypesModel).head
+        Assertions.assertNotNull(typesModel, "TypesModel should be parsed from types syntax")
+        val errors = resource.errors
+        Assertions.assertTrue(errors.isEmpty, '''Unexpected errors: «errors.join(", ")»''')
+        compare("C", typesModel, expected )
     }
     
 	@Test
