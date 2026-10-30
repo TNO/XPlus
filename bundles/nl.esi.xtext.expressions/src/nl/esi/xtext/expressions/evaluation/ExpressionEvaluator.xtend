@@ -177,7 +177,7 @@ class ExpressionEvaluator {
             return null;
         }
         catch(Exception e) {
-            return null; // no reduction possible
+            throw e;
         }
     }
 
