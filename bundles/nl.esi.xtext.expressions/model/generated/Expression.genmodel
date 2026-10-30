@@ -86,7 +86,6 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionUnary/sub"/>
     </genClasses>
     <genClasses ecoreClass="Expression.ecore#//ExpressionModel">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionModel/types"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionModel/variables"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionModel/functions"/>
     </genClasses>

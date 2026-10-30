@@ -39,12 +39,14 @@ class ExpressionFunctionsValidation {
     }
 
     @Test
-    def void duplicate_types_noValidationError() {
+    def void duplicate_types_validationError() {
         val result = parse('''
-            type aType
-            type aType
+            record aType { int i }
+            record aType { int i }
         ''')
-        assertDoesNotThrow [EcoreUtil3.validate(result)]
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Duplicate type declaration'),
+            '''Expected "Duplicate type declaration" but got: «ex.message»''')
     }
 
     // Second validate on the same model verifies repeated validation is stable.

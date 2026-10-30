@@ -16,8 +16,13 @@ grammar nl.esi.xtext.expressions.Expression with nl.esi.xtext.types.Types
  * 
  * If you modify this xtext grammar:
  *   1. Switch to the "generate expression" line (uncomment it, comment out the "import" line for Expression)
+ *   If you have issues in the generation then
+ *      1a. Remove all files from /nl.esi.xtext.expressions/model/generated
+ *      1b. In ./GenerateExpression.mwe2 comment out this line (around line 61)  referencedResource = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
  *   2. Right-click: Run As > Generate Xtext Artifacts (generates new Expression.ecore and Expression.genmodel)
  *   3. Review the generated files in models/generated/
+ *   If you had issues in the generation then
+ *      3a. In ./GenerateExpression.mwe2 uncomment this line  referencedResource = "platform:/resource/${projectName}/model/generated/${fileName}.genmodel"
  *   4. Switch back to the "import" line (comment out "generate", uncomment "import")
  *   5. Right-click: Run As > Generate Xtext Artifacts again (uses new Expression.ecore and Expression.genmodel in an ecore-first manner)
  */
@@ -29,7 +34,7 @@ import "http://www.esi.nl/xtext/expressions/Expression"
 import "http://www.esi.nl/xtext/common/lang/Base" as base
 import "http://www.esi.nl/xtext/types/Types" as types
 
-ExpressionModel returns base::ModelContainer: {ExpressionModel}
+ExpressionModel returns types::TypesModel: {ExpressionModel}
     imports += Import*
     ( types += TypeDecl
     | variables += VariableDecl
