@@ -39,7 +39,7 @@ class ExpressionFunctionsValidation {
     }
 
     @Test
-    def void duplicate_types_noValidationError() {
+    def void duplicate_types_validationError() {
         val result = parse('''
             record aType { int i }
             record aType { int i }
