@@ -113,11 +113,14 @@ class DataTypesOutlineGenerator {
      */
     private def dispatch DataType doTransform(SimpleTypeDecl type) {
         var label = type.translatedTypeName 
+        var typeString = type.translatedTypeName
         if (type.base !== null ) {
-            label += " based on "  + doTransform(type.base).label
+            var baseDataType = doTransform(type.base)
+            label += " based on " + baseDataType.label
+            typeString = baseDataType.type
         }
         val nodeType = DataType.PRIMITIVE_BASED_ON
-        return new DataType(nodeType, type.annotatedId, type.name, type.translatedTypeName, label, null, type.annotationsMap)
+        return new DataType(nodeType, type.annotatedId, type.name, typeString, label, null, type.annotationsMap)
     }
 
     /**
