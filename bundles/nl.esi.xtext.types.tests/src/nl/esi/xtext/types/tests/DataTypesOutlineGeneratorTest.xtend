@@ -239,6 +239,60 @@ class DataTypesOutlineGeneratorTest {
         val typesOutline = DataTypesOutlineGenerator.fromTypes(typesCode)
         Assertions.assertNotNull(typesOutline)
     }
+
+    @Test
+    def void transformBasedOn() {
+        val typesCode = '''
+            type aString based on string
+            type aInt based on int
+            record aRecord {
+                aString s
+                aInt i
+            }
+        '''
+        val compare = '''
+        [
+          {
+            "nodeType": "primitive-based-on",
+            "name": "aString",
+            "type": "String",
+            "label": "aString based on String"
+          },
+          {
+            "nodeType": "primitive-based-on",
+            "name": "aInt",
+            "type": "Int",
+            "label": "aInt based on Int"
+          },
+          {
+            "nodeType": "Record",
+            "name": "aRecord",
+            "type": "Record",
+            "label": "aRecord : Record",
+            "children": [
+              {
+                "nodeType": "record-field",
+                "name": "s",
+                "type": "aString",
+                "label": "s : aString based on String"
+              },
+              {
+                "nodeType": "record-field",
+                "name": "i",
+                "type": "aInt",
+                "label": "i : aInt based on Int"
+              }
+            ]
+          }
+        ]
+        '''
+ 
+        val actual = DataTypesOutlineGenerator.fromTypes(typesCode)
+        println(actual.toJson)
+        val expected = compare.fromJson
+        compare(expected, actual)
+
+    }
 	
 	@Test
 	def void transformEnumToDataType() {
@@ -428,7 +482,6 @@ class DataTypesOutlineGeneratorTest {
         transformPrinter("CorrectionsReport", compare)
     }
     
-
     def void transformPrinter(String typeName, String expectJsonString) {
         var fileName = "printer.types"
         val resource = resourceSet.createResource(URI.createURI(fileName))
