@@ -15,6 +15,8 @@ package nl.esi.xtext.actions
 import com.google.inject.Injector
 import nl.esi.xtext.actions.actions.ActionsPackage
 import org.eclipse.emf.ecore.EPackage
+import org.eclipse.emf.ecore.resource.Resource
+
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -28,7 +30,14 @@ class ActionsStandaloneSetup extends ActionsStandaloneSetupGenerated {
         super.register(injector);
     }
 
-	def static void doSetup() {
-		new ActionsStandaloneSetup().createInjectorAndDoEMFRegistration()
+	/**
+	 * Idempotent: only creates and registers a new injector if the language is not registered yet.
+	 * This prevents multiple injectors (and thus multiple Grammar instances) for the same language
+	 * when this setup is invoked from the setups of inheriting languages.
+	 */
+	def static synchronized void doSetup() {
+		if (!Resource.Factory.Registry.INSTANCE.extensionToFactoryMap.containsKey("act")) {
+			new ActionsStandaloneSetup().createInjectorAndDoEMFRegistration()
+		}
 	}
 }
