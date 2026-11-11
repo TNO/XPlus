@@ -15,6 +15,8 @@ package nl.esi.xtext.types
 import com.google.inject.Injector
 import nl.esi.xtext.types.types.TypesPackage
 import org.eclipse.emf.ecore.EPackage
+import org.eclipse.emf.ecore.resource.Resource
+
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -28,7 +30,14 @@ class TypesStandaloneSetup extends TypesStandaloneSetupGenerated {
         super.register(injector);
     }
 
-	def static void doSetup() {
-		new TypesStandaloneSetup().createInjectorAndDoEMFRegistration()
+	/**
+	 * Idempotent: only creates and registers a new injector if the language is not registered yet.
+	 * This prevents multiple injectors (and thus multiple Grammar instances) for the same language
+	 * when this setup is invoked from the setups of inheriting languages.
+	 */
+	def static synchronized void doSetup() {
+		if (!Resource.Factory.Registry.INSTANCE.extensionToFactoryMap.containsKey("types")) {
+			new TypesStandaloneSetup().createInjectorAndDoEMFRegistration()
+		}
 	}
 }
