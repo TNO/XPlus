@@ -444,6 +444,24 @@ class ExpressionFunctionsValidation {
     }
 
     @Test
+    def void namedArgs_onlyNamedArgs_noValidationError() {
+        val result = parse('''
+            function int myFn(int a, int b)
+            int r = myFn(a = 1, b = 2)
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_onlyNamedArgsOutOfOrder_noValidationError() {
+        val result = parse('''
+            function int myFn(int a, int b)
+            int r = myFn(b = 2, a = 1)
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
     def void namedArgs_sizeMismatch_tooFew_validationError() {
         val result = parse('''
             function int myFn(int a, int b, int c)
@@ -489,6 +507,18 @@ class ExpressionFunctionsValidation {
     }
 
     @Test
+    def void namedArgs_namedArgCollidesWithFirstIndexedArg_validationError() {
+        // The argument count matches, but 'a' is bound twice (positionally and by name) and 'b' is not bound at all
+        val result = parse('''
+            function int f(int a, int b)
+            int r = f(1, a = 2)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Argument name a with index 0 has already been specified as numbered arg'),
+            '''Expected collision error for named arg a but got: «ex.message»''')
+    }
+
+    @Test
     def void namedArgs_duplicateNamedArg_validationError() {
         val result = parse('''
             function int myFn(int a, int b, int c)
@@ -508,6 +538,102 @@ class ExpressionFunctionsValidation {
         val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
         assertTrue(ex.message.contains('Unknown argument name x'),
             '''Expected unknown arg name error but got: «ex.message»''')
+    }
+
+    // ========================================================================
+    // Function overload tests - with named arguments
+    // ========================================================================
+
+    @Test
+    def void namedArgs_overload_byArgCount_noValidationError() {
+        // Named args count towards the arity, so the 1-arg overload must be selected (not the 0-arg one)
+        val result = parse('''
+            function int overloaded()
+            function int overloaded(int x)
+            function int overloaded(int x, int y)
+            int r1 = overloaded(x = 5)
+            int r2 = overloaded(5, y = 10)
+            int r3 = overloaded(y = 10, x = 5)
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_overload_byParameterName_noValidationError() {
+        // Same arity and no positional args: the overload whose parameter name matches must be selected
+        val result = parse('''
+            function int pick(int count)
+            function int pick(string label)
+            int r = pick(label = "x")
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_overload_byType_noValidationError() {
+        // Named args are bound by name before type checking, so the second overload must be selected
+        val result = parse('''
+            function int conv(string a, int b)
+            function int conv(int a, string b)
+            int r1 = conv(a = 1, b = "x")
+            int r2 = conv(b = "x", a = 1)
+            int r3 = conv(1, b = "x")
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_overload_noMatchingType_validationError() {
+        val result = parse('''
+            function int conv(string a, int b)
+            function int conv(int a, string b)
+            int r = conv(a = 1, b = 2)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('expects argument'),
+            '''Expected type mismatch error but got: «ex.message»''')
+    }
+
+    @Test
+    def void duplicateParameterName_validationError() {
+        val result = parse('''
+            function int myFn(int a, string a)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Duplicate parameter name: myFn.a'),
+            '''Expected duplicate parameter name error but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_typeMismatchOnNamedArg_validationError() {
+        // The error must be reported on the named argument (not on a non-existing positional argument)
+        val result = parse('''
+            function int myFn(int a, string b)
+            int r = myFn(1, b = 2)
+        ''')
+        val ex = assertThrows(ValidationException) [EcoreUtil3.validate(result)]
+        assertTrue(ex.message.contains('Function myFn expects argument b to be of type string.'),
+            '''Expected type mismatch error on named arg but got: «ex.message»''')
+    }
+
+    @Test
+    def void namedArgs_generic_returnTypeInferred_noValidationError() {
+        // The generic type param must also be resolved from named arguments
+        val result = parse('''
+            function <T> T identity(T x)
+            int r1 = identity(x = 5)
+            string r2 = identity(x = "hello")
+        ''')
+        assertDoesNotThrow [EcoreUtil3.validate(result)]
+    }
+
+    @Test
+    def void namedArgs_generic_returnTypeMismatch_validationError() {
+        val result = parse('''
+            function <T> T identity(T x)
+            string r = identity(x = 5)
+        ''')
+        assertThrows(ValidationException) [EcoreUtil3.validate(result)]
     }
 
     private def ExpressionModel parse(String model) {

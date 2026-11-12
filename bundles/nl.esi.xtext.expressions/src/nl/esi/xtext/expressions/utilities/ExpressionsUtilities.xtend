@@ -46,6 +46,7 @@ import nl.esi.xtext.expressions.expression.ExpressionNot
 import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 import nl.esi.xtext.expressions.expression.ExpressionNullLiteral
 import nl.esi.xtext.expressions.expression.ExpressionOr
+import nl.esi.xtext.expressions.expression.ExpressionPackage
 import nl.esi.xtext.expressions.expression.ExpressionPlus
 import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
@@ -53,6 +54,9 @@ import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
+import nl.esi.xtext.expressions.expression.NamedArgument
+import nl.esi.xtext.expressions.expression.ParameterizedDecl
+import nl.esi.xtext.expressions.expression.ParameterizedRef
 import nl.esi.xtext.types.BasicTypes
 import nl.esi.xtext.types.types.EnumTypeDecl
 import nl.esi.xtext.types.types.GenericsTypeParam
@@ -69,6 +73,7 @@ import nl.esi.xtext.types.types.VectorTypeConstructor
 import nl.esi.xtext.types.types.VectorTypeDecl
 import nl.esi.xtext.types.utilities.TypeUtilities
 import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
 
 import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
@@ -236,19 +241,21 @@ class ExpressionsUtilities {
         return substituteGenerics(type, resolutionMap)
     }
     
-        /**
-     *  Resolve the actual return type
+    /**
+     * Resolve the actual types of a generic type parameter from the arguments of a function call.
+     * Both positional and named arguments are taken into account (see {@link #getFunctionArgs(ExpressionFunctionCall)}).
      */
     def static List<Type> getActualFunctionTypes(GenericsTypeParam type, ExpressionFunctionCall functionCall) {
         val result = newLinkedHashSet
-        val argIter = functionCall.args.iterator
-        val parIter = functionCall.function.params.iterator
-        while(argIter.hasNext && parIter.hasNext) {
-            val arg = argIter.next
-            val param = parIter.next
-            collectMatchingTypes(param.type, arg.typeOf, type, result)
+        val args = functionCall.functionArgs
+        val params = functionCall.function?.params ?: emptyList
+        for (var i = 0; i < Math.min(args.size, params.size); i++) {
+            val arg = args.get(i)
+            if (arg !== null) {
+                collectMatchingTypes(params.get(i).type, arg.typeOf, type, result)
+            }
         }
-       return result.map[asType].toList
+        return result.map[asType].toList
     }
 
     def static List<Expression> getFunctionArgs(ExpressionFunctionCall efc){
@@ -256,8 +263,38 @@ class ExpressionsUtilities {
         if (efc.function === null) {
             return List.of();
         }
-        val result = new ArrayList(efc.args)
-        val params = efc.function.params
+        return getParameterArgs(efc, efc.function)
+    }
+
+    /**
+     * Returns the single-valued, non-containment reference of {@code ref} that refers to a {@link ParameterizedDecl}
+     * (e.g. {@code ExpressionFunctionCall.function}), or {@code null} if there is none.
+     */
+    def static EReference getParameterizedDeclReference(ParameterizedRef ref) {
+        return ref.eClass.EAllReferences.findFirst[
+            !containment && !many && ExpressionPackage.Literals.PARAMETERIZED_DECL.isSuperTypeOf(EReferenceType)
+        ]
+    }
+
+    /**
+     * Returns the {@link ParameterizedDecl} referred to by {@code ref} (possibly an unresolved proxy),
+     * or {@code null} if it is not set.
+     * @see #getParameterizedDeclReference(ParameterizedRef)
+     */
+    def static ParameterizedDecl getParameterizedDecl(ParameterizedRef ref) {
+        val feature = ref.parameterizedDeclReference
+        return feature === null ? null : ref.eGet(feature) as ParameterizedDecl
+    }
+
+    /**
+     * Leniently maps the arguments of {@code ref} to the parameters of {@code decl}: positional arguments by index,
+     * named arguments by name. Unbound parameters are padded with {@code null} and unknown named arguments are ignored;
+     * the result may be longer than the parameter list if there are too many positional arguments.
+     * Use {@link #bindArguments(ParameterizedRef, ParameterizedDecl)} to check whether the arguments match exactly.
+     */
+    def static List<Expression> getParameterArgs(ParameterizedRef ref, ParameterizedDecl decl){
+        val result = new ArrayList(ref.args)
+        val params = decl.params
         // Pad with nulls to match number of params
         while(result.size < params.size) {
             result.add(null)
@@ -270,13 +307,49 @@ class ExpressionsUtilities {
         }
 
         // Fill in named arguments
-        for (na : efc.namedArgs){
+        for (na : ref.namedArgs){
             val ind = paramNameIndexMap.get(na.name)
             if (ind !== null){
                 result.set(ind, na.arg)
             }
         }
         return result
+    }
+
+    /**
+     * Binds the arguments of {@code ref} to the parameters of {@code decl}.
+     * @see #bindArguments(ParameterizedDecl, List, List)
+     */
+    def static List<Expression> bindArguments(ParameterizedRef ref, ParameterizedDecl decl) {
+        return bindArguments(decl, ref.args, ref.namedArgs)
+    }
+
+    /**
+     * Strictly binds arguments to the parameters of {@code decl}: positional arguments by index, named arguments by name.
+     * Returns the argument per parameter (in parameter order), or {@code null} if the arguments cannot be bound, i.e.
+     * there are more positional arguments than parameters, a named argument does not match a parameter name,
+     * a named argument refers to a parameter that is already bound, or a parameter remains unbound.
+     * <p>
+     * In contrast to {@link #getParameterArgs(ParameterizedRef, ParameterizedDecl)} this does not pad unbound parameters with
+     * {@code null}, so it can be used to decide whether a declaration matches at all (e.g. overload resolution).
+     */
+    def static List<Expression> bindArguments(ParameterizedDecl decl, List<Expression> args, List<NamedArgument> namedArgs) {
+        val paramNames = decl.params.map[name]
+        if (args.size > paramNames.size) {
+            return null
+        }
+        val List<Expression> result = newArrayList(args)
+        while (result.size < paramNames.size) {
+            result.add(null)
+        }
+        for (na : namedArgs) {
+            val index = paramNames.indexOf(na.name)
+            if (index < 0 || result.get(index) !== null) {
+                return null
+            }
+            result.set(index, na.arg)
+        }
+        return result.contains(null) ? null : result
     }
 
     private def static TypeObject inferTypeBinaryArithmetic(ExpressionBinary e){

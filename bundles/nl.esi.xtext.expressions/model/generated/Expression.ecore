@@ -12,16 +12,18 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FunctionDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable #//ParameterizedDecl">
     <eStructuralFeatures xsi:type="ecore:EReference" name="typeParams" upperBound="-1"
         eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//GenericsTypeParam"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="returnType" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
         containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
-        eType="#//FunctionParam" containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FunctionParam" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+  <eClassifiers xsi:type="ecore:EClass" name="ParameterizedDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
+        eType="#//Parameter" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Parameter" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
     <eStructuralFeatures xsi:type="ecore:EReference" name="type" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
         containment="true"/>
   </eClassifiers>
@@ -29,8 +31,10 @@
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionNot" eSuperTypes="#//Expression #//ExpressionUnary"/>
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionMinus" eSuperTypes="#//Expression #//ExpressionUnary"/>
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionPlus" eSuperTypes="#//Expression #//ExpressionUnary"/>
-  <eClassifiers xsi:type="ecore:EClass" name="ExpressionFunctionCall" eSuperTypes="#//Expression">
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionFunctionCall" eSuperTypes="#//Expression #//ParameterizedRef">
     <eStructuralFeatures xsi:type="ecore:EReference" name="function" eType="#//FunctionDecl"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ParameterizedRef">
     <eStructuralFeatures xsi:type="ecore:EReference" name="args" upperBound="-1" eType="#//Expression"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="namedArgs" upperBound="-1"

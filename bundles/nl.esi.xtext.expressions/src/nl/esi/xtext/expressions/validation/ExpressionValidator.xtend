@@ -38,6 +38,8 @@ import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.FunctionDecl
+import nl.esi.xtext.expressions.expression.ParameterizedDecl
+import nl.esi.xtext.expressions.expression.ParameterizedRef
 import nl.esi.xtext.expressions.expression.VariableDecl
 import nl.esi.xtext.types.BasicTypes
 import nl.esi.xtext.types.types.Dimension
@@ -279,57 +281,115 @@ class ExpressionValidator extends AbstractExpressionValidator {
 			}
             ExpressionFunctionCall: {
                 if (e.function === null || e.function.name === null) {
-                    error('''Function declaration not found. Name or number of args («e.args.size») is wrong''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
+                    error('''Function declaration not found. Name or number of args («e.args.size + e.namedArgs.size») is wrong''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
                     return
                 }
-                val totalArgs = e.args.size + e.namedArgs.size
-                val duplicates = e.namedArgs.groupBy[name].values.filter[size>1].flatten
-                if (!duplicates.empty) {
-                    for( it : e.namedArgs.groupBy[name].values.filter[size>1].flatten) {
-                        error('''Duplicate argument with name «name».''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS,e.namedArgs.indexOf(it))
-                    }
-                    return 
-                }
-                if (totalArgs != e.function.params.size) {
-                    error('''No Function «e.function.name» declared with «totalArgs» arguments.''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION)
+                // Argument count, names and types are checked for all ParameterizedRefs in checkParameterizedRefArguments.
+                // Only continue if the arguments can be bound to the parameters.
+                if (e.bindArguments(e.function) === null) {
                     return
-                } 
-
-                val paramList = e.function.params.map[name]
-                for (na : e.namedArgs){
-                    val paramIndex = paramList.indexOf(na.name)
-                    if(paramIndex === -1) {
-                        error('''Unknown argument name «na.name» for function «e.function.name»''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS, e.namedArgs.indexOf(na))
-                        return
-                    }
-                    if (paramIndex < e.args.size ) {
-                        error('''Argument name «na.name» with index «paramIndex» has already been specified as numbered arg''', e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__NAMED_ARGS, e.namedArgs.indexOf(na))
-                        return
-                    }
                 }
-
+                // Generic type params are specific to FunctionDecl
                 val ambiguousTypes = e.function.typeParams.filter[tp | tp.getActualFunctionTypes(e).size>1].toList
-                val args = e.functionArgs
-                for (var i = 0; i < args.size; i++) {
-                    val arg = args.get(i)
-                    
-                    val param = e.function.params.get(i)
-                    val paramType = param.type.inferActualType(arg)?.typeObject
-                    val argType = arg.typeOf
-                    if (argType !== null && !argType.subTypeOf(paramType) ) {
-                        error('''Function «e.function.name» expects argument «param.name» to be of type «paramType.typeName».''',
-                            e, ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
-                    }
-                    val containedGenerics = param.type.genericsTypeParams
-                    val isAmbiguous = !containedGenerics.filter[ambiguousTypes.contains(it)].empty
-                    if (isAmbiguous){
-                        error('''Function «e.function.name» generic type mismatch typeParam «param.name» resolving is ambiguous''',
-                           e,  ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__ARGS, i)
+                val params = e.function.params
+                for (var i = 0; i < params.size; i++) {
+                    val param = params.get(i)
+                    if (param.type.genericsTypeParams.exists[ambiguousTypes.contains(it)]) {
+                        errorOnArgument(e, i, '''Function «e.function.name» generic type mismatch typeParam «param.name» resolving is ambiguous''')
                     }
                 }
             }
 		}
 	}
+
+    /**
+     * Parameter names of a {@link ParameterizedDecl} must be unique, otherwise named arguments cannot be bound unambiguously.
+     */
+    @Check
+    def checkDuplicateParameterNames(ParameterizedDecl decl) {
+        checkForNameDuplicationsVerbose(decl.params, 'parameter', decl.name + '.', null)
+    }
+
+    /**
+     * Checks the arguments of a {@link ParameterizedRef} (e.g. an {@link ExpressionFunctionCall}, or a reference in an
+     * inheriting language) against the parameters of the referenced {@link ParameterizedDecl}:
+     * no duplicate named arguments, the number of arguments, known argument names, no named argument for a parameter
+     * that is already bound by a positional argument, and the argument types.
+     * Nothing is checked if the referenced declaration cannot be resolved (linking errors are reported elsewhere).
+     */
+    @Check
+    def checkParameterizedRefArguments(ParameterizedRef ref) {
+        val decl = ref.parameterizedDecl
+        if (decl === null || decl.eIsProxy) {
+            return
+        }
+        val kind = decl.declarationKind
+
+        val duplicates = ref.namedArgs.groupBy[name].values.filter[size > 1].flatten.toList
+        if (!duplicates.empty) {
+            for (na : duplicates) {
+                error('''Duplicate argument with name «na.name».''', ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(na))
+            }
+            return
+        }
+
+        val totalArgs = ref.args.size + ref.namedArgs.size
+        if (totalArgs != decl.params.size) {
+            error('''No «kind» «decl.name» declared with «totalArgs» arguments.''', ref, ref.parameterizedDeclReference)
+            return
+        }
+
+        val paramNames = decl.params.map[name]
+        for (na : ref.namedArgs) {
+            val paramIndex = paramNames.indexOf(na.name)
+            if (paramIndex === -1) {
+                error('''Unknown argument name «na.name» for «kind.toFirstLower» «decl.name»''', ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(na))
+                return
+            }
+            if (paramIndex < ref.args.size) {
+                error('''Argument name «na.name» with index «paramIndex» has already been specified as numbered arg''', ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(na))
+                return
+            }
+        }
+
+        // All checks above passed, so every parameter is bound to exactly one argument
+        val args = ref.bindArguments(decl)
+        for (var i = 0; i < args.size; i++) {
+            val param = decl.params.get(i)
+            val arg = args.get(i)
+            val paramType = param.type.inferActualType(arg)?.typeObject
+            val argType = arg.typeOf
+            if (argType !== null && !argType.subTypeOf(paramType)) {
+                errorOnArgument(ref, i, '''«kind» «decl.name» expects argument «param.name» to be of type «paramType.typeName».''')
+            }
+        }
+    }
+
+    /**
+     * Returns the kind of parameterized declaration as used in validation messages, e.g. 'Function'.
+     * Override in inheriting languages to provide a nicer name than the EClass name.
+     */
+    protected def String getDeclarationKind(ParameterizedDecl decl) {
+        return if (decl instanceof FunctionDecl) 'Function' else decl.eClass.name
+    }
+
+    /**
+     * Reports an error on the argument that is bound to parameter {@code paramIndex} of the referenced declaration:
+     * the positional argument with that index, or otherwise the named argument with the parameter's name.
+     */
+    protected def void errorOnArgument(ParameterizedRef ref, int paramIndex, String message) {
+        if (paramIndex < ref.args.size) {
+            error(message, ref, ExpressionPackage.Literals.PARAMETERIZED_REF__ARGS, paramIndex)
+            return
+        }
+        val paramName = ref.parameterizedDecl?.params?.get(paramIndex)?.name
+        val namedArg = ref.namedArgs.findFirst[name == paramName]
+        if (namedArg !== null) {
+            error(message, ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(namedArg))
+        } else {
+            error(message, ref, ref.parameterizedDeclReference)
+        }
+    }
 	
 	static def getBaseTypeToCheck(TypeObject vt){
 		var TypeDecl base
