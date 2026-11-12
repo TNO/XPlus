@@ -53,17 +53,27 @@ VariableDecl:
 
 FunctionDecl:
     Annotations
-    'function' ('<' typeParams += GenericsTypeParam  (',' typeParams += GenericsTypeParam)* '>')? returnType = Type name = ID '(' (params += FunctionParam (',' params += FunctionParam)*)? ')'
+    'function' ('<' typeParams += GenericsTypeParam  (',' typeParams += GenericsTypeParam)* '>')? returnType = Type 
+    ParameterizedDecl
 ;
 
-FunctionParam:
+/*
+ * Name and parameter list of a ParameterizedDecl (see 'add extra superclasses in metamodel' below).
+ * Inheriting languages can reuse it for parameterized declarations without generics or a return type.
+ * References to a ParameterizedDecl (e.g. calls) should use the Arguments fragment.
+ */
+fragment ParameterizedDecl returns ParameterizedDecl:
+    name = ID '(' (params += Parameter (',' params += Parameter)*)? ')'
+;
+
+Parameter:
     Annotations
     type = Type name = ID
 ;
 
 @Override
 NamedElement returns base::NamedElement:
-    super::NamedElement | Variable | FunctionDecl | FunctionParam
+    super::NamedElement | Variable | ConcreteParameterizedDecl | Parameter
 ;
 
 Expression: ExpressionLevel1;
@@ -153,7 +163,22 @@ ExpressionLevel9 returns Expression:
 ;
 
 ExpressionFunctionCall: 
-    function = [FunctionDecl|ID] '(' (args += Expression (',' args += Expression)*)? (',' namedArgs += NamedArgument)* ')'
+    function = [FunctionDecl|ID] Arguments
+;
+
+/*
+ * Argument list of a ParameterizedRef: a reference to a ParameterizedDecl that supplies arguments for its parameters,
+ * e.g. a function call (ExpressionFunctionCall) or an activity declaration referring to an activity definition.
+ * Every rule calling this fragment becomes a ParameterizedRef (like Annotations makes it Annotatable), so its
+ * arguments are matched against the parameters of the referenced ParameterizedDecl (see ParameterizedDeclOverloadScope).
+ * Inheriting languages can reuse it for references to their own parameterized declarations.
+ * Positional arguments come first, followed by named arguments; the list may also start with a named argument.
+ */
+fragment Arguments returns ParameterizedRef:
+    '(' (
+          args += Expression (',' args += Expression)* (',' namedArgs += NamedArgument)*
+        | namedArgs += NamedArgument (',' namedArgs += NamedArgument)*
+    )? ')'
 ;
 
 NamedArgument:
@@ -219,6 +244,14 @@ Pair:
 ;
 
 // --- add extra superclasses in metamodel -------
+
+/*
+ * Makes ParameterizedDecl (introduced by the ParameterizedDecl fragment) a NamedElement
+ * and lists its concrete subtypes. Add new parameterized declarations here, e.g. FunctionDecl | ClassDecl.
+ */
+ConcreteParameterizedDecl returns ParameterizedDecl:
+    FunctionDecl
+;
 
 ExpressionTernary returns Expression:
     {ExpressionTernary}

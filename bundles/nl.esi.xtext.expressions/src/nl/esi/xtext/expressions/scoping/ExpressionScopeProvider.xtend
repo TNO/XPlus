@@ -14,13 +14,13 @@ package nl.esi.xtext.expressions.scoping
 
 import nl.esi.xtext.expressions.expression.ExpressionBinary
 import nl.esi.xtext.expressions.expression.ExpressionEnumLiteral
-import nl.esi.xtext.expressions.expression.ExpressionFunctionCall
 import nl.esi.xtext.expressions.expression.ExpressionPackage
 import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.Field
 import nl.esi.xtext.expressions.expression.FunctionDecl
+import nl.esi.xtext.expressions.expression.ParameterizedRef
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypesPackage
@@ -60,12 +60,13 @@ class ExpressionScopeProvider extends AbstractExpressionScopeProvider {
                 val rec = context.eContainer
                 return rec instanceof ExpressionRecord ? scopeFor(rec.type.allFields) : IScope.NULLSCOPE
             }
-            ExpressionFunctionCall case reference == ExpressionPackage.Literals.EXPRESSION_FUNCTION_CALL__FUNCTION: {
-                // Use custom scope that implements three-phase matching:
-                // 1. Exact type match (arg count + types)
+            ParameterizedRef case ExpressionPackage.Literals.PARAMETERIZED_DECL.isSuperTypeOf(reference.EReferenceType): {
+                // References to ParameterizedDecls with arguments (e.g. ExpressionFunctionCall, or ParameterizedRefs
+                // in inheriting languages) use a custom scope that implements three-phase matching:
+                // 1. Exact type match (arg count + types, named args bound by parameter name)
                 // 2. Size match (arg count only - for better error messages)
-                // 3. First function (any overload - for error reporting)
-                return new FunctionOverloadScope(super.getScope(context, reference), context)
+                // 3. First declaration (any overload - for error reporting)
+                return new ParameterizedDeclOverloadScope(super.getScope(context, reference), context)
             }
             case reference == TypesPackage.Literals.TYPE__TYPE: {
                 val funcDecl = context.getContainerOfType(FunctionDecl)
