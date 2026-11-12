@@ -267,6 +267,19 @@ class ExpressionsUtilities {
     }
 
     /**
+     * Returns the value of the {@code name} feature of {@code decl}, or {@code null} if it has none.
+     * <p>
+     * {@link ParameterizedDecl} itself does not declare a {@code name} feature, because inheriting languages
+     * may provide it via a different base class than {@code nl.esi.xtext.common.lang.base.NamedElement}
+     * (e.g. {@link FunctionDecl} in this language does). This structural (duck-typed) lookup works regardless
+     * of which base class actually contributes the {@code name} feature.
+     */
+    def static String getName(ParameterizedDecl decl) {
+        val feature = decl.eClass.getEStructuralFeature('name')
+        return if (feature !== null && feature.EType.instanceClass == String) decl.eGet(feature) as String else null
+    }
+
+    /**
      * Returns the single-valued, non-containment reference of {@code ref} that refers to a {@link ParameterizedDecl}
      * (e.g. {@code ExpressionFunctionCall.function}), or {@code null} if there is none.
      */

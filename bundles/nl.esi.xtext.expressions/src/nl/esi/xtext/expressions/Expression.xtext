@@ -54,6 +54,7 @@ VariableDecl:
 FunctionDecl:
     Annotations
     'function' ('<' typeParams += GenericsTypeParam  (',' typeParams += GenericsTypeParam)* '>')? returnType = Type 
+    name = ID
     ParameterizedDecl
 ;
 
@@ -63,7 +64,7 @@ FunctionDecl:
  * References to a ParameterizedDecl (e.g. calls) should use the Arguments fragment.
  */
 fragment ParameterizedDecl returns ParameterizedDecl:
-    name = ID '(' (params += Parameter (',' params += Parameter)*)? ')'
+    '(' (params += Parameter (',' params += Parameter)*)? ')'
 ;
 
 Parameter:
@@ -73,7 +74,7 @@ Parameter:
 
 @Override
 NamedElement returns base::NamedElement:
-    super::NamedElement | Variable | ConcreteParameterizedDecl | Parameter
+    super::NamedElement | Variable | FunctionDecl | Parameter
 ;
 
 Expression: ExpressionLevel1;
@@ -244,15 +245,6 @@ Pair:
 ;
 
 // --- add extra superclasses in metamodel -------
-
-/*
- * Makes ParameterizedDecl (introduced by the ParameterizedDecl fragment) a NamedElement
- * and lists its concrete subtypes. Add new parameterized declarations here, e.g. FunctionDecl | ClassDecl.
- */
-ConcreteParameterizedDecl returns ParameterizedDecl:
-    FunctionDecl
-;
-
 ExpressionTernary returns Expression:
     {ExpressionTernary}
     left=Expression

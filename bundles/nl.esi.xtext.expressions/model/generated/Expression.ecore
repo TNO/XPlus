@@ -12,14 +12,14 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="#//Expression"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="FunctionDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable #//ParameterizedDecl">
+  <eClassifiers xsi:type="ecore:EClass" name="FunctionDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable #//ParameterizedDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
     <eStructuralFeatures xsi:type="ecore:EReference" name="typeParams" upperBound="-1"
         eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//GenericsTypeParam"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="returnType" eType="ecore:EClass platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//Type"
         containment="true"/>
   </eClassifiers>
-  <eClassifiers xsi:type="ecore:EClass" name="ParameterizedDecl" eSuperTypes="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//NamedElement">
+  <eClassifiers xsi:type="ecore:EClass" name="ParameterizedDecl">
     <eStructuralFeatures xsi:type="ecore:EReference" name="params" upperBound="-1"
         eType="#//Parameter" containment="true"/>
   </eClassifiers>
