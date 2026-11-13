@@ -12,7 +12,9 @@ package nl.esi.xtext.common.lang.utilities;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.common.util.WrappedException;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EObjectValidator;
@@ -293,6 +296,59 @@ public class EcoreUtil3 extends EcoreUtil2 {
 		}
 	}
 
+    /**
+     * Returns the fully qualified name of {@code object}, i.e. the dot-separated path of names of
+     * {@code object} and its containers, starting from the root container down to {@code object} itself.
+     * <p>
+     * The path is built by collecting the {@link #getEName(EObject) name} of each container, from the
+     * outermost (root) container down to {@code object}. As soon as a container (or {@code object} itself)
+     * has no name (i.e. {@link #getEName(EObject) getEName} returns {@code null}), the path stops there and
+     * that (and any deeper) segment is not included.
+     * 
+     * @return the dot-separated fully qualified name, or {@code null} if the root container itself has no name
+     */
+    public static String fqn(EObject object) {
+        if (object == null) {
+            return null;
+        }
+        var chain = new ArrayList<EObject>();
+        for (var current = object; current != null; current = current.eContainer()) {
+            chain.add(current);
+        }
+        var names = chain.stream().map(EcoreUtil3::getEName).takeWhile(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (names.isEmpty()) {
+            return null;
+        }
+        Collections.reverse(names);
+        return names.stream().collect(Collectors.joining("."));
+    }
+
+    /**
+     * Returns the {@code name} feature of {@code object}, or {@code null} if it has none.
+     * <p>
+     * {@link ParameterizedDecl} itself does not declare a {@code name} feature, because inheriting languages
+     * may provide it via a different base class than {@code nl.esi.xtext.common.lang.base.NamedElement}
+     * (e.g. {@link FunctionDecl} in this language does). This structural (duck-typed) lookup works regardless
+     * of which base class actually contributes the {@code name} feature, so callers should not assume it is
+     * always {@code nl.esi.xtext.common.lang.base.BasePackage.Literals#NAMED_ELEMENT__NAME} (e.g. for use as
+     * the feature parameter of a validation error/warning).
+     */
+    public static EStructuralFeature getNameFeature(EObject object) {
+        var feature = object == null ? null : object.eClass().getEStructuralFeature("name");
+        return feature != null && feature.getEType().getInstanceClass() == String.class ? feature : null;
+    }
+
+    /**
+     * Returns the value of the {@code name} feature of {@code object}, or {@code null} if it has none.
+     * <p>
+     * See {@link #getNameFeature(EObject)} for details on how the feature is looked up.
+     */
+    public static String getEName(EObject object) {
+        var feature = getNameFeature(object);
+        return feature != null ? (String) object.eGet(feature) : null;
+    }
+    
 	public static final class ValidationException extends Exception {
 		private static final long serialVersionUID = 4543121779695994392L;
 

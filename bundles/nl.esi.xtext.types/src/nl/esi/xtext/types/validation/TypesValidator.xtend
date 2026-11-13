@@ -29,10 +29,12 @@ import nl.esi.xtext.types.types.TypesPackage
 import org.eclipse.core.runtime.Platform
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EValidator
+import org.eclipse.emf.ecore.util.EcoreUtil
 import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.validation.Check
 import org.eclipse.xtext.validation.EValidatorRegistrar
 
+import static extension nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 
 /**
@@ -54,8 +56,9 @@ class TypesValidator extends AbstractTypesValidator {
         val importedURIs = TypesImportUriGlobalScopeProvider.traverseImportedURIs(decl.eResource, newLinkedHashSet)
 
         // Used because the resource with the predefined types is somehow not loaded by the resource description provider
-        val importedTypes = BasicTypes.allBasicTypes.map[name].toList
-        importedTypes += importedURIs.flatMap[resourceDescription.getExportedObjectsByType(TypesPackage.Literals.TYPE_DECL)].map[name.toString]
+        val importedTypes = BasicTypes.allBasicTypes.map[fqn].toList
+        importedTypes += importedURIs.flatMap[resourceDescription.getExportedObjectsByType(TypesPackage.Literals.TYPE_DECL)].map[
+            EcoreUtil.resolve(EObjectOrProxy, decl.eResource).fqn]
 
         for (duplicate : importedTypes.groupBy[it].filter[k, v|v.size > 1].keySet) {
             error("Imports contain duplicate type with name " + duplicate, decl,
@@ -74,8 +77,8 @@ class TypesValidator extends AbstractTypesValidator {
         val importedTypes = checkDuplicationsInImportedTypes(decl)
         // Check the local types
         for (tDecl : decl.types) {
-            if (importedTypes.contains(tDecl.name)) {
-                error("Type with the same name is already imported", tDecl, BasePackage.Literals.NAMED_ELEMENT__NAME)
+            if (importedTypes.contains(tDecl.fqn)) {
+                error('''Type with name «tDecl.fqn» is already imported''', tDecl, tDecl.nameFeature)
             }
         }
     }
@@ -132,7 +135,7 @@ class TypesValidator extends AbstractTypesValidator {
 			val inheritedFields = type.parent.getAllFields
 			for(f : type.fields){
 				if(!inheritedFields.filter(ff | ff.name.equals(f.name)).empty){
-					error("Local field overrides inherited field", f, BasePackage.Literals.NAMED_ELEMENT__NAME)
+					error("Local field overrides inherited field", f, f.nameFeature)
 				}
 			}
 		}
@@ -160,7 +163,7 @@ class TypesValidator extends AbstractTypesValidator {
 			}
 			else{
 				if(l.value <= currentValue){
-					error("Enum value has to be greater than the previous value", l, BasePackage.Literals.NAMED_ELEMENT__NAME);
+					error("Enum value has to be greater than the previous value", l, l.nameFeature);
 					return
 				}
 				else {
@@ -176,7 +179,9 @@ class TypesValidator extends AbstractTypesValidator {
 	 */
 	@Check
 	def checkDuplicatedTypeDeclarations(TypesModel typedecl) {
-		checkForNameDuplicationsVerbose(typedecl.types, "type declaration", "", null)
+		for (duplicate : typedecl.types.getDuplicatesBy[fqn]) {
+			error('''Duplicate type declaration name: «duplicate.fqn»''', duplicate, duplicate.nameFeature)
+		}
 	}
 	
 	/*

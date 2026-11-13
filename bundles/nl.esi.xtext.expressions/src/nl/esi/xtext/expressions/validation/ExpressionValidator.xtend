@@ -14,6 +14,7 @@ import java.util.List
 import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
+import nl.esi.xtext.expressions.expression.ExpressionConditional
 import nl.esi.xtext.expressions.expression.ExpressionDivision
 import nl.esi.xtext.expressions.expression.ExpressionEnumLiteral
 import nl.esi.xtext.expressions.expression.ExpressionEqual
@@ -30,6 +31,7 @@ import nl.esi.xtext.expressions.expression.ExpressionMinus
 import nl.esi.xtext.expressions.expression.ExpressionModulo
 import nl.esi.xtext.expressions.expression.ExpressionMultiply
 import nl.esi.xtext.expressions.expression.ExpressionNot
+import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
 import nl.esi.xtext.expressions.expression.ExpressionOr
 import nl.esi.xtext.expressions.expression.ExpressionPackage
 import nl.esi.xtext.expressions.expression.ExpressionPlus
@@ -53,10 +55,9 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.scoping.IScopeProvider
 import org.eclipse.xtext.validation.Check
 
-import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
+import static extension nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 import static extension nl.esi.xtext.expressions.utilities.ExpressionsUtilities.*
-import nl.esi.xtext.expressions.expression.ExpressionNullCoalescing
-import nl.esi.xtext.expressions.expression.ExpressionConditional
+import static extension nl.esi.xtext.types.utilities.TypeUtilities.*
 
 /*
  * This class mainly captures the XPlus type system for expressions. Constraints are not formulated
@@ -307,7 +308,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
      */
     @Check
     def checkDuplicateParameterNames(ParameterizedDecl decl) {
-        checkForNameDuplicationsVerbose(decl.params, 'parameter', decl.name + '.', null)
+        checkForNameDuplicationsVerbose(decl.params, 'parameter', decl.EName + '.', null)
     }
 
     /**
@@ -335,7 +336,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
 
         val totalArgs = ref.args.size + ref.namedArgs.size
         if (totalArgs != decl.params.size) {
-            error('''No «kind» «decl.name» declared with «totalArgs» arguments.''', ref, ref.parameterizedDeclReference)
+            error('''No «kind» «decl.EName» declared with «totalArgs» arguments.''', ref, ref.parameterizedDeclReference)
             return
         }
 
@@ -343,7 +344,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
         for (na : ref.namedArgs) {
             val paramIndex = paramNames.indexOf(na.name)
             if (paramIndex === -1) {
-                error('''Unknown argument name «na.name» for «kind.toFirstLower» «decl.name»''', ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(na))
+                error('''Unknown argument name «na.name» for «kind.toFirstLower» «decl.EName»''', ref, ExpressionPackage.Literals.PARAMETERIZED_REF__NAMED_ARGS, ref.namedArgs.indexOf(na))
                 return
             }
             if (paramIndex < ref.args.size) {
@@ -360,7 +361,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
             val paramType = param.type.inferActualType(arg)?.typeObject
             val argType = arg.typeOf
             if (argType !== null && !argType.subTypeOf(paramType)) {
-                errorOnArgument(ref, i, '''«kind» «decl.name» expects argument «param.name» to be of type «paramType.typeName».''')
+                errorOnArgument(ref, i, '''«kind» «decl.EName» expects argument «param.name» to be of type «paramType.typeName».''')
             }
         }
     }
