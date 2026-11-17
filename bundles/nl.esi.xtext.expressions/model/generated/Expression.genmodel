@@ -22,9 +22,6 @@
     <genClasses ecoreClass="Expression.ecore#//ParameterizedDecl">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ParameterizedDecl/params"/>
     </genClasses>
-    <genClasses ecoreClass="Expression.ecore#//Parameter">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//Parameter/type"/>
-    </genClasses>
     <genClasses ecoreClass="Expression.ecore#//Expression"/>
     <genClasses ecoreClass="Expression.ecore#//ExpressionNot"/>
     <genClasses ecoreClass="Expression.ecore#//ExpressionMinus"/>
@@ -92,6 +89,9 @@
     <genClasses ecoreClass="Expression.ecore#//ExpressionModel">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionModel/variables"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionModel/functions"/>
+    </genClasses>
+    <genClasses ecoreClass="Expression.ecore#//Parameter">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//Parameter/type"/>
     </genClasses>
     <genClasses ecoreClass="Expression.ecore#//ExpressionAnd"/>
     <genClasses ecoreClass="Expression.ecore#//ExpressionOr"/>

@@ -67,14 +67,15 @@ fragment ParameterizedDecl returns ParameterizedDecl:
     '(' (params += Parameter (',' params += Parameter)*)? ')'
 ;
 
-Parameter:
+Parameter returns Variable:
+    {Parameter}
     Annotations
     type = Type name = ID
 ;
 
 @Override
 NamedElement returns base::NamedElement:
-    super::NamedElement | Variable | FunctionDecl | Parameter
+    super::NamedElement | Variable | FunctionDecl
 ;
 
 Expression: ExpressionLevel1;
