@@ -29,6 +29,15 @@ class ExpressionValidationTest {
     ParseHelper<ExpressionModel> parseHelper
 
     @Test
+    def void testRecordFieldDefaultValueWrongType() {
+        validateExpectingError('''
+            record R {
+                int a = "x"
+            }
+        ''', "Type mismatch")
+    }
+
+    @Test
     def void testWildcardExpressionComparison() {
         validate('''
             int someValue = 3
@@ -332,5 +341,23 @@ class ExpressionValidationTest {
         // test serialization
         EcoreUtil3.serialize(result)
 
+    }
+
+    /**
+     * Parses {@code text} (expecting no parse errors) and asserts that {@link EcoreUtil3#validate}
+     * reports a validation error whose message contains {@code expectedMessageFragment}.
+     */
+    private def void validateExpectingError(String text, String expectedMessageFragment) {
+        val result = parseHelper.parse(text)
+
+        Assertions.assertNotNull(result)
+        val errors = result.eResource.errors
+        Assertions.assertTrue(errors.isEmpty, '''Unexpected parsing errors: «errors.join(", ")»''')
+
+        val exception = Assertions.assertThrows(EcoreUtil3.ValidationException) [
+            EcoreUtil3.validate(result)
+        ]
+        Assertions.assertTrue(exception.message.contains(expectedMessageFragment),
+            '''Expected validation error containing "«expectedMessageFragment»" but got: «exception.message»''')
     }
 }

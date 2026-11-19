@@ -13,7 +13,6 @@
 package nl.esi.xtext.expressions.tests
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Disabled
 
 class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     @Test
@@ -347,6 +346,96 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     }
 
     // ExpressionUnary
+
+    @Test
+    def void recordFieldDefaultValueExplicitlyOverridden() {
+        val types = '''
+            record R {
+                int a = 1
+                int b
+            }
+        '''
+        assertEval('''
+            «types»
+            R r = R {
+                b = 2
+            }
+            int x = 1
+            int y = 2
+        ''', '''
+            «types»
+            R r = R {
+                b = 2
+            }
+            int x = r.a
+            int y = r.b
+        ''')
+    }
+
+    @Test
+    def void recordFieldDefaultValueOmittedField() {
+        val types = '''
+            record R {
+                int a = 1
+            }
+        '''
+        assertEval('''
+            «types»
+            R r = R {
+            }
+            int x = 1
+        ''', '''
+            «types»
+            R r = R {
+            }
+            int x = r.a
+        ''')
+    }
+
+    @Test
+    def void recordFieldDefaultValueThroughFunctionCall() {
+        val types = '''
+            record R {
+                int a = abs(-5)
+            }
+        '''
+        assertEval('''
+            «types»
+            R r = R {
+            }
+            int x = 5
+        ''', '''
+            «types»
+            R r = R {
+            }
+            int x = r.a
+        ''')
+    }
+
+    @Test
+    def void recordFieldDefaultValueInherited() {
+        val types = '''
+            record Base {
+                int a = 1
+            }
+            record R extends Base {
+                bool flag
+            }
+        '''
+        assertEval('''
+            «types»
+            R r = R {
+                flag = true
+            }
+            int x = 1
+        ''', '''
+            «types»
+            R r = R {
+                flag = true
+            }
+            int x = r.a
+        ''')
+    }
 
     @Test
     def void expressionBracket() {

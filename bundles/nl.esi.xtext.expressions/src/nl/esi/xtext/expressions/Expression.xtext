@@ -78,6 +78,25 @@ NamedElement returns base::NamedElement:
     super::NamedElement | Variable | FunctionDecl
 ;
 
+@Override
+RecordTypeDecl returns types::RecordTypeDecl:
+    {ExpressionRecordTypeDecl}
+    Annotations
+    'record' name = ID ('extends' parent = [types::RecordTypeDecl])? 
+    '{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
+; 
+/*
+ * RecordField gets concrete syntax here (Types grammar cannot reference Expression).
+ * NOTE: a defaultValue expression must be self-contained: it cannot refer to other
+ * fields of the same RecordTypeDecl as implicit variables (no such scoping exists).
+ */
+@Override
+RecordField returns types::RecordField:
+    {ExpressionRecordField}
+    Annotations
+    type = Type name = ID ('=' defaultValue=Expression)?
+;
+
 Expression: ExpressionLevel1;
 
 ExpressionLevel1 returns Expression:        // Left associativity
@@ -221,7 +240,7 @@ ExpressionVariable:
 ;
 
 ExpressionRecord: 
-    type = [types::RecordTypeDecl] '{' fields+=Field (',' fields+=Field)* '}'
+    type = [types::RecordTypeDecl] '{' (fields+=Field (',' fields+=Field)*)? '}'
 ;
 
 Field:
