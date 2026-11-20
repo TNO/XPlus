@@ -78,13 +78,6 @@ NamedElement returns base::NamedElement:
     super::NamedElement | Variable | FunctionDecl
 ;
 
-@Override
-RecordTypeDecl returns types::RecordTypeDecl:
-    {ExpressionRecordTypeDecl}
-    Annotations
-    'record' name = ID ('extends' parent = [types::RecordTypeDecl])? 
-    '{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
-; 
 /*
  * RecordField gets concrete syntax here (Types grammar cannot reference Expression).
  * NOTE: a defaultValue expression must be self-contained: it cannot refer to other
