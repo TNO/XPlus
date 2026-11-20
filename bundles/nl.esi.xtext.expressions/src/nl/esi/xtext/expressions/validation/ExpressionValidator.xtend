@@ -37,6 +37,7 @@ import nl.esi.xtext.expressions.expression.ExpressionPackage
 import nl.esi.xtext.expressions.expression.ExpressionPlus
 import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
+import nl.esi.xtext.expressions.expression.ExpressionRecordField
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.FunctionDecl
@@ -87,6 +88,20 @@ class ExpressionValidator extends AbstractExpressionValidator {
         val rhs = vd?.expression?.typeOf
         if(lhs !== null && rhs !== null && !rhs.subTypeOf(lhs)){
             error('''Type mismatch: declared type '«lhs.typeName»' does not match the expected type '«rhs.typeName»' ''', ExpressionPackage.Literals.VARIABLE_DECL__VARIABLE)
+        }
+    }
+
+    //Type checking
+    @Check
+    def checkRecordFieldDefaultValue(ExpressionRecordField rf) {
+        val defaultExp = rf.defaultValue
+        if (defaultExp === null) {
+            return
+        }
+        val expType = defaultExp.typeOf
+        val fieldType = rf.type?.typeObject
+        if (expType !== null && fieldType !== null && !expType.subTypeOf(fieldType)) {
+            error('''Type mismatch: default value does not conform to the declared type '«fieldType.typeName»' ''', rf, ExpressionPackage.Literals.EXPRESSION_RECORD_FIELD__DEFAULT_VALUE)
         }
     }
 	
@@ -199,10 +214,6 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				}
 			}
 			ExpressionRecord : {
-				if(e.fields.size()!=getAllFields(e.type).size()) {
-					//error('Wrong number of fields', ExpressionPackage.Literals.EXPRESSION_RECORD__FIELDS)
-					//return
-				} 
 				for(f : e.fields){
 				    var counter = e.fields.stream.filter(r| r.recordField.name == f.recordField.name).count
 				    if (counter > 1) {
@@ -219,7 +230,9 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				        }
 				    }
 				}
-				
+				// NOTE: fields that are omitted from the literal and have no declared default are intentionally
+				// NOT reported as an error here, to stay backward compatible with existing models that rely on
+				// partially-initialized records (omitted fields simply remain unresolved, e.g. null at evaluation time).
 			}
 			ExpressionMapRW : {
 				val mapType = e.map.typeOf

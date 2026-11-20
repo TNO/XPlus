@@ -51,6 +51,7 @@ import nl.esi.xtext.expressions.expression.ExpressionPlus
 import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
+import nl.esi.xtext.expressions.expression.ExpressionRecordField
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
@@ -74,6 +75,7 @@ import nl.esi.xtext.types.types.VectorTypeDecl
 import nl.esi.xtext.types.utilities.TypeUtilities
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
@@ -101,6 +103,15 @@ class ExpressionsUtilities {
         }
     }
 
+    /**
+     * Returns the default value expression declared on {@code rf} (only {@link ExpressionRecordField}
+     * instances - the subtype of {@code types::RecordField} introduced by this grammar - can have one),
+     * or {@code null} if none was declared.
+     */
+    def static Expression getDefaultValueExpression(RecordField rf) {
+        return rf instanceof ExpressionRecordField ? rf.defaultValue : null
+    }
+
     def static Expression createDefaultValue(TypeObject typeObj, (RecordField)=>Boolean filter) {
         return switch (typeObj) {
             SimpleTypeDecl case typeObj.name == 'int': createExpressionConstantInt
@@ -118,7 +129,9 @@ class ExpressionsUtilities {
                 for(field: typeObj.allFields.filter[filter.apply(it)]) {
                     fields += createField => [
                         recordField = field
-                        exp = field.type.typeObject.createDefaultValue(filter)
+                        exp = field.defaultValueExpression !== null
+                            ? EcoreUtil.copy(field.defaultValueExpression)
+                            : field.type.typeObject.createDefaultValue(filter)
                     ]
                 }
             ]
@@ -442,6 +455,9 @@ class ExpressionsUtilities {
         }
     }
 
+    // TODO: this text-generation path (used for other target languages) does not yet take
+    // RecordField.defaultValue into account; it still always generates the type's default
+    // value for every field. Out of scope for this change.
     def static CharSequence generateDefaultValue(TypeObject t, (RecordField)=>Boolean filter) {
         switch (t) {
             SimpleTypeDecl: {

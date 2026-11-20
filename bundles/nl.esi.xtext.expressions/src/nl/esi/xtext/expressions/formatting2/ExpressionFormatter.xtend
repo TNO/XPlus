@@ -230,7 +230,7 @@ class ExpressionFormatter extends TypesFormatter {
 
         expr.fields.forEach[format]
 
-        rFinder.keyword(expressionRecordAccess.commaKeyword_3_0)?.prepend(noSpace).append(oneSpace)
+        rFinder.keyword(expressionRecordAccess.commaKeyword_2_1_0)?.prepend(noSpace).append(oneSpace)
         if (!expr.fields.isEmpty) {
             expr.fields.last.prepend(oneSpace)
         }
