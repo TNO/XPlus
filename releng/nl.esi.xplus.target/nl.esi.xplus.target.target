@@ -74,7 +74,7 @@
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="a.jre.org.eclipse.justj.openjdk.hotspot.jre.full.stripped" version="0.0.0"/>
-      <repository location="https://download.eclipse.org/justj/jres/25/updates/release/latest"/>
+      <repository location="https://download.eclipse.org/justj/jres/21/updates/release/latest"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="de.itemis.xtext.antlr.feature.feature.group" version="0.0.0"/>
