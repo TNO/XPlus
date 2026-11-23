@@ -10,7 +10,7 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ "main", "develop", "2026-09" ]
     tags:
       - "v*.*.*"
   pull_request:
@@ -89,7 +89,7 @@ jobs:
         destination_dir: nightly
         keep_files: false
     
-    # Deploy P2 Repository to GitHub Pages for nightly builds
+    # Deploy P2 Repository to GitHub Pages for the 2026-09 branch
     - name: Deploy P2 Repository (2026-09)
       if: github.ref == 'refs/heads/2026-09' && success()
       uses: peaceiris/actions-gh-pages@v4
