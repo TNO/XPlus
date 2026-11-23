@@ -178,6 +178,9 @@
                     <configuration>
                         <useUIHarness>false</useUIHarness>
                         <useUIThread>false</useUIThread>
+                        <!-- Tests use JUnit 6 (Jupiter). Without an explicit hint, Tycho falls back to
+                             the JUnit 4 provider because JUnit 4 is also on the test classpath. -->
+                        <providerHint>junit6</providerHint>
                         <dependencies>
                             <!-- Avoid CNFE in Surefire when looking for JUnitPlatformProvider
                                  https://bugs.eclipse.org/bugs/show_bug.cgi?id=570426-->
