@@ -30,4 +30,4 @@ ifndef::extdocdir[:extdocdir: ../target/adoc-ext/adoc]
 // non-breaking hyphen
 :nbh: &#8209;
 
-:eclipse-help-location: https://help.eclipse.org/2024-09/topic
+:eclipse-help-location: https://help.eclipse.org/2026-09/topic

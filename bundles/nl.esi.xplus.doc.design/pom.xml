@@ -158,7 +158,7 @@
                         <icons>font</icons>
                         <imagesdir />
                         <imgsdir>images</imgsdir>
-                        <eclipse-help-location>https://help.eclipse.org/2024-09/topic</eclipse-help-location>
+                        <eclipse-help-location>https://help.eclipse.org/2026-09/topic</eclipse-help-location>
                     </attributes>
                     <resources>
                         <resource>

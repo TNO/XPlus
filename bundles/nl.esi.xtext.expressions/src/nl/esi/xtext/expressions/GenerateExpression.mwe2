@@ -76,7 +76,7 @@ Workflow {
                 generateStub = true
             }
             junitSupport = {
-                junitVersion = "5"
+                junitVersion = "6"
             }
             emfGenerator = nl.esi.xplus.xtext.generator.ecore.EMFGeneratorFragment {
                 generateEdit = true
