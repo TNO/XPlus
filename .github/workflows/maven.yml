@@ -88,7 +88,16 @@ jobs:
         publish_dir: ./releng/nl.esi.xplus.standard.site/target/repository
         destination_dir: nightly
         keep_files: false
-
+    
+    # Deploy P2 Repository to GitHub Pages for nightly builds
+    - name: Deploy P2 Repository (2026-09)
+      if: github.ref == 'refs/heads/2026-09' && success()
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./releng/nl.esi.xplus.standard.site/target/repository
+        destination_dir: 2026-09
+        keep_files: false
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
     # - name: Update dependency graph
     #   uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
