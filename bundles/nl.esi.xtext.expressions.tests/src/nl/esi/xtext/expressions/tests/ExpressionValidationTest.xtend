@@ -38,6 +38,35 @@ class ExpressionValidationTest {
     }
 
     @Test
+    def void testSimpleTypeDeclDefaultValue() {
+        validate('''
+            type AType based on int = 3
+            AType a = 5
+        ''')
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueNegativeConstant() {
+        validate('''
+            type AType based on int = -3
+        ''')
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueWrongType() {
+        validateExpectingError('''
+            type AType based on int = "x"
+        ''', "Type mismatch")
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueNotConstant() {
+        validateExpectingError('''
+            type AType based on int = 1 + 2
+        ''', "constant expression")
+    }
+
+    @Test
     def void testWildcardExpressionComparison() {
         validate('''
             int someValue = 3

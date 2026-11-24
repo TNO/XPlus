@@ -15,6 +15,10 @@ import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionAddition
 import nl.esi.xtext.expressions.expression.ExpressionAnd
 import nl.esi.xtext.expressions.expression.ExpressionConditional
+import nl.esi.xtext.expressions.expression.ExpressionConstantBool
+import nl.esi.xtext.expressions.expression.ExpressionConstantInt
+import nl.esi.xtext.expressions.expression.ExpressionConstantReal
+import nl.esi.xtext.expressions.expression.ExpressionConstantString
 import nl.esi.xtext.expressions.expression.ExpressionDivision
 import nl.esi.xtext.expressions.expression.ExpressionEnumLiteral
 import nl.esi.xtext.expressions.expression.ExpressionEqual
@@ -38,6 +42,7 @@ import nl.esi.xtext.expressions.expression.ExpressionPlus
 import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionRecordField
+import nl.esi.xtext.expressions.expression.ExpressionSimpleTypeDecl
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.FunctionDecl
@@ -102,6 +107,38 @@ class ExpressionValidator extends AbstractExpressionValidator {
         val fieldType = rf.type?.typeObject
         if (expType !== null && fieldType !== null && !expType.subTypeOf(fieldType)) {
             error('''Type mismatch: default value does not conform to the declared type '«fieldType.typeName»' ''', rf, ExpressionPackage.Literals.EXPRESSION_RECORD_FIELD__DEFAULT_VALUE)
+        }
+    }
+
+    //Type checking
+    @Check
+    def checkSimpleTypeDeclDefaultValue(ExpressionSimpleTypeDecl std) {
+        val defaultExp = std.defaultValue
+        if (defaultExp === null) {
+            return
+        }
+        if (!defaultExp.isAllowedSimpleTypeDefaultValue) {
+            error('''Default value of a simple type must be a constant expression''', std, ExpressionPackage.Literals.EXPRESSION_SIMPLE_TYPE_DECL__DEFAULT_VALUE)
+            return
+        }
+        val expType = defaultExp.typeOf
+        if (expType !== null && !expType.subTypeOf(std)) {
+            error('''Type mismatch: default value does not conform to the declared type '«std.typeName»' ''', std, ExpressionPackage.Literals.EXPRESSION_SIMPLE_TYPE_DECL__DEFAULT_VALUE)
+        }
+    }
+
+    /**
+     * The default value of a simple type must be a literal constant, optionally negated
+     * (e.g. {@code -3}), so it cannot refer to variables, functions or other declarations.
+     */
+    private def boolean isAllowedSimpleTypeDefaultValue(Expression e) {
+        return switch (e) {
+            ExpressionConstantBool,
+            ExpressionConstantInt,
+            ExpressionConstantReal,
+            ExpressionConstantString: true
+            ExpressionMinus: e.sub.isAllowedSimpleTypeDefaultValue
+            default: false
         }
     }
 	

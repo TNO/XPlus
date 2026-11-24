@@ -4,7 +4,7 @@
     creationIcons="false" editDirectory="nl.esi.xtext.expressions.edit/src-gen" modelPluginID="nl.esi.xtext.expressions"
     forceOverwrite="true" modelName="Expression" updateClasspath="false" rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container"
     importerID="org.eclipse.emf.importer.ecore" complianceLevel="11.0" copyrightFields="false"
-    editPluginID="nl.esi.xtext.expressions.edit" runtimeVersion="2.29" usedGenPackages="../../../nl.esi.xtext.common.lang/model/generated/Base.genmodel#//base ../../../nl.esi.xtext.types/model/generated/Types.genmodel#//types"
+    editPluginID="nl.esi.xtext.expressions.edit" runtimeVersion="2.29" usedGenPackages="platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.genmodel#//base platform:/resource/nl.esi.xtext.types/model/generated/Types.genmodel#//types"
     operationReflection="true">
   <foreignModel>Expression.ecore</foreignModel>
   <genPackages prefix="Expression" basePackage="nl.esi.xtext.expressions" disposableProviderFactory="true"
@@ -94,6 +94,9 @@
     <genClasses ecoreClass="Expression.ecore#//Parameter"/>
     <genClasses ecoreClass="Expression.ecore#//ExpressionRecordField">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionRecordField/defaultValue"/>
+    </genClasses>
+    <genClasses ecoreClass="Expression.ecore#//ExpressionSimpleTypeDecl">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Expression.ecore#//ExpressionSimpleTypeDecl/defaultValue"/>
     </genClasses>
     <genClasses ecoreClass="Expression.ecore#//ExpressionAnd"/>
     <genClasses ecoreClass="Expression.ecore#//ExpressionOr"/>

@@ -52,6 +52,7 @@ import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
 import nl.esi.xtext.expressions.expression.ExpressionRecordField
+import nl.esi.xtext.expressions.expression.ExpressionSimpleTypeDecl
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
@@ -112,12 +113,44 @@ class ExpressionsUtilities {
         return rf instanceof ExpressionRecordField ? rf.defaultValue : null
     }
 
+    /**
+     * Returns the default value expression declared on {@code std} (only {@link ExpressionSimpleTypeDecl}
+     * instances - the subtype of {@code types::SimpleTypeDecl} introduced by this grammar - can have one),
+     * or {@code null} if none was declared.
+     */
+    def static Expression getDefaultValueExpression(SimpleTypeDecl std) {
+        return std instanceof ExpressionSimpleTypeDecl ? std.defaultValue : null
+    }
+
+    /**
+     * Returns a safe-to-attach copy of {@code declared} if it is non-{@code null} (i.e. a default value was
+     * actually declared, be it on a {@code RecordField} or a {@code SimpleTypeDecl}), otherwise invokes
+     * {@code fallback} to compute one. Shared by both {@code createDefaultValue} branches below so the
+     * "declared-default-takes-precedence-else-compute" logic (and the defensive copy) is only written once.
+     */
+    private def static Expression useDeclaredOrCompute(Expression declared, ()=>Expression fallback) {
+        return declared !== null ? EcoreUtil.copy(declared) : fallback.apply()
+    }
+
     def static Expression createDefaultValue(TypeObject typeObj, (RecordField)=>Boolean filter) {
         return switch (typeObj) {
-            SimpleTypeDecl case typeObj.name == 'int': createExpressionConstantInt
-            SimpleTypeDecl case typeObj.name == 'real': createExpressionConstantReal
-            SimpleTypeDecl case typeObj.name == 'bool': createExpressionConstantBool
-            SimpleTypeDecl: createExpressionConstantString => [ value = "" ]
+            SimpleTypeDecl: typeObj.defaultValueExpression.useDeclaredOrCompute [
+                if (typeObj.name == 'int') {
+                    createExpressionConstantInt
+                } else if (typeObj.name == 'real') {
+                    createExpressionConstantReal
+                } else if (typeObj.name == 'bool') {
+                    createExpressionConstantBool
+                } else if (typeObj.name == 'string') {
+                    createExpressionConstantString => [ value = "" ]
+                } else if (typeObj.base !== null) {
+                    typeObj.base.createDefaultValue(filter)
+                } else {
+                    // No declared default, no recognized built-in name and no base type to fall back on:
+                    // default to an empty string rather than failing (e.g. ill-formed/incomplete models).
+                    createExpressionConstantString => [ value = "" ]
+                }
+            ]
 
             EnumTypeDecl: createExpressionEnumLiteral => [
                 type = typeObj
@@ -129,9 +162,7 @@ class ExpressionsUtilities {
                 for(field: typeObj.allFields.filter[filter.apply(it)]) {
                     fields += createField => [
                         recordField = field
-                        exp = field.defaultValueExpression !== null
-                            ? EcoreUtil.copy(field.defaultValueExpression)
-                            : field.type.typeObject.createDefaultValue(filter)
+                        exp = field.defaultValueExpression.useDeclaredOrCompute[field.type.typeObject.createDefaultValue(filter)]
                     ]
                 }
             ]
