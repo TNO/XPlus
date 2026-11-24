@@ -12,8 +12,13 @@
  */
 package nl.esi.xtext.types.scoping
 
-import com.google.common.base.Predicate
+import com.google.inject.Inject
+import java.util.ArrayList
+import java.util.LinkedHashMap
+import java.util.List
+import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.Type
+import nl.esi.xtext.types.types.TypeDecl
 import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypesPackage
 import nl.esi.xtext.types.utilities.TypeUtilities
@@ -21,9 +26,15 @@ import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.emf.ecore.EStructuralFeature
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.resource.EObjectDescription
 import org.eclipse.xtext.resource.IEObjectDescription
+import org.eclipse.xtext.resource.impl.AliasedEObjectDescription
+import org.eclipse.xtext.resource.impl.ResourceDescriptionsProvider
 import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.impl.FilteringScope
+import org.eclipse.xtext.scoping.impl.SimpleScope
 
 /**
  * This class contains custom scoping description.
@@ -43,20 +54,28 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
      * */
     static val EXCLUDED_BASE_TYPES = #{'bool', 'void', 'any', 'id'}
 
+    @Inject
+    ResourceDescriptionsProvider resourceDescriptionsProvider
+
     override getScope(EObject context, EReference reference) {
         switch (reference) {
             case TypesPackage.Literals.SIMPLE_TYPE_DECL__BASE: {
                 logScope('''Filtering out «EXCLUDED_BASE_TYPES» and self-reference''', context, reference)
-                return filterScope(context, reference)[!EXCLUDED_BASE_TYPES.contains(name.toString) && EObjectOrProxy !== context]
+                return filterScope(context, reference) [ desc |
+                    !EXCLUDED_BASE_TYPES.contains(desc.name.toString) && desc.EObjectOrProxy !== context
+                ]
             }
             case reference.isTypeDeclReference: {
+                val scope = super.getScope(context, reference).withNestedTypeShorthands(context, reference)
                 val contextType = context.getContextType(reference)
                 if (contextType !== null) {
                     logScope('''Filtering "«TypeUtilities.getTypeName(contextType)»"''', context, reference)
-                    return filterScope(context, reference) [ desc |
+                    return new FilteringScope(scope) [ desc |
                         TypeUtilities.subTypeOf(desc.EObjectOrProxy as TypeObject, contextType)
                     ]
                 }
+                logScope('Default', context, reference)
+                return scope
             }
         }
 
@@ -64,8 +83,106 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
         return super.getScope(context, reference)
     }
 
-    def protected IScope filterScope(EObject context, EReference reference, Predicate<IEObjectDescription> filter) {
-        return new FilteringScope(super.getScope(context, reference), filter)
+    def protected IScope filterScope(EObject context, EReference reference, (IEObjectDescription)=>boolean filter) {
+        return new FilteringScope(super.getScope(context, reference).withNestedTypeShorthands(context, reference), filter)
+    }
+
+    /**
+     * Allows a nested type (e.g. {@code B} nested in record {@code A}, with fully qualified
+     * name {@code A.B}) to also be referenced by its simple (unqualified) name, provided that
+     * name is unambiguous, i.e. exactly one visible type declaration has that simple name as
+     * the last segment of its fully qualified name. If multiple nested types share the same
+     * simple name, the shorthand instead resolves to the nested type declared in the closest
+     * enclosing record of {@code context} (searching outwards, innermost first), analogous to
+     * how an unqualified nested class name is resolved in languages like Java. Only if no
+     * enclosing record declares a matching nested type either, is the shorthand left out
+     * entirely, requiring the fully qualified name to disambiguate.
+     * <p>
+     * Candidates are gathered directly from {@code context}'s resource and its (transitive)
+     * imports, rather than via {@link IScope#getAllElements()} on {@code scope}: that method is
+     * meant for content assist/no-name queries, and using it during actual linking is both
+     * inefficient (it forces full resolution of the, possibly large, global scope) and logs a
+     * warning (see {@code org.eclipse.xtext.linking.impl.ImportedNamesAdapter}).
+     * <p>
+     * Only candidates whose runtime type is compatible with {@code reference}'s declared target
+     * type are considered (e.g. a {@code SimpleTypeDecl.base} reference will never get a
+     * shorthand alias pointing to a nested {@code RecordTypeDecl}).
+     */
+    def protected IScope withNestedTypeShorthands(IScope scope, EObject context, EReference reference) {
+        val resource = context.eResource
+        if (resource === null) {
+            return scope
+        }
+        val targetType = reference.EReferenceType
+
+        val candidatesByName = new LinkedHashMap<QualifiedName, List<IEObjectDescription>>()
+        for (desc : resource.nestedTypeCandidates) {
+            if (targetType === null || targetType.isSuperTypeOf(desc.EClass)) {
+                val shortName = QualifiedName.create(desc.name.lastSegment)
+                candidatesByName.computeIfAbsent(shortName, [new ArrayList<IEObjectDescription>()]).add(desc)
+            }
+        }
+
+        val shorthands = new ArrayList<IEObjectDescription>()
+        for (entry : candidatesByName.entrySet) {
+            val candidates = entry.value
+            val resolved = if (candidates.size === 1) {
+                candidates.get(0)
+            } else {
+                context.findEnclosingNestedTypeCandidate(entry.key.lastSegment, candidates)
+            }
+            if (resolved !== null) {
+                shorthands.add(new AliasedEObjectDescription(entry.key, resolved))
+            }
+        }
+
+        return if (shorthands.empty) scope else new SimpleScope(scope, shorthands)
+    }
+
+    /**
+     * Collects {@link IEObjectDescription}s for all nested type declarations (i.e. type
+     * declarations directly contained in a {@link RecordTypeDecl}'s {@code types}) visible from
+     * {@code resource}: both ones declared locally (in {@code resource} itself) and ones declared
+     * in its (transitive) imports.
+     */
+    def protected Iterable<IEObjectDescription> nestedTypeCandidates(Resource resource) {
+        val candidates = new ArrayList<IEObjectDescription>()
+
+        resource.allContents.filter(TypeDecl)
+            .filter[name !== null && eContainer instanceof RecordTypeDecl]
+            .map[EObjectDescription.create(QualifiedName.create(name), it) as IEObjectDescription]
+            .forEach[candidates.add(it)]
+
+        val resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(resource)
+        val importedURIs = TypesImportUriGlobalScopeProvider.traverseImportedURIs(resource, newLinkedHashSet)
+        importedURIs
+            .map[resourceDescriptions.getResourceDescription(it)]
+            .filterNull
+            .flatMap[getExportedObjectsByType(TypesPackage.Literals.TYPE_DECL)]
+            .filter[name.segmentCount > 1]
+            .forEach[candidates.add(it)]
+
+        return candidates
+    }
+
+    /**
+     * Searches the chain of enclosing {@link RecordTypeDecl}s of {@code context} (starting with
+     * the closest one and moving outwards) for one that directly declares a nested type named
+     * {@code simpleName}, and returns the matching entry from {@code candidates} (matched by
+     * identity), or {@code null} if none of the enclosing records declare such a nested type.
+     */
+    def protected IEObjectDescription findEnclosingNestedTypeCandidate(EObject context, String simpleName, List<IEObjectDescription> candidates) {
+        var current = context
+        while (current !== null) {
+            if (current instanceof RecordTypeDecl) {
+                val match = current.types.findFirst[name == simpleName]
+                if (match !== null) {
+                    return candidates.findFirst[EObjectOrProxy === match]
+                }
+            }
+            current = current.eContainer
+        }
+        return null
     }
 
     def protected TypeObject getContextType(EObject context, EStructuralFeature reference) {

@@ -23,6 +23,7 @@
     </genClasses>
     <genClasses ecoreClass="Types.ecore#//RecordTypeDecl">
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference Types.ecore#//RecordTypeDecl/parent"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Types.ecore#//RecordTypeDecl/types"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference Types.ecore#//RecordTypeDecl/fields"/>
     </genClasses>
     <genClasses ecoreClass="Types.ecore#//RecordField">

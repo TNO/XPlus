@@ -84,7 +84,7 @@ class TypesFormatter extends BaseFormatter {
 
         val allBrackets = rFinder.keywordPairs(
             recordTypeDeclAccess.leftCurlyBracketKeyword_4,
-            recordTypeDeclAccess.rightCurlyBracketKeyword_6
+            recordTypeDeclAccess.rightCurlyBracketKeyword_7
         )
         if (!allBrackets.nullOrEmpty) {
             val brackets = allBrackets.head
@@ -94,10 +94,11 @@ class TypesFormatter extends BaseFormatter {
             brackets.value.prepend(newLine)
         }
 
-        for (ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_5_1_0)) {
+        for (ISemanticRegion region : rFinder.keywords(recordTypeDeclAccess.commaKeyword_6_1_0)) {
             region.prepend(noSpace)
         }
 
+        recordTypeDecl.types.forEach[format]
         recordTypeDecl.fields.forEach[format]
     }
 

@@ -13,8 +13,10 @@
 package nl.esi.xtext.types
 
 import nl.esi.xtext.common.lang.conversion.BaseValueConverterService
+import nl.esi.xtext.types.naming.TypesQualifiedNameProvider
 import nl.esi.xtext.types.scoping.TypesImportUriGlobalScopeProvider
 import org.eclipse.xtext.conversion.IValueConverterService
+import org.eclipse.xtext.naming.IQualifiedNameProvider
 import org.eclipse.xtext.scoping.IGlobalScopeProvider
 
 /**
@@ -28,6 +30,10 @@ class TypesRuntimeModule extends AbstractTypesRuntimeModule {
 	
 	override Class<? extends IValueConverterService> bindIValueConverterService() {
         return BaseValueConverterService
+    }
+
+	override Class<? extends IQualifiedNameProvider> bindIQualifiedNameProvider() {
+        return TypesQualifiedNameProvider
     }
 	
 }
