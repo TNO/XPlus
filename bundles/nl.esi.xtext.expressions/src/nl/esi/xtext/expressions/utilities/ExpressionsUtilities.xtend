@@ -486,20 +486,41 @@ class ExpressionsUtilities {
         }
     }
 
-    // TODO: this text-generation path (used for other target languages) does not yet take
-    // RecordField.defaultValue into account; it still always generates the type's default
-    // value for every field. Out of scope for this change.
+    /**
+     * Renders a declared default value expression (as allowed by the validator, i.e. a constant literal,
+     * optionally negated - see {@code ExpressionValidator#isAllowedDeclaredDefaultValue}) to the textual
+     * concrete syntax used by {@link #generateDefaultValue}. Returns {@code ""} for anything else, so this
+     * stays a safe fallback even if an invalid model (e.g. with validation errors) is generated regardless.
+     */
+    private def static CharSequence serializeDeclaredDefaultValue(Expression e) {
+        return switch (e) {
+            ExpressionConstantBool: e.value.toString
+            ExpressionConstantInt: e.value.toString
+            ExpressionConstantReal: e.value.toString
+            ExpressionConstantString: '''"«e.value.replace("\\", "\\\\").replace("\"", "\\\"")»"'''
+            ExpressionMinus: '''-«serializeDeclaredDefaultValue(e.sub)»'''
+            default: ""
+        }
+    }
+
+    // This text-generation path is used for other target languages. Field/type defaults declared in the
+    // model (RecordField.defaultValue, SimpleTypeDecl.defaultValue) are always constant expressions (this
+    // is enforced by the validator), so they can be rendered directly via #serializeDeclaredDefaultValue;
+    // only when no default was declared do we fall back to the type's hardcoded/recursive default below.
     def static CharSequence generateDefaultValue(TypeObject t, (RecordField)=>Boolean filter) {
         switch (t) {
             SimpleTypeDecl: {
+                val declared = t.defaultValueExpression
+                if (declared !== null) return declared.serializeDeclaredDefaultValue
                 if(t.name.equals("int")) return '''0'''
                 if(t.name.equals("real")) return '''0.0'''
                 if(t.name.equals("bool")) return '''true'''
                 if(t.name.equals("string")) return '''""'''
+                if(t.base !== null) return generateDefaultValue(t.base, filter)
                 ""
             }
             EnumTypeDecl: serialize(t) + "::" + t.literals.get(0).name
-            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type.typeObject, filter)»«ENDFOR»}'''
+            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «f.defaultValueExpression !== null ? f.defaultValueExpression.serializeDeclaredDefaultValue : generateDefaultValue(f.type.typeObject, filter)»«ENDFOR»}'''
             VectorTypeDecl: '''<«serialize(t)»>[]'''
             VectorTypeConstructor: '''<«serialize(t)»>[]'''
             MapTypeDecl: '''<«serialize(t)»>{}'''

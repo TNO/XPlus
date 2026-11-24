@@ -143,6 +143,90 @@ class ExpressionDefaultValueTest {
         Assertions.assertEquals(10L, (bValue as ExpressionConstantInt).value)
     }
 
+    @Test
+    def void generateDefaultValueForBuiltInTypes() {
+        Assertions.assertEquals("0", BasicTypes.getIntType().generateDefaultValue[true].toString)
+        Assertions.assertEquals("0.0", BasicTypes.getRealType().generateDefaultValue[true].toString)
+        Assertions.assertEquals("true", BasicTypes.getBoolType().generateDefaultValue[true].toString)
+        Assertions.assertEquals('''""'''.toString, BasicTypes.getStringType().generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueUsesDeclaredDefault() {
+        val model = parse('''
+            type AType based on int = 3
+        ''')
+        val aType = model.simpleType('AType')
+
+        Assertions.assertEquals("3", aType.generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueRendersNegativeConstant() {
+        val model = parse('''
+            type NegType based on int = -5
+        ''')
+        val negType = model.simpleType('NegType')
+
+        Assertions.assertEquals("-5", negType.generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueEscapesStringDefault() {
+        val model = parse('''
+            type Quoted based on string = "She said \"hi\" and used a \\ backslash"
+        ''')
+        val quoted = model.simpleType('Quoted')
+
+        Assertions.assertEquals('''"She said \"hi\" and used a \\ backslash"'''.toString, quoted.generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueIsInheritedFromBaseType() {
+        val model = parse('''
+            type AType based on int = 3
+            type BType based on AType
+        ''')
+        val bType = model.simpleType('BType')
+
+        // BType declares no default of its own: it must fall back to AType's declared default.
+        Assertions.assertEquals("3", bType.generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueFallsBackToEmptyStringWithoutBaseOrDefault() {
+        val model = parse('''
+            type Plain
+        ''')
+        val plain = model.simpleType('Plain')
+
+        // Unlike createDefaultValue (which creates an actual ExpressionConstantString with value ""),
+        // generateDefaultValue's defensive fallback for an unrecognized/base-less SimpleTypeDecl simply
+        // yields empty text - there is no sensible concrete syntax to emit for such an ill-formed model.
+        Assertions.assertEquals("", plain.generateDefaultValue[true].toString)
+    }
+
+    @Test
+    def void generateDefaultValueForRecordUsesFieldDefaultsOrFallsBackToType() {
+        val model = parse('''
+            type AType based on int = 3
+            record R {
+                AType a
+                int b = 10
+            }
+        ''')
+        val recordType = model.types.filter(RecordTypeDecl).findFirst[name == 'R']
+        Assertions.assertNotNull(recordType)
+
+        val generated = recordType.generateDefaultValue[true].toString
+
+        // Field 'a' has no own default: it falls back to its type's (AType) declared default.
+        Assertions.assertTrue(generated.contains("a = 3"), '''Expected "a = 3" in: «generated»''')
+
+        // Field 'b' declares its own default, which takes precedence.
+        Assertions.assertTrue(generated.contains("b = 10"), '''Expected "b = 10" in: «generated»''')
+    }
+
     private def ExpressionModel parse(CharSequence text) {
         val model = parseHelper.parse(text)
         Assertions.assertNotNull(model)
