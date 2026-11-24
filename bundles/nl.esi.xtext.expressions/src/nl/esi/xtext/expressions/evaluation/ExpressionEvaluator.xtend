@@ -150,15 +150,11 @@ class ExpressionEvaluator {
                 return explicit
             }
             // The field was not given a value in the record literal: fall back to its declared default.
+            // Per validation, a declared default is always a constant expression (optionally negated),
+            // so - unlike ExpressionVariable above - it never needs to be wrapped in brackets and
+            // re-evaluated: there is nothing left to resolve (e.g. no variable/function reference).
             val defaultExp = expression.field.defaultValueExpression
-            if (defaultExp !== null) {
-                // Wrap in brackets + re-evaluate, mirroring ExpressionVariable, so a default that
-                // itself references a variable/function still resolves correctly.
-                val wrapped = createExpressionBracket
-                wrapped.sub = EcoreUtil.copy(defaultExp)
-                return wrapped.evaluate(context)
-            }
-            return null
+            return defaultExp === null ? null : EcoreUtil.copy(defaultExp)
         } else if (expression.nullSafe && recordExpression instanceof ExpressionNullLiteral) {
             return recordExpression
         }

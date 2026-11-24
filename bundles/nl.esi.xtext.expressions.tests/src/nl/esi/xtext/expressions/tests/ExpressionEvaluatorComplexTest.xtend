@@ -393,26 +393,6 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
     }
 
     @Test
-    def void recordFieldDefaultValueThroughFunctionCall() {
-        val types = '''
-            record R {
-                int a = abs(-5)
-            }
-        '''
-        assertEval('''
-            «types»
-            R r = R {
-            }
-            int x = 5
-        ''', '''
-            «types»
-            R r = R {
-            }
-            int x = r.a
-        ''')
-    }
-
-    @Test
     def void recordFieldDefaultValueInherited() {
         val types = '''
             record Base {

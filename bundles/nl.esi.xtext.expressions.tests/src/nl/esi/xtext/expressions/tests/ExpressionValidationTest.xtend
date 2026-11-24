@@ -38,6 +38,15 @@ class ExpressionValidationTest {
     }
 
     @Test
+    def void testRecordFieldDefaultValueNotConstant() {
+        validateExpectingError('''
+            record R {
+                int a = 1 + 2
+            }
+        ''', "constant expression")
+    }
+
+    @Test
     def void testSimpleTypeDeclDefaultValue() {
         validate('''
             type AType based on int = 3

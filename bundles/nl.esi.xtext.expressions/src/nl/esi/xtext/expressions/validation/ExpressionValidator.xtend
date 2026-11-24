@@ -103,6 +103,10 @@ class ExpressionValidator extends AbstractExpressionValidator {
         if (defaultExp === null) {
             return
         }
+        if (!defaultExp.isAllowedDeclaredDefaultValue) {
+            error('''Default value of a record field must be a constant expression''', rf, ExpressionPackage.Literals.EXPRESSION_RECORD_FIELD__DEFAULT_VALUE)
+            return
+        }
         val expType = defaultExp.typeOf
         val fieldType = rf.type?.typeObject
         if (expType !== null && fieldType !== null && !expType.subTypeOf(fieldType)) {
@@ -117,7 +121,7 @@ class ExpressionValidator extends AbstractExpressionValidator {
         if (defaultExp === null) {
             return
         }
-        if (!defaultExp.isAllowedSimpleTypeDefaultValue) {
+        if (!defaultExp.isAllowedDeclaredDefaultValue) {
             error('''Default value of a simple type must be a constant expression''', std, ExpressionPackage.Literals.EXPRESSION_SIMPLE_TYPE_DECL__DEFAULT_VALUE)
             return
         }
@@ -128,16 +132,19 @@ class ExpressionValidator extends AbstractExpressionValidator {
     }
 
     /**
-     * The default value of a simple type must be a literal constant, optionally negated
-     * (e.g. {@code -3}), so it cannot refer to variables, functions or other declarations.
+     * The declared default value of a {@code RecordField} or a {@code SimpleTypeDecl} must be a literal constant,
+     * optionally negated (e.g. {@code -3}), so it cannot refer to variables, functions or other declarations:
+     * both are copied as-is - with no evaluation context - whenever a default value is needed elsewhere, e.g. by
+     * {@link nl.esi.xtext.expressions.utilities.ExpressionsUtilities#createDefaultValue} or
+     * {@link nl.esi.xtext.expressions.utilities.ExpressionsUtilities#generateDefaultValue}.
      */
-    private def boolean isAllowedSimpleTypeDefaultValue(Expression e) {
+    private def boolean isAllowedDeclaredDefaultValue(Expression e) {
         return switch (e) {
             ExpressionConstantBool,
             ExpressionConstantInt,
             ExpressionConstantReal,
             ExpressionConstantString: true
-            ExpressionMinus: e.sub.isAllowedSimpleTypeDefaultValue
+            ExpressionMinus: e.sub.isAllowedDeclaredDefaultValue
             default: false
         }
     }
