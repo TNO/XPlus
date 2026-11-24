@@ -132,6 +132,25 @@ class ExpressionsUtilities {
         return declared !== null ? EcoreUtil.copy(declared) : fallback.apply()
     }
 
+    /**
+     * Returns the hardcoded default literal (textual concrete syntax) for the built-in simple type named
+     * {@code name} - {@code "int"} &#8594; {@code "0"}, {@code "real"} &#8594; {@code "0.0"},
+     * {@code "bool"} &#8594; {@code "true"}, {@code "string"} &#8594; {@code "\"\""} - or {@code null} if
+     * {@code name} is not one of those recognized built-in names. Single source of truth shared by
+     * {@link #generateDefaultValue} and {@code ProposalHelper#createDefaultValue(TypeDecl, ...)}, both of
+     * which otherwise fall back to a type-decl-specific default (e.g. recursing into the base type) when
+     * {@code null} is returned.
+     */
+    def static String builtInDefaultLiteral(String name) {
+        return switch (name) {
+            case 'int': '0'
+            case 'real': '0.0'
+            case 'bool': 'true'
+            case 'string': '""'
+            default: null
+        }
+    }
+
     def static Expression createDefaultValue(TypeObject typeObj, (RecordField)=>Boolean filter) {
         return switch (typeObj) {
             SimpleTypeDecl: typeObj.defaultValueExpression.useDeclaredOrCompute [
@@ -491,8 +510,11 @@ class ExpressionsUtilities {
      * optionally negated - see {@code ExpressionValidator#isAllowedDeclaredDefaultValue}) to the textual
      * concrete syntax used by {@link #generateDefaultValue}. Returns {@code ""} for anything else, so this
      * stays a safe fallback even if an invalid model (e.g. with validation errors) is generated regardless.
+     * <p>
+     * Public (not just used internally by {@link #generateDefaultValue}) so other text-generation code -
+     * e.g. {@link ProposalHelper} - can render a declared default consistently without duplicating this logic.
      */
-    private def static CharSequence serializeDeclaredDefaultValue(Expression e) {
+    def static CharSequence serializeDeclaredDefaultValue(Expression e) {
         return switch (e) {
             ExpressionConstantBool: e.value.toString
             ExpressionConstantInt: e.value.toString
@@ -512,10 +534,8 @@ class ExpressionsUtilities {
             SimpleTypeDecl: {
                 val declared = t.defaultValueExpression
                 if (declared !== null) return declared.serializeDeclaredDefaultValue
-                if(t.name.equals("int")) return '''0'''
-                if(t.name.equals("real")) return '''0.0'''
-                if(t.name.equals("bool")) return '''true'''
-                if(t.name.equals("string")) return '''""'''
+                val literal = builtInDefaultLiteral(t.name)
+                if (literal !== null) return literal
                 if(t.base !== null) return generateDefaultValue(t.base, filter)
                 ""
             }
