@@ -56,6 +56,8 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.emf.ecore.util.EcoreUtil
 
+import static extension nl.esi.xtext.expressions.utilities.ExpressionsUtilities.*
+
 @Singleton
 class ExpressionEvaluator {
     static extension val ExpressionFactory m_exp = ExpressionFactory.eINSTANCE
@@ -143,8 +145,16 @@ class ExpressionEvaluator {
         // Hence it should be evaluated before used
         val recordExpression = expression.record.evaluate(context)
         if (recordExpression instanceof ExpressionRecord) {
-            // TODO: Should we throw an Exception when the field is not associated with a value?
-            return recordExpression.fields.findFirst[recordField == expression.field]?.exp
+            val explicit = recordExpression.fields.findFirst[recordField == expression.field]?.exp
+            if (explicit !== null) {
+                return explicit
+            }
+            // The field was not given a value in the record literal: fall back to its declared default.
+            // Per validation, a declared default is always a constant expression (optionally negated),
+            // so - unlike ExpressionVariable above - it never needs to be wrapped in brackets and
+            // re-evaluated: there is nothing left to resolve (e.g. no variable/function reference).
+            val defaultExp = expression.field.defaultValueExpression
+            return defaultExp === null ? null : EcoreUtil.copy(defaultExp)
         } else if (expression.nullSafe && recordExpression instanceof ExpressionNullLiteral) {
             return recordExpression
         }

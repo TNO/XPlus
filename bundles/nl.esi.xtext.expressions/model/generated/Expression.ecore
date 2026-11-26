@@ -108,6 +108,14 @@
         eType="#//FunctionDecl" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Parameter" eSuperTypes="#//Variable"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionRecordField" eSuperTypes="platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//RecordField">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="defaultValue" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ExpressionSimpleTypeDecl" eSuperTypes="platform:/resource/nl.esi.xtext.types/model/generated/Types.ecore#//SimpleTypeDecl">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="defaultValue" eType="#//Expression"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionAnd" eSuperTypes="#//Expression #//ExpressionBinary"/>
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionOr" eSuperTypes="#//Expression #//ExpressionBinary"/>
   <eClassifiers xsi:type="ecore:EClass" name="ExpressionEqual" eSuperTypes="#//Expression #//ExpressionBinary"/>

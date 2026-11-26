@@ -51,6 +51,8 @@ import nl.esi.xtext.expressions.expression.ExpressionPlus
 import nl.esi.xtext.expressions.expression.ExpressionPower
 import nl.esi.xtext.expressions.expression.ExpressionRecord
 import nl.esi.xtext.expressions.expression.ExpressionRecordAccess
+import nl.esi.xtext.expressions.expression.ExpressionRecordField
+import nl.esi.xtext.expressions.expression.ExpressionSimpleTypeDecl
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
@@ -74,6 +76,7 @@ import nl.esi.xtext.types.types.VectorTypeDecl
 import nl.esi.xtext.types.utilities.TypeUtilities
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static nl.esi.xtext.common.lang.utilities.EcoreUtil3.*
 
@@ -101,12 +104,72 @@ class ExpressionsUtilities {
         }
     }
 
+    /**
+     * Returns the default value expression declared on {@code rf} (only {@link ExpressionRecordField}
+     * instances - the subtype of {@code types::RecordField} introduced by this grammar - can have one),
+     * or {@code null} if none was declared.
+     */
+    def static Expression getDefaultValueExpression(RecordField rf) {
+        return rf instanceof ExpressionRecordField ? rf.defaultValue : null
+    }
+
+    /**
+     * Returns the default value expression declared on {@code std} (only {@link ExpressionSimpleTypeDecl}
+     * instances - the subtype of {@code types::SimpleTypeDecl} introduced by this grammar - can have one),
+     * or {@code null} if none was declared.
+     */
+    def static Expression getDefaultValueExpression(SimpleTypeDecl std) {
+        return std instanceof ExpressionSimpleTypeDecl ? std.defaultValue : null
+    }
+
+    /**
+     * Returns a safe-to-attach copy of {@code declared} if it is non-{@code null} (i.e. a default value was
+     * actually declared, be it on a {@code RecordField} or a {@code SimpleTypeDecl}), otherwise invokes
+     * {@code fallback} to compute one. Shared by both {@code createDefaultValue} branches below so the
+     * "declared-default-takes-precedence-else-compute" logic (and the defensive copy) is only written once.
+     */
+    private def static Expression useDeclaredOrCompute(Expression declared, ()=>Expression fallback) {
+        return declared !== null ? EcoreUtil.copy(declared) : fallback.apply()
+    }
+
+    /**
+     * Returns the hardcoded default literal (textual concrete syntax) for the built-in simple type named
+     * {@code name} - {@code "int"} &#8594; {@code "0"}, {@code "real"} &#8594; {@code "0.0"},
+     * {@code "bool"} &#8594; {@code "true"}, {@code "string"} &#8594; {@code "\"\""} - or {@code null} if
+     * {@code name} is not one of those recognized built-in names. Single source of truth shared by
+     * {@link #generateDefaultValue} and {@code ProposalHelper#createDefaultValue(TypeDecl, ...)}, both of
+     * which otherwise fall back to a type-decl-specific default (e.g. recursing into the base type) when
+     * {@code null} is returned.
+     */
+    def static String builtInDefaultLiteral(String name) {
+        return switch (name) {
+            case 'int': '0'
+            case 'real': '0.0'
+            case 'bool': 'true'
+            case 'string': '""'
+            default: null
+        }
+    }
+
     def static Expression createDefaultValue(TypeObject typeObj, (RecordField)=>Boolean filter) {
         return switch (typeObj) {
-            SimpleTypeDecl case typeObj.name == 'int': createExpressionConstantInt
-            SimpleTypeDecl case typeObj.name == 'real': createExpressionConstantReal
-            SimpleTypeDecl case typeObj.name == 'bool': createExpressionConstantBool
-            SimpleTypeDecl: createExpressionConstantString => [ value = "" ]
+            SimpleTypeDecl: typeObj.defaultValueExpression.useDeclaredOrCompute [
+                if (typeObj.name == 'int') {
+                    createExpressionConstantInt
+                } else if (typeObj.name == 'real') {
+                    createExpressionConstantReal
+                } else if (typeObj.name == 'bool') {
+                    createExpressionConstantBool
+                } else if (typeObj.name == 'string') {
+                    createExpressionConstantString => [ value = "" ]
+                } else if (typeObj.base !== null) {
+                    typeObj.base.createDefaultValue(filter)
+                } else {
+                    // No declared default, no recognized built-in name and no base type to fall back on:
+                    // default to an empty string rather than failing (e.g. ill-formed/incomplete models).
+                    createExpressionConstantString => [ value = "" ]
+                }
+            ]
 
             EnumTypeDecl: createExpressionEnumLiteral => [
                 type = typeObj
@@ -118,7 +181,7 @@ class ExpressionsUtilities {
                 for(field: typeObj.allFields.filter[filter.apply(it)]) {
                     fields += createField => [
                         recordField = field
-                        exp = field.type.typeObject.createDefaultValue(filter)
+                        exp = field.defaultValueExpression.useDeclaredOrCompute[field.type.typeObject.createDefaultValue(filter)]
                     ]
                 }
             ]
@@ -442,17 +505,42 @@ class ExpressionsUtilities {
         }
     }
 
+    /**
+     * Renders a declared default value expression (as allowed by the validator, i.e. a constant literal,
+     * optionally negated - see {@code ExpressionValidator#isAllowedDeclaredDefaultValue}) to the textual
+     * concrete syntax used by {@link #generateDefaultValue}. Returns {@code ""} for anything else, so this
+     * stays a safe fallback even if an invalid model (e.g. with validation errors) is generated regardless.
+     * <p>
+     * Public (not just used internally by {@link #generateDefaultValue}) so other text-generation code -
+     * e.g. {@link ProposalHelper} - can render a declared default consistently without duplicating this logic.
+     */
+    def static CharSequence serializeDeclaredDefaultValue(Expression e) {
+        return switch (e) {
+            ExpressionConstantBool: e.value.toString
+            ExpressionConstantInt: e.value.toString
+            ExpressionConstantReal: e.value.toString
+            ExpressionConstantString: '''"«e.value.replace("\\", "\\\\").replace("\"", "\\\"")»"'''
+            ExpressionMinus: '''-«serializeDeclaredDefaultValue(e.sub)»'''
+            default: ""
+        }
+    }
+
+    // This text-generation path is used for other target languages. Field/type defaults declared in the
+    // model (RecordField.defaultValue, SimpleTypeDecl.defaultValue) are always constant expressions (this
+    // is enforced by the validator), so they can be rendered directly via #serializeDeclaredDefaultValue;
+    // only when no default was declared do we fall back to the type's hardcoded/recursive default below.
     def static CharSequence generateDefaultValue(TypeObject t, (RecordField)=>Boolean filter) {
         switch (t) {
             SimpleTypeDecl: {
-                if(t.name.equals("int")) return '''0'''
-                if(t.name.equals("real")) return '''0.0'''
-                if(t.name.equals("bool")) return '''true'''
-                if(t.name.equals("string")) return '''""'''
+                val declared = t.defaultValueExpression
+                if (declared !== null) return declared.serializeDeclaredDefaultValue
+                val literal = builtInDefaultLiteral(t.name)
+                if (literal !== null) return literal
+                if(t.base !== null) return generateDefaultValue(t.base, filter)
                 ""
             }
             EnumTypeDecl: serialize(t) + "::" + t.literals.get(0).name
-            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «generateDefaultValue(f.type.typeObject, filter)»«ENDFOR»}'''
+            RecordTypeDecl: '''«serialize(t)»{«FOR f : TypeUtilities::getAllFields(t).filter[filter.apply(it)] SEPARATOR ', '»«f.name» = «f.defaultValueExpression !== null ? f.defaultValueExpression.serializeDeclaredDefaultValue : generateDefaultValue(f.type.typeObject, filter)»«ENDFOR»}'''
             VectorTypeDecl: '''<«serialize(t)»>[]'''
             VectorTypeConstructor: '''<«serialize(t)»>[]'''
             MapTypeDecl: '''<«serialize(t)»>{}'''

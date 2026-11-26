@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.util.EcoreUtil;
 
 import com.google.common.base.Predicates;
 
+import nl.esi.xtext.expressions.expression.Expression;
 import nl.esi.xtext.expressions.expression.TypeAnnotation;
 import nl.esi.xtext.types.types.EnumTypeDecl;
 import nl.esi.xtext.types.types.MapTypeConstructor;
@@ -101,12 +102,15 @@ public class ProposalHelper {
 
 	private static String createDefaultValue(TypeDecl type, String targetName, String indent, Predicate<? super RecordField> filter) throws UnsupportedTypeException {
 		if (type instanceof SimpleTypeDecl simpleType) {
-			if (simpleType.getBase() != null) return createDefaultValue(simpleType.getBase(), targetName, indent, filter);
-			else if (simpleType.getName().equals("int")) return "0";
-			else if (simpleType.getName().equals("real")) return "0.0";
-			else if (simpleType.getName().equals("bool")) return "true";
-			else if (simpleType.getName().equals("string")) return "\"\"";
-			else return "\"\""; // Custom types without base (e.g. type DateTime)
+			// A declared default (e.g. "type AType based on int = 3") always takes precedence over both
+			// the hardcoded built-in literals and recursing into the base type - mirroring
+			// ExpressionsUtilities#createDefaultValue/#generateDefaultValue.
+			Expression declared = ExpressionsUtilities.getDefaultValueExpression(simpleType);
+			if (declared != null) return ExpressionsUtilities.serializeDeclaredDefaultValue(declared).toString();
+			String literal = ExpressionsUtilities.builtInDefaultLiteral(simpleType.getName());
+			if (literal != null) return literal;
+			else if (simpleType.getBase() != null) return createDefaultValue(simpleType.getBase(), targetName, indent, filter);
+			else return "\"\""; // Custom types without base and without declared default (e.g. type DateTime)
 		} else if (type instanceof VectorTypeDecl) {
 			return "[]";
 		} else if (type instanceof EnumTypeDecl enumType) {
@@ -118,17 +122,29 @@ public class ProposalHelper {
 			if (recFields.size() > 1) {
 				String fieldIndent = indent + "\t";
 				String value = recFields.stream()
-					.map(f -> String.format("%s%s = %s", fieldIndent, f.getName(), createDefaultValue(f.getType(), f.getName(), fieldIndent, filter)))
+					.map(f -> String.format("%s%s = %s", fieldIndent, f.getName(), fieldDefaultValue(f, fieldIndent, filter)))
 					.collect(Collectors.joining(",\n"));
 				return String.format("%s {\n%s\n%s}", type.getName(), value, indent);
 			} else {
 				String value = recFields.stream()
-					.map(f -> String.format("%s = %s", f.getName(), createDefaultValue(f.getType(), f.getName(), indent, filter)))
+					.map(f -> String.format("%s = %s", f.getName(), fieldDefaultValue(f, indent, filter)))
 					.collect(Collectors.joining(",\n"));
 				return String.format("%s { %s }", type.getName(), value);
 			}
 		} 
 		
 		throw new UnsupportedTypeException(type);
+	}
+
+	/**
+	 * Returns the default value text for record field {@code f}: its own declared default
+	 * ({@code RecordField.defaultValue}) if present, otherwise falls back to its type's default.
+	 */
+	private static String fieldDefaultValue(RecordField f, String indent, Predicate<? super RecordField> filter) {
+		Expression declared = ExpressionsUtilities.getDefaultValueExpression(f);
+		if (declared != null) {
+			return ExpressionsUtilities.serializeDeclaredDefaultValue(declared).toString();
+		}
+		return createDefaultValue(f.getType(), f.getName(), indent, filter);
 	}
 }

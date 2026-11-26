@@ -36,15 +36,18 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
      * * bool becomes a keyword in the language (see nl.esi.xtext.common.lang.Base)
      * * void has no reference
      * * any becomes a star (*) in nl.esi...exrpessions.xtext#ExpressionAny
-     * * the others are handled via SIMPLE_TYPES_BASE below
+     * * id has no meaningful use as a base type
+     * The remaining built-ins (int, real, string) as well as any user-declared SimpleTypeDecl
+     * (e.g. 'type AType based on int', and in turn 'type BType based on AType') are valid bases;
+     * only self-reference is excluded.
      * */
-    static val SIMPLE_TYPES_BASE = #{'int', 'real', 'string'}
+    static val EXCLUDED_BASE_TYPES = #{'bool', 'void', 'any', 'id'}
 
     override getScope(EObject context, EReference reference) {
         switch (reference) {
             case TypesPackage.Literals.SIMPLE_TYPE_DECL__BASE: {
-                logScope('''Filtering «SIMPLE_TYPES_BASE»''', context, reference)
-                return filterScope(context, reference)[SIMPLE_TYPES_BASE.contains(name.toString)]
+                logScope('''Filtering out «EXCLUDED_BASE_TYPES» and self-reference''', context, reference)
+                return filterScope(context, reference)[!EXCLUDED_BASE_TYPES.contains(name.toString) && EObjectOrProxy !== context]
             }
             case reference.isTypeDeclReference: {
                 val contextType = context.getContextType(reference)

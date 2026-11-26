@@ -29,6 +29,53 @@ class ExpressionValidationTest {
     ParseHelper<ExpressionModel> parseHelper
 
     @Test
+    def void testRecordFieldDefaultValueWrongType() {
+        validateExpectingError('''
+            record R {
+                int a = "x"
+            }
+        ''', "Type mismatch")
+    }
+
+    @Test
+    def void testRecordFieldDefaultValueNotConstant() {
+        validateExpectingError('''
+            record R {
+                int a = 1 + 2
+            }
+        ''', "constant expression")
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValue() {
+        validate('''
+            type AType based on int = 3
+            AType a = 5
+        ''')
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueNegativeConstant() {
+        validate('''
+            type AType based on int = -3
+        ''')
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueWrongType() {
+        validateExpectingError('''
+            type AType based on int = "x"
+        ''', "Type mismatch")
+    }
+
+    @Test
+    def void testSimpleTypeDeclDefaultValueNotConstant() {
+        validateExpectingError('''
+            type AType based on int = 1 + 2
+        ''', "constant expression")
+    }
+
+    @Test
     def void testWildcardExpressionComparison() {
         validate('''
             int someValue = 3
@@ -332,5 +379,23 @@ class ExpressionValidationTest {
         // test serialization
         EcoreUtil3.serialize(result)
 
+    }
+
+    /**
+     * Parses {@code text} (expecting no parse errors) and asserts that {@link EcoreUtil3#validate}
+     * reports a validation error whose message contains {@code expectedMessageFragment}.
+     */
+    private def void validateExpectingError(String text, String expectedMessageFragment) {
+        val result = parseHelper.parse(text)
+
+        Assertions.assertNotNull(result)
+        val errors = result.eResource.errors
+        Assertions.assertTrue(errors.isEmpty, '''Unexpected parsing errors: «errors.join(", ")»''')
+
+        val exception = Assertions.assertThrows(EcoreUtil3.ValidationException) [
+            EcoreUtil3.validate(result)
+        ]
+        Assertions.assertTrue(exception.message.contains(expectedMessageFragment),
+            '''Expected validation error containing "«expectedMessageFragment»" but got: «exception.message»''')
     }
 }

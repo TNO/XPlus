@@ -78,6 +78,31 @@ NamedElement returns base::NamedElement:
     super::NamedElement | Variable | FunctionDecl
 ;
 
+/*
+ * RecordField gets concrete syntax here (Types grammar cannot reference Expression).
+ * NOTE: a defaultValue expression must be self-contained: it cannot refer to other
+ * fields of the same RecordTypeDecl as implicit variables (no such scoping exists).
+ */
+@Override
+RecordField returns types::RecordField:
+    {ExpressionRecordField}
+    Annotations
+    type = Type name = ID ('=' defaultValue=Expression)?
+;
+
+/*
+ * SimpleTypeDecl gets concrete syntax here (Types grammar cannot reference Expression).
+ * This allows e.g. 'type AType based on int = 3', so a simple type can carry a default
+ * value that is used whenever a default value is needed for that type (e.g. as the
+ * default for a RecordField or Variable of this type that doesn't declare its own default).
+ */
+@Override
+SimpleTypeDecl returns types::SimpleTypeDecl:
+    {ExpressionSimpleTypeDecl}
+    Annotations
+    'type' name = ID ('based' 'on' base = [types::SimpleTypeDecl])? ('=' defaultValue=Expression)?
+;
+
 Expression: ExpressionLevel1;
 
 ExpressionLevel1 returns Expression:        // Left associativity
@@ -221,7 +246,7 @@ ExpressionVariable:
 ;
 
 ExpressionRecord: 
-    type = [types::RecordTypeDecl] '{' fields+=Field (',' fields+=Field)* '}'
+    type = [types::RecordTypeDecl] '{' (fields+=Field (',' fields+=Field)*)? '}'
 ;
 
 Field:
