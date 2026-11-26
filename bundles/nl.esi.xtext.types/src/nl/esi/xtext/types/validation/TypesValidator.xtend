@@ -113,6 +113,15 @@ class TypesValidator extends AbstractTypesValidator {
 	def checkDuplicatedRecordFields(RecordTypeDecl type) {
 		checkForNameDuplicationsVerbose(type.fields, "record field", type.name + ".", null)
 	}
+
+	/*
+	 * Constraints:
+	 * - nested type declarations (directly below a record) have unique names
+	 */
+	@Check
+	def checkDuplicatedNestedTypes(RecordTypeDecl type) {
+		checkForNameDuplicationsVerbose(type.types, "nested type", type.name + ".", null)
+	}
 	
 	/*
 	 * Constraints:

@@ -17,6 +17,8 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="RecordTypeDecl" eSuperTypes="#//TypeDecl platform:/resource/nl.esi.xtext.common.lang/model/generated/Base.ecore#//Annotatable">
     <eStructuralFeatures xsi:type="ecore:EReference" name="parent" eType="#//RecordTypeDecl"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="types" upperBound="-1"
+        eType="#//TypeDecl" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="fields" upperBound="-1"
         eType="#//RecordField" containment="true"/>
   </eClassifiers>

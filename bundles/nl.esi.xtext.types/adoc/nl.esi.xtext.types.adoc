@@ -186,6 +186,34 @@ Person p
 p := Person{name = "John", age = 25}
 ....
 
+[maroon]#*Nested Type Declarations*#
+
+A record may declare other type declarations (basic, enumeration, record, vector, or map types) nested inside its body, after its (optional) `extends` clause and before its fields.
+Nested types are always public: they can be referred to from anywhere, both inside and outside the enclosing record, by qualifying their name with the name(s) of their enclosing record(s), separated by dots (e.g. `A.B`). The simple (unqualified) name of a nested type may also be used directly, without the qualification, but only from within the declaration of its enclosing record (or one of its own nested types); from everywhere else the qualified name must be used, even if the simple name happens to be unique across the whole model.
+
+....
+record A {
+    int x
+
+    enum Mode {
+        on
+        off
+    }
+
+    record B {
+        Mode mode
+    }
+
+    B shorthand // also valid here: unqualified shorthand, since B is declared in this same record
+}
+
+record Other {
+    A.B nested // referring to the nested record type B declared in A
+    A.Mode mode // referring to the nested enum type Mode declared in A
+}
+....
+
+
 [maroon]#*Map Types*#
 
 Map types are constructed by giving the types of the keys and values of the map. The key type must be a basic type or enumeration.

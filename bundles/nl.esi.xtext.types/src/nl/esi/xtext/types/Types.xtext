@@ -101,10 +101,19 @@ EnumElement:
     name = ID ('=' value = EIntegerObject)?
 ;
 
+/*
+ * Record type declarations may contain nested (named) type declarations, declared after
+ * any 'extends' clause and before the record's fields. Nested types are always public and
+ * are accessible from outside the record via a qualified name of the form
+ * <RecordName>.<NestedName> (e.g. A.B), or, if unambiguous, via their simple (unqualified) name.
+ */
 RecordTypeDecl:
     Annotations
     'record' name = ID ('extends' parent = [RecordTypeDecl])? 
-    '{' (fields+=RecordField ((',')? fields+=RecordField)*)? '}'
+    '{'
+        types += TypeDecl*
+        (fields+=RecordField ((',')? fields+=RecordField)*)?
+    '}'
 ;   
 
 RecordField:
@@ -138,7 +147,7 @@ Type:
 ;
 
 fragment TypeFR returns Type:
-type = [TypeDecl | ID]
+type = [TypeDecl | QualifiedName]
 ;
 
 MapTypeConstructor :
