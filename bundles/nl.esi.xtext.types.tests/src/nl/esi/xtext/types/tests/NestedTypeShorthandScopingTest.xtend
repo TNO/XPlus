@@ -66,7 +66,7 @@ class NestedTypeShorthandScopingTest {
     }
 
     @Test
-    def void uniqueNestedTypeShorthandResolves() {
+    def void uniqueNestedTypeShorthandOutsideEnclosingRecordDoesNotResolve() {
         val model = parse('''
             record A {
                 record B {
@@ -77,12 +77,10 @@ class NestedTypeShorthandScopingTest {
                 B b
             }
         ''')
-        assertTrue(model.eResource.errors.isEmpty,
-            '''Unexpected errors: «model.eResource.errors.join(", ")»''')
-        val type = model.fieldType('C', 'b')
-        assertNotNull(type.type)
-        assertFalse(type.type.eIsProxy, 'Reference to B should have resolved')
-        assertEquals('B', type.type.name)
+        // Even though B is unique across the whole program, a bare "B" reference from outside
+        // A (its enclosing record) should not resolve via a global-uniqueness shorthand; it
+        // must be qualified as A.B instead.
+        assertFalse(model.eResource.errors.isEmpty, 'Expected a linking error for unqualified B used outside its enclosing record')
     }
 
     @Test

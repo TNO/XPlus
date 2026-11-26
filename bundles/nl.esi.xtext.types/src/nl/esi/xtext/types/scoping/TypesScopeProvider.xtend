@@ -88,14 +88,15 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
 
     /**
      * Allows a nested type (e.g. {@code B} nested in record {@code A}, with fully qualified
-     * name {@code A.B}) to also be referenced by its simple (unqualified) name, provided that
-     * name is unambiguous, i.e. exactly one visible type declaration has that simple name as
-     * the last segment of its fully qualified name. If multiple nested types share the same
-     * simple name, the shorthand instead resolves to the nested type declared in the closest
-     * enclosing record of {@code context} (searching outwards, innermost first), analogous to
-     * how an unqualified nested class name is resolved in languages like Java. Only if no
-     * enclosing record declares a matching nested type either, is the shorthand left out
-     * entirely, requiring the fully qualified name to disambiguate.
+     * name {@code A.B}) to also be referenced by its simple (unqualified) name, but only from
+     * {@code context}s that are themselves (transitively) nested inside the record declaring
+     * that type: the shorthand resolves to the nested type declared in the closest enclosing
+     * record of {@code context} (searching outwards, innermost first), analogous to how an
+     * unqualified nested class name is resolved in languages like Java. There is no shorthand
+     * resolution based on global (file-wide) uniqueness of the simple name: a nested type is
+     * not reachable by its simple name from outside its enclosing record chain, even if that
+     * simple name happens to be unique across the whole program; such references must use the
+     * fully qualified name (e.g. {@code A.B}) instead.
      * <p>
      * Candidates are gathered directly from {@code context}'s resource and its (transitive)
      * imports, rather than via {@link IScope#getAllElements()} on {@code scope}: that method is
@@ -119,7 +120,7 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
             .groupBy[QualifiedName.create(name.lastSegment)]
 
         val List<IEObjectDescription> shorthands = candidatesByName.entrySet.map [
-            val resolved = if (value.size === 1) value.head else context.findEnclosingNestedTypeCandidate(key.lastSegment, value)
+            val resolved = context.findEnclosingNestedTypeCandidate(key.lastSegment, value)
             if (resolved === null) null else new AliasedEObjectDescription(key, resolved) as IEObjectDescription
         ].filterNull.toList
 
