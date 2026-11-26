@@ -13,8 +13,6 @@
 package nl.esi.xtext.types.scoping
 
 import com.google.inject.Inject
-import java.util.ArrayList
-import java.util.LinkedHashMap
 import java.util.List
 import nl.esi.xtext.types.types.RecordTypeDecl
 import nl.esi.xtext.types.types.Type
@@ -68,6 +66,7 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
             case reference.isTypeDeclReference: {
                 val scope = super.getScope(context, reference).withNestedTypeShorthands(context, reference)
                 val contextType = context.getContextType(reference)
+                // Further filter by contextType only when applicable; scope (with shorthands) is returned as-is otherwise
                 if (contextType !== null) {
                     logScope('''Filtering "«TypeUtilities.getTypeName(contextType)»"''', context, reference)
                     return new FilteringScope(scope) [ desc |
@@ -115,26 +114,14 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
         }
         val targetType = reference.EReferenceType
 
-        val candidatesByName = new LinkedHashMap<QualifiedName, List<IEObjectDescription>>()
-        for (desc : resource.nestedTypeCandidates) {
-            if (targetType === null || targetType.isSuperTypeOf(desc.EClass)) {
-                val shortName = QualifiedName.create(desc.name.lastSegment)
-                candidatesByName.computeIfAbsent(shortName, [new ArrayList<IEObjectDescription>()]).add(desc)
-            }
-        }
+        val candidatesByName = resource.nestedTypeCandidates
+            .filter[targetType === null || targetType.isSuperTypeOf(EClass)]
+            .groupBy[QualifiedName.create(name.lastSegment)]
 
-        val shorthands = new ArrayList<IEObjectDescription>()
-        for (entry : candidatesByName.entrySet) {
-            val candidates = entry.value
-            val resolved = if (candidates.size === 1) {
-                candidates.get(0)
-            } else {
-                context.findEnclosingNestedTypeCandidate(entry.key.lastSegment, candidates)
-            }
-            if (resolved !== null) {
-                shorthands.add(new AliasedEObjectDescription(entry.key, resolved))
-            }
-        }
+        val List<IEObjectDescription> shorthands = candidatesByName.entrySet.map [
+            val resolved = if (value.size === 1) value.head else context.findEnclosingNestedTypeCandidate(key.lastSegment, value)
+            if (resolved === null) null else new AliasedEObjectDescription(key, resolved) as IEObjectDescription
+        ].filterNull.toList
 
         return if (shorthands.empty) scope else new SimpleScope(scope, shorthands)
     }
@@ -146,23 +133,19 @@ class TypesScopeProvider extends AbstractTypesScopeProvider {
      * in its (transitive) imports.
      */
     def protected Iterable<IEObjectDescription> nestedTypeCandidates(Resource resource) {
-        val candidates = new ArrayList<IEObjectDescription>()
-
-        resource.allContents.filter(TypeDecl)
+        val localCandidates = resource.allContents.filter(TypeDecl)
             .filter[name !== null && eContainer instanceof RecordTypeDecl]
             .map[EObjectDescription.create(QualifiedName.create(name), it) as IEObjectDescription]
-            .forEach[candidates.add(it)]
+            .toList
 
         val resourceDescriptions = resourceDescriptionsProvider.getResourceDescriptions(resource)
-        val importedURIs = TypesImportUriGlobalScopeProvider.traverseImportedURIs(resource, newLinkedHashSet)
-        importedURIs
+        val importedCandidates = TypesImportUriGlobalScopeProvider.traverseImportedURIs(resource, newLinkedHashSet)
             .map[resourceDescriptions.getResourceDescription(it)]
             .filterNull
             .flatMap[getExportedObjectsByType(TypesPackage.Literals.TYPE_DECL)]
             .filter[name.segmentCount > 1]
-            .forEach[candidates.add(it)]
 
-        return candidates
+        return localCandidates + importedCandidates
     }
 
     /**
