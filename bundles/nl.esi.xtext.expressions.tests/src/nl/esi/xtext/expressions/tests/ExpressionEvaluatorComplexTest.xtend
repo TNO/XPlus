@@ -358,17 +358,19 @@ class ExpressionEvaluatorComplexTest extends ExpressionEvaluatorTestBase {
         assertEval('''
             «types»
             R r = R {
+                a = 3,
                 b = 2
             }
-            int x = 1
-            int y = 2
+            int a = 3
+            int b = 2
         ''', '''
             «types»
             R r = R {
+                a = 3,
                 b = 2
             }
-            int x = r.a
-            int y = r.b
+            int a = r.a
+            int b = r.b
         ''')
     }
 

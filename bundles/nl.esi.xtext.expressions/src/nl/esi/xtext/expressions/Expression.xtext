@@ -233,7 +233,7 @@ ExpressionConstantString:
 ;
 
 ExpressionEnumLiteral: 
-    type = [types::EnumTypeDecl] "::" literal = [types::EnumElement] 
+    type = [types::EnumTypeDecl | QualifiedName] "::" literal = [types::EnumElement] 
 ;
 
 ExpressionNullLiteral:
@@ -246,7 +246,7 @@ ExpressionVariable:
 ;
 
 ExpressionRecord: 
-    type = [types::RecordTypeDecl] '{' (fields+=Field (',' fields+=Field)*)? '}'
+    type = [types::RecordTypeDecl | QualifiedName] '{' (fields+=Field (',' fields+=Field)*)? '}'
 ;
 
 Field:
