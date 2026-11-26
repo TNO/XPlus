@@ -367,6 +367,120 @@ class ExpressionValidationTest {
         ''')
     }
 
+    /*
+     * --- Vector/map type inference (typeAnnotation is now optional - see Expression.xtext/ExpressionsUtilities#typeOf) ---
+     */
+
+    @Test
+    def void testTypeAnnotationStillAccepted() {
+        // Backward compatibility: the explicit '<Type>' annotation in front of a vector/map literal (as
+        // produced by every pre-existing model) must still parse and validate exactly as before.
+        validate('''
+            int[] v = <int[]>[1, 2, 3]
+            int[] empty = <int[]>[]
+            map<int, string> m = <map<int, string>>{1 -> "a", 2 -> "b"}
+            map<int, string> emptyMap = <map<int, string>>{}
+        ''')
+    }
+
+    @Test
+    def void testVectorElementTypeInferredFromLiterals() {
+        validate('''
+            int[] v = [1, 2, 3]
+            real[] r = [1.0, 2.5]
+            string[] s = ["a", "b"]
+            bool[] b = [true, false]
+        ''')
+    }
+
+    @Test
+    def void testMapKeyValueTypesInferredFromLiterals() {
+        validate('''
+            map<int, string> m = {1 -> "a", 2 -> "b"}
+            map<string, real> m2 = {"x" -> 1.0}
+        ''')
+    }
+
+    @Test
+    def void testVectorElementTypeInferredFromCommonRecordSuperType() {
+        // Inference goes through getCommonType (same mechanism as ExpressionNullCoalescing/ExpressionConditional),
+        // so a vector of mixed subtypes infers their common super type, not just identical types.
+        validate('''
+            record A {
+                string a
+            }
+            record B extends A {
+                string b
+            }
+            record C extends A {
+                string c
+            }
+            B b = B { a = "b", b = "b" }
+            C c = C { a = "c", c = "c" }
+            A[] mixed = [b, c]
+        ''')
+    }
+
+    @Test
+    def void testNestedVectorElementTypeInferred() {
+        // The element type itself can be a vector type that is also inferred (recursively, via typeOf).
+        validate('''
+            string[][] listOfLists = [['a','b'], ['c']]
+        ''')
+    }
+
+    @Test
+    def void testEmptyVectorWithTopDownExpectedTypeIsAccepted() {
+        // A VariableDecl's declared type is consulted top-down (see ExpressionsUtilities#expectedTypeOf) when
+        // an empty vector literal has no explicit annotation and nothing to infer bottom-up from, so this is
+        // no longer rejected - see #testEmptyVectorWithoutAnnotationIsRejected for a position where the
+        // expected type is NOT available and the literal is still rejected.
+        validate('''
+            int[] v = []
+        ''')
+    }
+
+    @Test
+    def void testEmptyMapWithTopDownExpectedTypeIsAccepted() {
+        // See #testEmptyVectorWithTopDownExpectedTypeIsAccepted.
+        validate('''
+            map<int, string> m = {}
+        ''')
+    }
+
+    @Test
+    def void testEmptyVectorWithoutAnnotationIsRejected() {
+        // Wrapped in parentheses (ExpressionBracket) so there is no top-down expected type to fall back on
+        // (ExpressionsUtilities#expectedTypeOf does not resolve one through a bracket) - i.e. a position
+        // where the empty literal truly cannot be typed at all, unlike a plain VariableDecl initializer.
+        validateExpectingError('''
+            int[] v = ([])
+        ''', "Cannot infer the type of an empty vector literal")
+    }
+
+    @Test
+    def void testEmptyMapWithoutAnnotationIsRejected() {
+        // See #testEmptyVectorWithoutAnnotationIsRejected.
+        validateExpectingError('''
+            map<int, string> m = ({})
+        ''', "Cannot infer the type of an empty map literal")
+    }
+
+    @Test
+    def void testVectorWithoutCommonElementTypeIsRejected() {
+        // int and string share no common type, so nothing can be inferred without an explicit annotation.
+        validateExpectingError('''
+            int[] v = [1, "a"]
+        ''', "Cannot infer a common element type for the vector literal")
+    }
+
+    @Test
+    def void testMapWithoutCommonValueTypeIsRejected() {
+        validateExpectingError('''
+            map<int, string> m = {1 -> "a", 2 -> 2}
+        ''', "Cannot infer a common type for the map literal's keys/values")
+    }
+
     private def validate(String text) {
         val result = parseHelper.parse(text)
 

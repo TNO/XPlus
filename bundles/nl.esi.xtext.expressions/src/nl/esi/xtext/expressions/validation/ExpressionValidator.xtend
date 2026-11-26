@@ -297,44 +297,66 @@ class ExpressionValidator extends AbstractExpressionValidator {
 				}
 			}
 			ExpressionMap : {
-				if(e.typeAnnotation?.type === null) {return}
-				val mapType = e.typeAnnotation.type
-				if(! mapType.isMapType){
-					error("The type must be a map type", e.typeAnnotation, ExpressionPackage.Literals.TYPE_ANNOTATION__TYPE)
-					return
-				}
-				//check the pairs
-				val keyType = mapType.typeObject.keyType
-				val valueType = mapType.typeObject.valueType
-				for(p : e.pairs){
-					val pairKeyType = p.key.typeOf
-					val pairValueType = p.value.typeOf
-					if(pairKeyType !== null && ! pairKeyType.identical(keyType)){
-						error("Type of expression does not conform to map key type", p, ExpressionPackage.Literals.PAIR__KEY)
+				if(e.typeAnnotation?.type !== null) {
+					val mapType = e.typeAnnotation.type
+					if(! mapType.isMapType){
+						error("The type must be a map type", e.typeAnnotation, ExpressionPackage.Literals.TYPE_ANNOTATION__TYPE)
+						return
 					}
-					if(pairValueType !== null && ! pairValueType.subTypeOf(valueType)){
-						error("Type of expression does not conform to map value type", p, ExpressionPackage.Literals.PAIR__VALUE)
+					//check the pairs
+					val keyType = mapType.typeObject.keyType
+					val valueType = mapType.typeObject.valueType
+					for(p : e.pairs){
+						val pairKeyType = p.key.typeOf
+						val pairValueType = p.value.typeOf
+						if(pairKeyType !== null && ! pairKeyType.identical(keyType)){
+							error("Type of expression does not conform to map key type", p, ExpressionPackage.Literals.PAIR__KEY)
+						}
+						if(pairValueType !== null && ! pairValueType.subTypeOf(valueType)){
+							error("Type of expression does not conform to map value type", p, ExpressionPackage.Literals.PAIR__VALUE)
+						}
 					}
+				} else if(e.pairs.empty) {
+					// Nothing to infer the key/value types from the (absent) pairs; #typeOf may still have
+					// resolved the type top-down from #expectedTypeOf (e.g. 'map<int,int> x = {}'), in which
+					// case there is nothing to report.
+					if (e.typeOf === null) {
+						error("Cannot infer the type of an empty map literal; add an explicit type annotation, e.g. <map<int,int>>{}", e, ExpressionPackage.Literals.EXPRESSION_MAP__PAIRS)
+					}
+				} else if(e.typeOf === null) {
+					// The pairs' keys (resp. values) do not share a common type, so nothing could be inferred.
+					error("Cannot infer a common type for the map literal's keys/values; add an explicit type annotation", e, ExpressionPackage.Literals.EXPRESSION_MAP__PAIRS)
 				}
 			}
 			ExpressionVector : {
-				if(e.typeAnnotation?.type === null) {return}
-				val vectorType = e.typeAnnotation.type
-				if(! isVectorType(vectorType)){
-					error("The type must be a vector type", e.typeAnnotation, ExpressionPackage.Literals.TYPE_ANNOTATION__TYPE)
-					return
-				}
-				val s = getFirstDimension(vectorType.typeObject)
-				if(s > 0 && (e.elements.size != s)){
-					error("Expected size of the vector is " + s, ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS)
-					return
-				}
-				//check the elements
-				val expectedType = getBaseTypeToCheck(vectorType.typeObject)
-				for(el : e.elements){
-					val t = el.typeOf
-					if(t !== null && !t.subTypeOf(expectedType))
-						error("The element does not conform to the base type", ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS, e.elements.indexOf(el))
+				if(e.typeAnnotation?.type !== null) {
+					val vectorType = e.typeAnnotation.type
+					if(! isVectorType(vectorType)){
+						error("The type must be a vector type", e.typeAnnotation, ExpressionPackage.Literals.TYPE_ANNOTATION__TYPE)
+						return
+					}
+					val s = getFirstDimension(vectorType.typeObject)
+					if(s > 0 && (e.elements.size != s)){
+						error("Expected size of the vector is " + s, ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS)
+						return
+					}
+					//check the elements
+					val expectedType = getBaseTypeToCheck(vectorType.typeObject)
+					for(el : e.elements){
+						val t = el.typeOf
+						if(t !== null && !t.subTypeOf(expectedType))
+							error("The element does not conform to the base type", ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS, e.elements.indexOf(el))
+					}
+				} else if(e.elements.empty) {
+					// Nothing to infer the element type from the (absent) elements; #typeOf may still have
+					// resolved the type top-down from #expectedTypeOf (e.g. 'int[] x = []'), in which case
+					// there is nothing to report.
+					if (e.typeOf === null) {
+						error("Cannot infer the type of an empty vector literal; add an explicit type annotation, e.g. <int[]>[]", e, ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS)
+					}
+				} else if(e.typeOf === null) {
+					// The elements do not share a common type, so nothing could be inferred.
+					error("Cannot infer a common element type for the vector literal; add an explicit type annotation", e, ExpressionPackage.Literals.EXPRESSION_VECTOR__ELEMENTS)
 				}
 			}
             ExpressionFunctionCall: {

@@ -48,5 +48,30 @@ class ExpressionParsingTest {
         val txt = EcoreUtil3.serialize(result);
         println(txt)
     }
+
+    @Test
+    def void saveModelVectorWithoutTypeAnnotationRoundTrips() {
+        // The type annotation is optional (inferred - see ExpressionsUtilities#typeOf); when the author
+        // did not write one, the serializer must not reintroduce it either.
+        val input = '''
+        int[] v = [1, 2, 3]'''
+        val result = parseHelper.parse(input)
+        EcoreUtil3.validate(result)
+
+        val txt = EcoreUtil3.serialize(result)
+        Assertions.assertEquals(input, txt)
+    }
+
+    @Test
+    def void saveModelVectorWithTypeAnnotationRoundTrips() {
+        // Backward compatibility: an explicit annotation must still be preserved verbatim on save.
+        val input = '''
+        int[] v = <int[]>[1, 2, 3]'''
+        val result = parseHelper.parse(input)
+        EcoreUtil3.validate(result)
+
+        val txt = EcoreUtil3.serialize(result)
+        Assertions.assertEquals(input, txt)
+    }
     
 }

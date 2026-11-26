@@ -43,7 +43,7 @@ class ActionsParsingTest {
     def void saveModel() {
         val input = '''
         int test = abs(-1)
-        for int i in <int[]>[1,2,3] do test := test + 1 end-for'''
+        for int i in [1,2,3] do test := test + 1 end-for'''
         val result = parseHelper.parse(input)
         EcoreUtil3.validate(result)
 

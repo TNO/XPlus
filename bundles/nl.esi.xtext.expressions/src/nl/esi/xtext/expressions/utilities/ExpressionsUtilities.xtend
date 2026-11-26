@@ -56,9 +56,12 @@ import nl.esi.xtext.expressions.expression.ExpressionSimpleTypeDecl
 import nl.esi.xtext.expressions.expression.ExpressionSubtraction
 import nl.esi.xtext.expressions.expression.ExpressionVariable
 import nl.esi.xtext.expressions.expression.ExpressionVector
+import nl.esi.xtext.expressions.expression.Field
 import nl.esi.xtext.expressions.expression.NamedArgument
+import nl.esi.xtext.expressions.expression.Pair
 import nl.esi.xtext.expressions.expression.ParameterizedDecl
 import nl.esi.xtext.expressions.expression.ParameterizedRef
+import nl.esi.xtext.expressions.expression.VariableDecl
 import nl.esi.xtext.types.BasicTypes
 import nl.esi.xtext.types.types.EnumTypeDecl
 import nl.esi.xtext.types.types.GenericsTypeParam
@@ -239,8 +242,20 @@ class ExpressionsUtilities {
             ExpressionRecordAccess : e.field?.type?.typeObject
             ExpressionAny : BasicTypes.getAnyType(e)
             ExpressionFunctionCall : e.inferActualReturnType.typeObject
-            ExpressionVector : e.typeAnnotation?.type?.typeObject
-            ExpressionMap : e.typeAnnotation?.type?.typeObject
+            // The type annotation ('<Type>') is optional on a vector/map literal (see Expression.xtext):
+            // when omitted, the element type (resp. key/value types) is inferred from the literal's
+            // elements/pairs instead - see #inferCommonType/#inferMapType below. For an EMPTY literal
+            // there is nothing to infer from bottom-up, so #expectedTypeOf is consulted instead - the
+            // top-down type known from wherever the literal is used (e.g. a VariableDecl's declared
+            // type for 'int[] x = []'). Note this fallback is deliberately NOT used when elements/pairs
+            // are non-empty but share no common type: in that case null must stay null so the "no common
+            // type" validation error still fires, rather than silently accepting the expected type.
+            ExpressionVector : e.typeAnnotation?.type?.typeObject ?: (
+                if (e.elements.empty) e.expectedTypeOf else e.elements.inferCommonType?.asTypeDecl?.vectorOf
+            )
+            ExpressionMap : e.typeAnnotation?.type?.typeObject ?: (
+                if (e.pairs.empty) e.expectedTypeOf else e.inferMapType
+            )
             ExpressionMapRW : {
                 val t = e.map.typeOf
                 if(t !== null && t.mapType)
@@ -436,6 +451,103 @@ class ExpressionsUtilities {
                 return null
             }
             default : null
+        }
+    }
+
+    /**
+     * Folds the types of {@code expressions} (in order) through {@link TypeUtilities#getCommonType}, so the
+     * result is a type every one of them is assignable to - or {@code null} if {@code expressions} is empty,
+     * any of them has no determinable type, or they do not share a common type at all. Used to infer the
+     * element type of an {@link ExpressionVector} (resp. key/value types of an {@link ExpressionMap}) whose
+     * {@code typeAnnotation} was omitted - see {@link #typeOf}.
+     */
+    private def static TypeObject inferCommonType(List<Expression> expressions) {
+        if (expressions.empty) return null
+        return expressions.map[typeOf].reduce[t1, t2 | t1.getCommonType(t2)]
+    }
+
+    /**
+     * Infers the type of an {@link ExpressionMap} with no {@code typeAnnotation} from its {@code pairs}:
+     * the common type (see {@link #inferCommonType}) of all keys, resp. of all values. Returns {@code null}
+     * if {@code pairs} is empty or either side has no common type.
+     */
+    private def static TypeObject inferMapType(ExpressionMap e) {
+        val keyType = e.pairs.map[key].inferCommonType
+        val valueType = e.pairs.map[value].inferCommonType
+        if (keyType === null || valueType === null) return null
+        return mapOf(keyType.asTypeDecl, valueType.asTypeDecl)
+    }
+
+    /**
+     * Returns the type expected of {@code e} from the position it occurs in - the "top-down" type known
+     * from {@code e}'s container, independent of {@code e}'s own content - or {@code null} if {@code e}
+     * occurs in a position with no statically known expected type (e.g. a plain operand of a binary
+     * expression, where either side could in principle be any type).
+     * <p>
+     * Used by {@link #typeOf} as a last-resort fallback for an EMPTY {@link ExpressionVector}/
+     * {@link ExpressionMap} with no {@code typeAnnotation} (e.g. {@code int[] x = []}): there is nothing
+     * to infer bottom-up from zero elements/pairs, so the expected type - coming from wherever the
+     * literal is actually used - is the only type information available at all.
+     * <p>
+     * Covers the positions where this situation can actually arise: a {@link VariableDecl}'s initializer,
+     * a declared default value ({@code ExpressionRecordField}/{@code ExpressionSimpleTypeDecl}), a
+     * {@link Field}'s value inside a record literal, a {@link Pair}'s key/value inside an explicitly
+     * annotated map literal, an element inside an explicitly annotated vector literal, and a (non-generic)
+     * function call argument.
+     * <p>
+     * Deliberately does NOT recurse into a not-yet-typed sibling element/pair to find the expected type
+     * (e.g. inferring an empty vector's type from a sibling vector's own inferred - rather than
+     * explicitly annotated - type): doing so could cycle back into computing {@code e}'s own type, since
+     * that sibling's inference may in turn depend on {@code e}.
+     */
+    def static TypeObject expectedTypeOf(Expression e) {
+        if (e === null) return null
+        return switch (container : e.eContainer) {
+            VariableDecl case container.expression === e:
+                container.variable?.type?.typeObject
+
+            ExpressionRecordField case container.defaultValue === e:
+                container.type?.typeObject
+
+            ExpressionSimpleTypeDecl case container.defaultValue === e:
+                container
+
+            Field case container.exp === e:
+                container.recordField?.type?.typeObject
+
+            Pair case container.eContainer instanceof ExpressionMap: {
+                val mapType = (container.eContainer as ExpressionMap).typeAnnotation?.type?.typeObject
+                if (container.value === e) mapType?.valueType
+                else if (container.key === e) mapType?.keyType
+                else null
+            }
+
+            ExpressionVector case container.elements.contains(e): {
+                val vectorType = container.typeAnnotation?.type?.typeObject
+                if (vectorType !== null && vectorType.vectorType) vectorType.elementType else null
+            }
+
+            ParameterizedRef case container.args.contains(e): {
+                val decl = container.parameterizedDecl
+                val idx = container.args.indexOf(e)
+                if (decl !== null && !decl.eIsProxy && idx >= 0 && idx < decl.params.size) {
+                    val paramType = decl.params.get(idx).type
+                    if (paramType.genericsTypeParams.empty) paramType.typeObject else null
+                } else null
+            }
+
+            NamedArgument case container.arg === e && container.eContainer instanceof ParameterizedRef: {
+                val decl = (container.eContainer as ParameterizedRef).parameterizedDecl
+                if (decl !== null && !decl.eIsProxy) {
+                    val paramIdx = decl.params.map[name].indexOf(container.name)
+                    if (paramIdx >= 0) {
+                        val paramType = decl.params.get(paramIdx).type
+                        if (paramType.genericsTypeParams.empty) paramType.typeObject else null
+                    } else null
+                } else null
+            }
+
+            default: null
         }
     }
 
