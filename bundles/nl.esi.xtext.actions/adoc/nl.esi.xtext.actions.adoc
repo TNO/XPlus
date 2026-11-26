@@ -51,7 +51,7 @@ end-for
 Examples:
 
 ....
-int[] numbers = <int[]>[1, 2, 3]
+int[] numbers = [1, 2, 3]
 int total
 for int n in numbers
     do
@@ -128,7 +128,7 @@ Examples:
 
 ....
 function int sum(int[] values)
-int[] data = <int[]>[1, 2, 3]
+int[] data = [1, 2, 3]
 sum(data)
 ....
 

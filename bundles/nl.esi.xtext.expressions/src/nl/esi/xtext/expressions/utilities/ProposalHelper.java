@@ -67,6 +67,27 @@ public class ProposalHelper {
 		return createDefaultValue(type, targetName, "", filter);
 	}
 
+	/**
+	 * Same as {@link #defaultValue(Type, String)}, but - unlike it - never prefixes a vector/map default
+	 * (e.g. {@code []}/{@code {}}) with an explicit {@code <Type>} annotation, even when {@code type}
+	 * itself is a {@link VectorTypeConstructor}/{@link MapTypeConstructor}. Intended for callers that
+	 * already know {@code type} is exactly the type expected at the insertion point (e.g. content assist
+	 * proposing a record field's/vector element's/map value's default, where that expected type is the
+	 * very reason {@code type} was passed in) - the annotation would be redundant there, since
+	 * {@code ExpressionsUtilities#typeOf} (via {@code #expectedTypeOf}) infers it top-down anyway. See
+	 * <<Type Annotation for Vectors and Maps>> (nl.esi.xtext.expressions.adoc).
+	 */
+	public static String defaultValueOmittingAnnotation(Type type, String targetName) throws UnsupportedTypeException {
+		return createDefaultValueEntry(type, targetName, "", Predicates.alwaysTrue());
+	}
+
+	/**
+	 * @see #defaultValueOmittingAnnotation(Type, String)
+	 */
+	public static String defaultValueOmittingAnnotation(Type type, String targetName, Predicate<? super RecordField> filter) throws UnsupportedTypeException {
+		return createDefaultValueEntry(type, targetName, "", filter);
+	}
+
 	private static String createDefaultValue(Type type, String targetName, String indent, Predicate<? super RecordField> filter) throws UnsupportedTypeException {
 		if (type instanceof TypeReference) {
 			return createDefaultValueEntry(type, targetName, indent, filter);

@@ -13,17 +13,18 @@
 package nl.esi.xtext.expressions.ide.contentassist
 
 import com.google.inject.Inject
+import nl.esi.xtext.expressions.expression.Expression
 import nl.esi.xtext.expressions.expression.ExpressionMap
 import nl.esi.xtext.expressions.expression.ExpressionVector
 import nl.esi.xtext.expressions.expression.Field
 import nl.esi.xtext.expressions.expression.Pair
-import nl.esi.xtext.expressions.expression.TypeAnnotation
 import nl.esi.xtext.expressions.services.ExpressionGrammarAccess
+import nl.esi.xtext.expressions.utilities.ExpressionsUtilities
 import nl.esi.xtext.expressions.utilities.ProposalHelper
 import nl.esi.xtext.expressions.utilities.UnsupportedTypeException
 import nl.esi.xtext.types.types.EnumTypeDecl
-import nl.esi.xtext.types.types.MapTypeConstructor
 import nl.esi.xtext.types.types.Type
+import nl.esi.xtext.types.types.TypeObject
 import nl.esi.xtext.types.types.TypeReference
 import nl.esi.xtext.types.utilities.TypeUtilities
 import org.eclipse.xtext.Assignment
@@ -53,16 +54,18 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
                 createDefaultValue(object.recordField.type, object.recordField.name, context, acceptor)
             }
             ExpressionVector case feature == 'elements': {
-                createDefaultValueEntry(object.typeAnnotation, null, context, acceptor)
+                createDefaultValueForElementOrKey(object, context, acceptor)
             }
             ExpressionMap case feature == 'key': {
-                createDefaultValueEntry(object.typeAnnotation, null, context, acceptor)
+                createDefaultValueForElementOrKey(object, context, acceptor)
             }
             Pair case feature == 'value': {
                 val container = object.eContainer
                 if (container instanceof ExpressionMap) {
-                    val mapType = container.typeAnnotation.type as MapTypeConstructor
-                    createDefaultValue(mapType.valueType, null, context, acceptor)
+                    val valueType = TypeUtilities.getValueType(ExpressionsUtilities.typeOf(container))
+                    if (valueType !== null) {
+                        createDefaultValue(TypeUtilities.asType(valueType), null, context, acceptor)
+                    }
                 }
             }
         }
@@ -80,31 +83,24 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         super._createProposals(ruleCall, context, acceptor)
     }
 
-    protected def createDefaultValueEntry(TypeAnnotation typeAnn, String targetName, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {
-        val typeObj = TypeUtilities.getTypeObject(typeAnn.type)
-        if (TypeUtilities::isVectorType(typeObj) && TypeUtilities::getElementType(typeObj) instanceof EnumTypeDecl) {
-            createEnumValues(TypeUtilities::getElementType(typeObj) as EnumTypeDecl, context, acceptor)
-            return;
+    /**
+     * Proposes a default value for the next element of {@code vectorOrMap} - an {@link ExpressionVector}'s
+     * next {@code elements} entry, resp. an {@link ExpressionMap}'s next {@code key}: the element type
+     * (resp. key type) of its type, whether explicitly annotated or inferred from already-typed
+     * elements/pairs when {@code typeAnnotation} was omitted (see {@link ExpressionsUtilities#typeOf}).
+     * Proposes nothing (rather than failing) when the type cannot be determined yet - e.g. the first
+     * element of a not-yet-annotated literal, where there is nothing to infer from.
+     */
+    protected def createDefaultValueForElementOrKey(Expression vectorOrMap, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {
+        val containerType = ExpressionsUtilities.typeOf(vectorOrMap)
+        val TypeObject elementOrKeyType = if (TypeUtilities.isVectorType(containerType)) {
+            TypeUtilities.getElementType(containerType)
+        } else if (TypeUtilities.isMapType(containerType)) {
+            TypeUtilities.getKeyType(containerType)
         }
-
-        try {
-            val defaultValue = createDefaultValueEntry(typeAnn, targetName, context)
-            val proposal = proposalCreator.createProposal(defaultValue, context, [ entry |
-                entry.kind = ContentAssistEntry.KIND_SNIPPET
-                entry.label = ProposalHelper.getTypeName(typeAnn)
-                entry.description = 'Default Value'
-                entry.documentation = defaultValue
-            ])
-            if (proposal !== null) {
-                acceptor.accept(proposal, TEMPLATE_DEFAULT_PRIORITY);
-            }
-        } catch (UnsupportedTypeException e) {
-            // Ignore
+        if (elementOrKeyType !== null) {
+            createDefaultValue(TypeUtilities.asType(elementOrKeyType), null, context, acceptor)
         }
-    }
-
-    protected def String createDefaultValueEntry(TypeAnnotation typeAnn, String targetName, ContentAssistContext context) {
-        return ProposalHelper.defaultValue(typeAnn, targetName)
     }
 
     protected def createDefaultValue(Type type, String targetName, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {
@@ -129,8 +125,16 @@ class ExpressionIdeProposalProvider extends AbstractExpressionIdeProposalProvide
         }
     }
 
+    /**
+     * Every call site in this class ({@code _createProposals(Assignment, ...)},
+     * {@link #createDefaultValueForElementOrKey}) passes a {@code type} that is already exactly the type
+     * expected at the insertion point (record field type, vector/map element/key type, map value type) -
+     * that is precisely why it was resolved and passed in. So a top-level {@code <Type>} annotation would
+     * be redundant on a vector/map default ({@code []}/{@code {}}): omit it, per
+     * {@link ProposalHelper#defaultValueOmittingAnnotation}.
+     */
     protected def String createDefaultValueEntry(Type type, String targetName, ContentAssistContext context) {
-        return ProposalHelper.defaultValue(type, targetName)
+        return ProposalHelper.defaultValueOmittingAnnotation(type, targetName)
     }
 
     protected def createEnumValues(EnumTypeDecl type, ContentAssistContext context, IIdeContentProposalAcceptor acceptor) {

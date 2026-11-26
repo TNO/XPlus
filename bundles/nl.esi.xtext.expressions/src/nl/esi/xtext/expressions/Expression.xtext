@@ -257,9 +257,41 @@ ExpressionAny :
     {ExpressionAny} "*"
 ;
 
+/*
+ * The type annotation ('<Type>') used to be mandatory in front of a vector/map literal. It is now optional:
+ * the element type (resp. key/value types) can be inferred from the literal's elements/pairs when omitted
+ * (see ExpressionsUtilities#typeOf). An explicit annotation is still accepted (and required for an empty
+ * literal, since there is nothing to infer from), keeping this change backward compatible.
+ *
+ * NOTE: this is split into two top-level alternatives - one starting with a mandatory TypeAnnotation, one
+ * without any annotation at all - rather than wrapping a single shared "(TypeAnnotation)?" prefix. Two
+ * reasons, both stemming from Type being recursive (vector/map type constructors reference Type again):
+ *   1. Two separate ExpressionVector/ExpressionMap alternatives (e.g. directly in ExpressionLevel9), each
+ *      independently starting with "(TypeAnnotation)?", make it impossible for ANTLR to decide - with
+ *      bounded lookahead - which alternative to enter whenever the annotation is present ("non-LL(*)
+ *      decision ... due to recursive rule invocations"): both alternatives start with the same optional,
+ *      arbitrarily deep '<Type>' before diverging on '[' vs '{'.
+ *   2. A single merged rule with one shared "(TypeAnnotation)?" prefix followed by
+ *      "{ExpressionVector.typeAnnotation=current} '[' ..." avoids that ambiguity (ANTLR-wise), but is
+ *      rejected by the Xtext grammar validator instead: that action idiom - reusing the TypeAnnotation
+ *      parsed by the *preceding unassigned rule call* as the new object's typeAnnotation - requires
+ *      "current" to already hold that TypeAnnotation instance, which isn't guaranteed once the call is
+ *      optional ("An action is not allowed ... when the current may still be unassigned").
+ * Splitting on the fixed, single-token FIRST set of TypeAnnotation ('<') vs. of the bare literal ('[' or
+ * '{') sidesteps both problems: choosing between the two top-level alternatives only ever needs 1 token
+ * of lookahead (no recursion into Type), and each alternative internally keeps "current" well-defined -
+ * either always set (TypeAnnotation parsed unconditionally first, so the current-reusing action idiom
+ * applies) or never referenced (plain {ExpressionVector}/{ExpressionMap} instantiation action).
+ */
 ExpressionTypeAnnotated returns Expression:
-    TypeAnnotation( ({ExpressionVector.typeAnnotation = current} '[' (elements += Expression (',' elements += Expression)*)? ']') |
-                    ({ExpressionMap.typeAnnotation = current} '{' (pairs += Pair (',' pairs += Pair)*)? '}'))
+    TypeAnnotation
+    ( {ExpressionVector.typeAnnotation=current} '[' (elements += Expression (',' elements += Expression)*)? ']'
+    | {ExpressionMap.typeAnnotation=current} '{' (pairs += Pair (',' pairs += Pair)*)? '}'
+    )
+  |
+    ( {ExpressionVector} '[' (elements += Expression (',' elements += Expression)*)? ']'
+    | {ExpressionMap} '{' (pairs += Pair (',' pairs += Pair)*)? '}'
+    )
 ;
 
 TypeAnnotation :
