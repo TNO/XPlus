@@ -64,7 +64,7 @@
   <setupTask
       xsi:type="setup:VariableTask"
       name="eclipse.target.platform"
-      value="2024-09"
+      value="2026-09"
       storageURI="scope://Workspace"/>
   <setupTask
       xsi:type="setup.p2:P2Task">
@@ -365,8 +365,6 @@
       <requirement
           name="org.eclipse.sdk.feature.group"/>
       <requirement
-          name="org.eclipse.pde.source.feature.group"/>
-      <requirement
           name="org.eclipse.xtext.sdk.feature.group"/>
       <requirement
           name="de.itemis.xtext.antlr.feature.feature.group"/>
@@ -378,11 +376,11 @@
           rootFolder="${git.clone.XPlus.location}"
           locateNestedProjects="true"/>
       <repositoryList
-          name="2024-09">
+          name="2026-09">
         <repository
-            url="https://download.eclipse.org/releases/2024-09"/>
+            url="https://download.eclipse.org/releases/2026-09"/>
         <repository
-            url="https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/2024-09"/>
+            url="https://download.eclipse.org/tools/orbit/simrel/orbit-aggregation/2026-09"/>
         <repository
             url="https://download.eclipse.org/justj/jres/21/updates/release/latest"/>
         <repository

@@ -18,7 +18,7 @@ import nl.esi.xtext.actions.actions.RecordFieldAssignmentAction
 import nl.esi.xtext.expressions.utilities.ExpressionsComparator
 
 class ActionsComparator extends ExpressionsComparator{
-	
+	 
 	def dispatch boolean compare(AssignmentAction act1, AssignmentAction act2){
 		act1.assignment.sameAs(act2.assignment) && act1.exp.sameAs(act2.exp)
 	}
